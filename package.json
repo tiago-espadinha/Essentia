@@ -1,0 +1,21 @@
+{
+  "name": "essentia",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "preview": "pnpm build && vite preview --outDir dist --port 4173"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "vite": "catalog:"
+  }
+}

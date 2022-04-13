@@ -1,0 +1,125 @@
+/*
+ * Essentia design tokens: the single source for colour, type, spacing,
+ * radius, elevation and motion. Approved in docs/DESIGN_DIRECTION.md.
+ *
+ * Theme: set data-theme="dark" | "light" on <html>; without it the system
+ * preference applies. The choice is stored under "essentia-theme" and is
+ * shared by every app (same origin).
+ * Contrast ratios in comments are against --color-sand / --color-paper.
+ */
+:root {
+  /* Type */
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-reading: 'Lora', Georgia, serif; /* Folio editor body only */
+
+  --text-2xs: 11px;  /* mono labels, uppercase; the minimum size */
+  --text-xs: 12px;
+  --text-sm: 14px;   /* UI body */
+  --text-md: 16px;   /* reading body */
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;  /* display, serif */
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --leading-reading: 1.7;
+  --tracking-label: 0.08em;
+
+  /* Colour, light */
+  --color-sand: #F2EDE6;        /* background */
+  --color-paper: #EDE8E0;       /* surface */
+  --color-ink: #2A2520;         /* text, 13.0 */
+  --color-mid: #6F665D;         /* muted text, 4.8 / 4.6 */
+  --color-faint: #DDD8D0;       /* decorative lines only */
+  --color-line-strong: #8A8076; /* input and control borders, 3.3 / 3.2 */
+  --color-terracotta: #B8572A;  /* accent fill; white text on it 4.7 */
+  --color-on-accent: #FFFFFF;
+  --color-accent-text: #A24B23; /* accent text and links, 5.1 / 4.8 */
+  --color-success: #3F6B4C;     /* 5.3 / 5.0 */
+  --color-danger: #B23F3F;      /* 4.9 / 4.7 */
+
+  --color-accent: var(--color-terracotta);
+  --color-focus: var(--color-accent-text);
+
+  /* Spacing, 4px base */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* Layout */
+  --width-column: 520px; /* Acta, Virtus, Aurum */
+  --width-hub: 640px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+
+  /* Elevation: flat by default; one shadow for popovers and dialogs */
+  --shadow-overlay: 0 8px 24px rgba(42, 37, 32, 0.14);
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease: ease;
+
+  /* Signature: paper grain, applied by body::before in every app */
+  --grain-opacity: 0.04;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-sand: #1A1816;
+    --color-paper: #222019;
+    --color-ink: #E8E3DC;        /* 13.9 */
+    --color-mid: #9A9087;        /* 5.7 / 5.2 */
+    --color-faint: #2F2C28;
+    --color-line-strong: #7A7168; /* 3.7 / 3.4 */
+    --color-terracotta: #D4764A;
+    --color-on-accent: #1A1816;  /* 5.5 */
+    --color-accent-text: #D4764A; /* 5.5 / 5.0 */
+    --color-success: #6AAF7D;    /* 6.8 / 6.2 */
+    --color-danger: #E06060;     /* 5.1 / 4.7 */
+    --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --grain-opacity: 0;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-sand: #1A1816;
+  --color-paper: #222019;
+  --color-ink: #E8E3DC;
+  --color-mid: #9A9087;
+  --color-faint: #2F2C28;
+  --color-line-strong: #7A7168;
+  --color-terracotta: #D4764A;
+  --color-on-accent: #1A1816;
+  --color-accent-text: #D4764A;
+  --color-success: #6AAF7D;
+  --color-danger: #E06060;
+  --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --grain-opacity: 0;
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+  }
+}

@@ -1,0 +1,5 @@
+/*
+ * The suite's fonts, defined once. Lora (Folio's editor) is loaded by Folio
+ * itself so the other apps don't download it.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');

@@ -66,6 +66,8 @@ importers:
         specifier: 'catalog:'
         version: 8.71.2(eslint@10.12.0)(typescript@6.0.3)
 
+  packages/tokens: {}
+
 packages:
 
   '@babel/code-frame@7.29.7':

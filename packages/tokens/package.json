@@ -1,0 +1,13 @@
+{
+  "name": "@essentia/tokens",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.css",
+    "./index.css": "./index.css",
+    "./tokens.css": "./tokens.css",
+    "./base.css": "./base.css",
+    "./fonts.css": "./fonts.css"
+  }
+}

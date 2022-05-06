@@ -1,0 +1,7 @@
+{
+  "extends": "@essentia/config/tsconfig.node.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/config"]
+  },
+  "include": ["vite.config.ts"]
+}

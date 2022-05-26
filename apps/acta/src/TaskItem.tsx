@@ -1,15 +1,33 @@
-import { formatDue, isOverdue, type Task } from './tasks'
+import { TaskEditor } from './TaskEditor'
+import { formatDue, isOverdue, type Task, type TaskDraft } from './tasks'
 
 interface TaskItemProps {
   task: Task
   today: string
+  categories: string[]
+  editing: boolean
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  onEdit: (id: string | null) => void
+  onSave: (id: string, draft: TaskDraft) => void
 }
 
-export function TaskItem({ task, today, onToggle, onDelete }: TaskItemProps) {
+export function TaskItem({ task, today, categories, editing, onToggle, onDelete, onEdit, onSave }: TaskItemProps) {
   const textId = `task-${task.id}`
   const overdue = isOverdue(task, today)
+
+  if (editing) {
+    return (
+      <li className="task task--editing">
+        <TaskEditor
+          task={task}
+          categories={categories}
+          onSave={(draft) => onSave(task.id, draft)}
+          onCancel={() => onEdit(null)}
+        />
+      </li>
+    )
+  }
 
   return (
     <li className="task">
@@ -35,6 +53,9 @@ export function TaskItem({ task, today, onToggle, onDelete }: TaskItemProps) {
         </p>
       </div>
       <div className="task__actions">
+        <button type="button" className="task__action" onClick={() => onEdit(task.id)}>
+          Edit<span className="visually-hidden"> “{task.text}”</span>
+        </button>
         <button type="button" className="task__action" onClick={() => onDelete(task.id)}>
           Delete<span className="visually-hidden"> “{task.text}”</span>
         </button>

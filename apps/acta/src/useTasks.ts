@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { loadTasks, saveTasks } from './storage'
-import { createTask, type Task } from './tasks'
+import { applyDraft, createTask, type Task, type TaskDraft } from './tasks'
 
 /** The task list, saved to this device on every change. */
 export function useTasks() {
@@ -19,5 +19,7 @@ export function useTasks() {
     toggle: (id: string) =>
       commit(tasks.map((task) => (task.id === id ? { ...task, completed: !task.completed } : task))),
     remove: (id: string) => commit(tasks.filter((task) => task.id !== id)),
+    update: (id: string, draft: TaskDraft) =>
+      commit(tasks.map((task) => (task.id === id ? (applyDraft(task, draft) ?? task) : task))),
   }
 }

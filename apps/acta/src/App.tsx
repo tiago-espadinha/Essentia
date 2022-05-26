@@ -1,16 +1,23 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { AddTask } from './AddTask'
 import { AppHeader } from './AppHeader'
 import { Hero } from './Hero'
 import { TaskItem } from './TaskItem'
-import { progressOf, todayIso } from './tasks'
+import { categoriesOf, progressOf, todayIso, type TaskDraft } from './tasks'
 import { useTasks } from './useTasks'
 
 export default function App() {
-  const { tasks, saveFailed, add, toggle, remove } = useTasks()
+  const { tasks, saveFailed, add, toggle, remove, update } = useTasks()
+  const [editingId, setEditingId] = useState<string | null>(null)
   const addInput = useRef<HTMLInputElement>(null)
+  const categories = categoriesOf(tasks)
   const today = todayIso()
   const remaining = tasks.filter((task) => !task.completed).length
+
+  function save(id: string, draft: TaskDraft) {
+    update(id, draft)
+    setEditingId(null)
+  }
 
   return (
     <>
@@ -46,7 +53,17 @@ export default function App() {
             </div>
             <ul className="tasks">
               {tasks.map((task) => (
-                <TaskItem key={task.id} task={task} today={today} onToggle={toggle} onDelete={remove} />
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  today={today}
+                  categories={categories}
+                  editing={task.id === editingId}
+                  onToggle={toggle}
+                  onDelete={remove}
+                  onEdit={setEditingId}
+                  onSave={save}
+                />
               ))}
             </ul>
           </section>

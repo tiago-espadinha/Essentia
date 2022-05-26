@@ -1,6 +1,7 @@
+import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { STORAGE_KEY } from './storage'
-import { $, addTask, buttonNamed, click, renderApp, setupApp, submit, taskTexts, unmount } from './testing'
+import { $, addTask, buttonNamed, click, renderApp, setupApp, submit, taskTexts, type, unmount } from './testing'
 
 setupApp()
 
@@ -79,5 +80,67 @@ describe('Acta', () => {
 
     expect($('[role="alert"]').textContent).toMatch(/Couldn’t save on this device/)
     expect(taskTexts()).toEqual(['Unsaved'])
+  })
+})
+
+describe('editing a task', () => {
+  function field(label: string): HTMLInputElement {
+    const labelElement = [...document.querySelectorAll('.editor label')].find((l) => l.textContent === label)
+    return document.getElementById(labelElement!.getAttribute('for')!) as HTMLInputElement
+  }
+
+  it('saves text, category and due date', () => {
+    renderApp()
+    addTask('Draft')
+    click(buttonNamed('Edit “Draft”'))
+    expect(document.activeElement).toBe(field('Task'))
+
+    type(field('Task'), 'Final')
+    type(field('Category'), 'Design')
+    type(field('Due date'), '2999-05-28')
+    submit($<HTMLFormElement>('form.editor'))
+
+    expect(taskTexts()).toEqual(['Final'])
+    expect($('.task__tag').textContent).toBe('Design')
+    expect($('time').getAttribute('datetime')).toBe('2999-05-28')
+    expect($('time').textContent).toBe('May 28')
+  })
+
+  it('marks an open task with a past due date as overdue', () => {
+    renderApp()
+    addTask('Late')
+    click(buttonNamed('Edit “Late”'))
+    type(field('Due date'), '2000-01-01')
+    submit($<HTMLFormElement>('form.editor'))
+
+    expect($('.task__due--over').textContent).toBe('Overdue · Jan 1')
+  })
+
+  it('refuses empty text and keeps the editor open', () => {
+    renderApp()
+    addTask('Keep me')
+    click(buttonNamed('Edit “Keep me”'))
+    type(field('Task'), '  ')
+    submit($<HTMLFormElement>('form.editor'))
+
+    expect(field('Task').getAttribute('aria-invalid')).toBe('true')
+    expect(document.querySelector('.field-error')?.textContent).toBe('A task needs some text.')
+  })
+
+  it('cancels with the button or Escape without saving', () => {
+    renderApp()
+    addTask('Original')
+    click(buttonNamed('Edit “Original”'))
+    type(field('Task'), 'Changed')
+    click(buttonNamed('Cancel'))
+    expect(taskTexts()).toEqual(['Original'])
+
+    click(buttonNamed('Edit “Original”'))
+    type(field('Task'), 'Changed')
+    act(() => {
+      field('Task').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    })
+    expect(document.querySelector('form.editor')).toBeNull()
+    expect(taskTexts()).toEqual(['Original'])
   })
 })

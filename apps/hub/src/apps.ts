@@ -8,4 +8,12 @@ export interface SuiteApp {
   port: number
 }
 
-export const suiteApps: SuiteApp[] = []
+export const suiteApps: SuiteApp[] = [
+  {
+    name: 'Acta',
+    path: '/acta/',
+    latin: 'things done',
+    description: 'Tasks with categories, due dates and filters.',
+    port: 5102,
+  },
+]

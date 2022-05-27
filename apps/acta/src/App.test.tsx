@@ -144,3 +144,74 @@ describe('editing a task', () => {
     expect(taskTexts()).toEqual(['Original'])
   })
 })
+
+describe('filtering tasks', () => {
+  function seed() {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { id: '1', text: 'Sketch', completed: false, category: 'Design', due: '' },
+        { id: '2', text: 'Ship', completed: true, category: 'Work', due: '' },
+        { id: '3', text: 'Review', completed: false, category: 'Work', due: '' },
+      ]),
+    )
+    renderApp()
+  }
+
+  it('shows active or done tasks', () => {
+    seed()
+    click(buttonNamed('Active'))
+    expect(taskTexts()).toEqual(['Sketch', 'Review'])
+    expect(buttonNamed('Active').getAttribute('aria-pressed')).toBe('true')
+    expect($('#list-title').textContent).toBe('Active')
+
+    click(buttonNamed('Done'))
+    expect(taskTexts()).toEqual(['Ship'])
+  })
+
+  it('combines a category with the status, and toggles the category off', () => {
+    seed()
+    click(buttonNamed('Work'))
+    expect(taskTexts()).toEqual(['Ship', 'Review'])
+    expect($('#list-title').textContent).toBe('All · Work')
+
+    click(buttonNamed('Active'))
+    expect(taskTexts()).toEqual(['Review'])
+
+    click(buttonNamed('Work'))
+    expect(taskTexts()).toEqual(['Sketch', 'Review'])
+  })
+
+  it('shows a filtered empty state that resets the filters', () => {
+    seed()
+    click(buttonNamed('Done'))
+    click(buttonNamed('Design'))
+    expect(taskTexts()).toEqual([])
+    expect($('.empty--filtered .empty__title').textContent).toBe('Nothing matches.')
+
+    click(buttonNamed('Show all tasks'))
+    expect(taskTexts()).toEqual(['Sketch', 'Ship', 'Review'])
+  })
+
+  it('drops a category filter once only one category is left', () => {
+    seed()
+    click(buttonNamed('Design'))
+    click(buttonNamed('Edit “Sketch”'))
+    const category = document.querySelector<HTMLInputElement>('.editor input[list]')!
+    type(category, 'Work')
+    submit($<HTMLFormElement>('form.editor'))
+    expect(document.querySelector('.chip')).toBeNull()
+
+    addTask('New')
+    expect($('#list-title').textContent).toBe('All')
+    expect(taskTexts()).toEqual(['New', 'Sketch', 'Ship', 'Review'])
+  })
+
+  it('drops a category filter when its last task is deleted', () => {
+    seed()
+    click(buttonNamed('Design'))
+    click(buttonNamed('Delete “Sketch”'))
+    expect($('#list-title').textContent).toBe('All')
+    expect(taskTexts()).toEqual(['Ship', 'Review'])
+  })
+})

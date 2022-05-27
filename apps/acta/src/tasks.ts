@@ -12,6 +12,8 @@ export interface Task {
 
 export type StatusFilter = 'all' | 'active' | 'done'
 
+export const STATUS_LABELS: Record<StatusFilter, string> = { all: 'All', active: 'Active', done: 'Done' }
+
 export interface TaskDraft {
   text: string
   category: string

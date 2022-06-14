@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   applyDraft,
   categoriesOf,
@@ -8,6 +8,7 @@ import {
   formatDue,
   isIsoDay,
   isOverdue,
+  newId,
   progressOf,
   todayIso,
   type Task,
@@ -30,6 +31,17 @@ describe('createTask', () => {
 
   it('gives each task its own id', () => {
     expect(createTask('One').id).not.toBe(createTask('Two').id)
+  })
+})
+
+describe('newId', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('still makes unique ids outside a secure context, where randomUUID is missing', () => {
+    vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
+    const ids = new Set(Array.from({ length: 100 }, newId))
+    expect(ids.size).toBe(100)
+    expect([...ids][0]).toMatch(/^[0-9a-f]{32}$/)
   })
 })
 

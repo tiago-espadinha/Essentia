@@ -1,16 +1,18 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { AddTask } from './AddTask'
 import { AppHeader } from './AppHeader'
 import { Filters } from './Filters'
 import { Hero } from './Hero'
-import { TaskItem } from './TaskItem'
+import { TaskItem, type FocusRequest } from './TaskItem'
 import {
+  applyDraft,
   categoriesOf,
   filterTasks,
   progressOf,
   STATUS_LABELS,
   todayIso,
   type StatusFilter,
+  type Task,
   type TaskDraft,
 } from './tasks'
 import { useTasks } from './useTasks'
@@ -20,7 +22,9 @@ export default function App() {
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [focusRequest, setFocusRequest] = useState<FocusRequest>()
   const addInput = useRef<HTMLInputElement>(null)
+  const clearFocusRequest = useCallback(() => setFocusRequest(undefined), [])
 
   const today = todayIso()
   const categories = categoriesOf(tasks)
@@ -34,9 +38,22 @@ export default function App() {
   const visible = filterTasks(tasks, status, category)
   const remaining = tasks.filter((task) => !task.completed).length
 
-  function save(id: string, draft: TaskDraft) {
-    update(id, draft)
+  // Closing the editor hands focus back to the row's Edit button, or to the add
+  // field when the saved task no longer fits the filter.
+  function closeEditor(edited?: Task) {
+    if (editingId === null) return
+    if (!edited || filterTasks([edited], status, category).length > 0) {
+      setFocusRequest({ id: editingId, target: 'edit' })
+    } else {
+      addInput.current?.focus()
+    }
     setEditingId(null)
+  }
+
+  function save(id: string, draft: TaskDraft) {
+    const task = tasks.find((candidate) => candidate.id === id)!
+    update(id, draft)
+    closeEditor(applyDraft(task, draft) ?? task)
   }
 
   function showAll() {
@@ -102,9 +119,12 @@ export default function App() {
                       today={today}
                       categories={categories}
                       editing={task.id === editingId}
+                      focusRequest={focusRequest?.id === task.id ? focusRequest : undefined}
                       onToggle={toggle}
                       onDelete={remove}
+                      onFocused={clearFocusRequest}
                       onEdit={setEditingId}
+                      onCloseEditor={closeEditor}
                       onSave={save}
                     />
                   ))}

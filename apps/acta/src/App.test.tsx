@@ -101,6 +101,7 @@ describe('editing a task', () => {
     submit($<HTMLFormElement>('form.editor'))
 
     expect(taskTexts()).toEqual(['Final'])
+    expect(document.activeElement).toBe(buttonNamed('Edit “Final”'))
     expect($('.task__tag').textContent).toBe('Design')
     expect($('time').getAttribute('datetime')).toBe('2999-05-28')
     expect($('time').textContent).toBe('May 28')
@@ -134,6 +135,7 @@ describe('editing a task', () => {
     type(field('Task'), 'Changed')
     click(buttonNamed('Cancel'))
     expect(taskTexts()).toEqual(['Original'])
+    expect(document.activeElement).toBe(buttonNamed('Edit “Original”'))
 
     click(buttonNamed('Edit “Original”'))
     type(field('Task'), 'Changed')
@@ -142,6 +144,38 @@ describe('editing a task', () => {
     })
     expect(document.querySelector('form.editor')).toBeNull()
     expect(taskTexts()).toEqual(['Original'])
+    expect(document.activeElement).toBe(buttonNamed('Edit “Original”'))
+  })
+
+  it('does not pull focus back to the row when a filter shows it again', () => {
+    renderApp()
+    addTask('Open')
+    click(buttonNamed('Edit “Open”'))
+    click(buttonNamed('Cancel'))
+    click(buttonNamed('Done'))
+    act(() => buttonNamed('All').focus())
+    click(buttonNamed('All'))
+
+    expect(document.activeElement).toBe(buttonNamed('All'))
+  })
+
+  it('moves focus to the add field when the saved task leaves the filter', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { id: '1', text: 'Move me', completed: false, category: 'Work', due: '' },
+        { id: '2', text: 'Stay', completed: false, category: 'Work', due: '' },
+        { id: '3', text: 'Sketch', completed: false, category: 'Design', due: '' },
+      ]),
+    )
+    renderApp()
+    click(buttonNamed('Work'))
+    click(buttonNamed('Edit “Move me”'))
+    type(field('Category'), 'Design')
+    submit($<HTMLFormElement>('form.editor'))
+
+    expect(taskTexts()).toEqual(['Stay'])
+    expect(document.activeElement).toBe($('#add-task'))
   })
 })
 

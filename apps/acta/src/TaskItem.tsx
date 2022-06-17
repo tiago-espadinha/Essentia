@@ -84,14 +84,14 @@ export function TaskItem({
             </span>
           )}
         </p>
-      </div>
-      <div className="task__actions">
-        <button ref={editRef} type="button" className="task__action" onClick={() => onEdit(task.id)}>
-          Edit<span className="visually-hidden"> “{task.text}”</span>
-        </button>
-        <button type="button" className="task__action" onClick={() => onDelete(task.id)}>
-          Delete<span className="visually-hidden"> “{task.text}”</span>
-        </button>
+        <div className="task__actions">
+          <button ref={editRef} type="button" className="task__action" onClick={() => onEdit(task.id)}>
+            Edit<span className="visually-hidden"> “{task.text}”</span>
+          </button>
+          <button type="button" className="task__action" onClick={() => onDelete(task.id)}>
+            Delete<span className="visually-hidden"> “{task.text}”</span>
+          </button>
+        </div>
       </div>
     </li>
   )

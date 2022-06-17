@@ -283,6 +283,8 @@
 .tasks { list-style: none; }
 
 .task {
+  --check-size: 20px;
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
@@ -292,15 +294,16 @@
   transition: background var(--duration-fast) var(--ease);
 }
 
-.task:hover { background: var(--color-paper); }
+.task:hover,
+.task:focus-within { background: var(--color-paper); }
 
 .task__check {
   flex: none;
   appearance: none;
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  width: var(--check-size);
+  height: var(--check-size);
   margin-top: 2px;
   border: 1px solid var(--color-line-strong);
   border-radius: var(--radius-full);
@@ -308,7 +311,7 @@
   transition: background var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
 }
 
-/* The 20 px circle keeps a 44 px hit area. */
+/* The small circle keeps a 44 px hit area. */
 .task__check { position: relative; }
 .task__check::before {
   content: '';
@@ -359,19 +362,54 @@
 
 .task__due--over { color: var(--color-danger); }
 
+/* With a pointer, the actions float over the row's end so hidden ones take no
+   width from the task text. */
 .task__actions {
+  position: absolute;
+  top: 0;
+  right: var(--space-2);
   display: flex;
-  flex: none;
-  margin-top: calc(-1 * var(--space-3));
+  gap: var(--space-1);
+  background: var(--color-paper);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease);
+}
+
+.task__actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  width: var(--space-8);
+  background: linear-gradient(to right, transparent, var(--color-paper));
 }
 
 .task:hover .task__actions,
 .task:focus-within .task__actions { opacity: 1; }
 
-@media (hover: none) {
-  .task__actions { opacity: 1; }
+/* On touch and narrow screens they are always shown, at the end of the meta
+   line; the negative margins keep their 44 px targets from growing the row. */
+@media (hover: none), (max-width: 480px) {
+  .task__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-3);
+  }
+
+  .task__text { flex-basis: 100%; }
+
+  .task__meta { flex: 1 1 auto; }
+
+  .task__actions {
+    position: static;
+    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-2)) calc(-1 * var(--space-3)) auto;
+    background: none;
+    opacity: 1;
+  }
+
+  .task__actions::before { content: none; }
 }
 
 .task__action {
@@ -392,7 +430,8 @@
 
 /* Editor */
 .task--editing { padding-block: var(--space-4); }
-.task--editing:hover { background: transparent; }
+.task--editing:hover,
+.task--editing:focus-within { background: transparent; }
 
 .editor {
   display: grid;

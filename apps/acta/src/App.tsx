@@ -4,6 +4,7 @@ import { AppHeader } from './AppHeader'
 import { Filters } from './Filters'
 import { Hero } from './Hero'
 import { TaskItem, type FocusRequest } from './TaskItem'
+import { UndoNotice } from './UndoNotice'
 import {
   applyDraft,
   categoriesOf,
@@ -18,11 +19,12 @@ import {
 import { useTasks } from './useTasks'
 
 export default function App() {
-  const { tasks, saveFailed, add, toggle, remove, update } = useTasks()
+  const { tasks, saveFailed, add, toggle, remove, restore, update } = useTasks()
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [focusRequest, setFocusRequest] = useState<FocusRequest>()
+  const [deleted, setDeleted] = useState<{ task: Task; beforeId: string | null } | null>(null)
   const addInput = useRef<HTMLInputElement>(null)
   const clearFocusRequest = useCallback(() => setFocusRequest(undefined), [])
 
@@ -56,6 +58,26 @@ export default function App() {
     closeEditor(applyDraft(task, draft) ?? task)
   }
 
+  // Focus moves to the next row (or the previous one at the end), else to the add field.
+  function deleteTask(id: string) {
+    const position = visible.findIndex((task) => task.id === id)
+    const neighbour = visible[position + 1] ?? visible[position - 1]
+    const task = visible[position]
+    remove(id)
+    setDeleted({ task, beforeId: tasks[tasks.indexOf(task) + 1]?.id ?? null })
+    if (neighbour) setFocusRequest({ id: neighbour.id, target: 'check' })
+    else addInput.current?.focus()
+  }
+
+  function undoDelete() {
+    if (!deleted) return
+    restore(deleted.task, deleted.beforeId)
+    setDeleted(null)
+    const shown = filterTasks([deleted.task], status, category).length > 0
+    if (shown) setFocusRequest({ id: deleted.task.id, target: 'check' })
+    else addInput.current?.focus()
+  }
+
   function showAll() {
     setStatus('all')
     setSelectedCategory(null)
@@ -67,6 +89,7 @@ export default function App() {
       <main className="acta">
         <Hero total={tasks.length} remaining={remaining} progress={progressOf(tasks)} />
         <AddTask inputRef={addInput} onAdd={add} />
+        <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
 
         {saveFailed && (
           <p className="notice" role="alert">
@@ -121,7 +144,7 @@ export default function App() {
                       editing={task.id === editingId}
                       focusRequest={focusRequest?.id === task.id ? focusRequest : undefined}
                       onToggle={toggle}
-                      onDelete={remove}
+                      onDelete={deleteTask}
                       onFocused={clearFocusRequest}
                       onEdit={setEditingId}
                       onCloseEditor={closeEditor}

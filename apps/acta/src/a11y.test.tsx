@@ -44,6 +44,13 @@ describe('accessibility', () => {
     expect(await seriousViolations(container)).toEqual([])
   })
 
+  it('has no serious violations with the undo notice shown', async () => {
+    const container = renderApp()
+    addTask('Gone')
+    click(buttonNamed('Delete “Gone”'))
+    expect(await seriousViolations(container)).toEqual([])
+  })
+
   it('has no serious violations with the add error shown', async () => {
     const container = renderApp()
     submit($<HTMLFormElement>('form.add'))

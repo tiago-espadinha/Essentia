@@ -68,6 +68,7 @@ describe('Acta', () => {
     click(buttonNamed('Delete “Drop”'))
 
     expect(taskTexts()).toEqual(['Keep'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toHaveLength(1)
   })
 
   it('keeps tasks after a reload', () => {
@@ -91,6 +92,77 @@ describe('Acta', () => {
 
     expect($('[role="alert"]').textContent).toMatch(/Couldn’t save on this device/)
     expect(taskTexts()).toEqual(['Unsaved'])
+  })
+})
+
+describe('undoing a delete', () => {
+  function checkOf(text: string): HTMLInputElement {
+    const label = [...document.querySelectorAll('.task__text')].find((element) => element.textContent === text)!
+    return document.querySelector(`[aria-labelledby="${label.id}"]`)!
+  }
+
+  it('puts the task back in its place, saved, and clears the notice', () => {
+    renderApp()
+    addTask('Third')
+    addTask('Second')
+    addTask('First')
+    click(buttonNamed('Delete “Second”'))
+    expect($('[role="status"]').textContent).toBe('Deleted “Second”.Undo')
+
+    click(buttonNamed('Undo'))
+    expect(taskTexts()).toEqual(['First', 'Second', 'Third'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toHaveLength(3)
+    expect($('[role="status"]').textContent).toBe('')
+    expect(document.activeElement).toBe(checkOf('Second'))
+  })
+
+  it('puts the task back in its place when another was added since', () => {
+    renderApp()
+    addTask('Third')
+    addTask('Second')
+    addTask('First')
+    click(buttonNamed('Delete “Second”'))
+    addTask('New')
+
+    click(buttonNamed('Undo'))
+    expect(taskTexts()).toEqual(['New', 'First', 'Second', 'Third'])
+  })
+
+  it('offers undo only for the latest delete', () => {
+    renderApp()
+    addTask('One')
+    addTask('Two')
+    click(buttonNamed('Delete “Two”'))
+    click(buttonNamed('Delete “One”'))
+    expect($('[role="status"]').textContent).toBe('Deleted “One”.Undo')
+
+    click(buttonNamed('Undo'))
+    expect(taskTexts()).toEqual(['One'])
+  })
+
+  it('does not keep the undo after a reload', () => {
+    renderApp()
+    addTask('Gone')
+    click(buttonNamed('Delete “Gone”'))
+    unmount()
+
+    renderApp()
+    expect($('[role="status"]').textContent).toBe('')
+  })
+
+  it('moves focus to the next task, the previous one at the end, then the add field', () => {
+    renderApp()
+    addTask('C')
+    addTask('B')
+    addTask('A')
+    click(buttonNamed('Delete “A”'))
+    expect(document.activeElement).toBe(checkOf('B'))
+
+    click(buttonNamed('Delete “C”'))
+    expect(document.activeElement).toBe(checkOf('B'))
+
+    click(buttonNamed('Delete “B”'))
+    expect(document.activeElement).toBe($('#add-task'))
   })
 })
 

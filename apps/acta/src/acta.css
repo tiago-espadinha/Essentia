@@ -210,7 +210,7 @@
   min-height: 44px;
   padding: 0 var(--space-3);
   border: none;
-  border-bottom: 1px solid transparent;
+  border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--color-mid);
   font-family: var(--font-mono);
@@ -252,10 +252,12 @@
 
 .chip:hover { color: var(--color-ink); }
 
+/* Ink, not terracotta: the default "Any" is pressed, and the one terracotta
+   action per view stays the add button. */
 .chip[aria-pressed='true'] {
-  border-color: var(--color-terracotta);
-  background: var(--color-terracotta);
-  color: var(--color-on-accent);
+  border-color: var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
 
 /* List */

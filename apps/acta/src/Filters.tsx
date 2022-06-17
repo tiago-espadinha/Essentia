@@ -26,6 +26,9 @@ export function Filters({ status, category, categories, onStatusChange, onCatego
       </div>
       {categories.length > 1 && (
         <div className="filters__categories" role="group" aria-label="Category">
+          <button type="button" className="chip" aria-pressed={category === null} onClick={() => onCategoryChange(null)}>
+            Any
+          </button>
           {categories.map((value) => (
             <button
               key={value}

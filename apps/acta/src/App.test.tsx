@@ -298,6 +298,17 @@ describe('filtering tasks', () => {
     expect(taskTexts()).toEqual(['Sketch', 'Review'])
   })
 
+  it('clears the category with the Any chip', () => {
+    seed()
+    expect(buttonNamed('Any').getAttribute('aria-pressed')).toBe('true')
+    click(buttonNamed('Design'))
+    expect(buttonNamed('Any').getAttribute('aria-pressed')).toBe('false')
+
+    click(buttonNamed('Any'))
+    expect(taskTexts()).toEqual(['Sketch', 'Ship', 'Review'])
+    expect(buttonNamed('Design').getAttribute('aria-pressed')).toBe('false')
+  })
+
   it('shows a filtered empty state that resets the filters', () => {
     seed()
     click(buttonNamed('Done'))

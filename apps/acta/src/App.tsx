@@ -38,7 +38,7 @@ export default function App() {
       : null
   if (category === null && selectedCategory !== null) setSelectedCategory(null)
   const visible = filterTasks(tasks, status, category)
-  const remaining = tasks.filter((task) => !task.completed).length
+  const done = tasks.filter((task) => task.completed).length
 
   // Closing the editor hands focus back to the row's Edit button, or to the add
   // field when the saved task no longer fits the filter.
@@ -87,7 +87,7 @@ export default function App() {
     <>
       <AppHeader />
       <main className="acta">
-        <Hero total={tasks.length} remaining={remaining} progress={progressOf(tasks)} />
+        <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
         <AddTask inputRef={addInput} onAdd={add} />
         <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
 
@@ -102,10 +102,7 @@ export default function App() {
             <h2 id="empty-title" className="empty__title">
               Nothing on the list.
             </h2>
-            <p className="empty__text">Add the first thing you want to get done.</p>
-            <button type="button" className="button-primary" onClick={() => addInput.current?.focus()}>
-              Add a task
-            </button>
+            <p className="empty__text">Write the first thing you want to get done in the field above.</p>
           </section>
         ) : (
           <>
@@ -157,16 +154,6 @@ export default function App() {
           </>
         )}
 
-        {tasks.length > 0 && (
-          <footer className="summary label">
-            <span>
-              <strong>{tasks.length - remaining}</strong> completed
-            </span>
-            <span>
-              <strong>{remaining}</strong> left to do
-            </span>
-          </footer>
-        )}
       </main>
     </>
   )

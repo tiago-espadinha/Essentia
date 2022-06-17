@@ -10,9 +10,7 @@ describe('Acta', () => {
     renderApp()
     expect($('#empty-title').textContent).toBe('Nothing on the list.')
     expect(taskTexts()).toEqual([])
-
-    click(buttonNamed('Add a task'))
-    expect(document.activeElement).toBe($('#add-task'))
+    expect(document.querySelector('[role="progressbar"]')).toBeNull()
   })
 
   it('adds tasks to the top, clears the input and keeps focus', () => {
@@ -23,7 +21,7 @@ describe('Acta', () => {
     expect(taskTexts()).toEqual(['Second', 'First'])
     expect($<HTMLInputElement>('#add-task').value).toBe('')
     expect(document.activeElement).toBe($('#add-task'))
-    expect($('.hero__sub').textContent).toBe('2 tasks · 2 remaining')
+    expect($('.progress__count').textContent).toBe('0 of 2 done')
   })
 
   it('refuses an empty task with an inline error', () => {
@@ -54,8 +52,9 @@ describe('Acta', () => {
 
     click(check)
     expect(check.checked).toBe(true)
-    expect($('.hero__sub').textContent).toBe('1 task · 0 remaining')
+    expect($('.progress__count').textContent).toBe('1 of 1 done')
     expect($('[role="progressbar"]').getAttribute('aria-valuenow')).toBe('100')
+    expect($('[role="progressbar"]').getAttribute('aria-valuetext')).toBe('1 of 1 done')
 
     click(check)
     expect(check.checked).toBe(false)

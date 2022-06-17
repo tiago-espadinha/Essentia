@@ -33,6 +33,17 @@ describe('Acta', () => {
     expect(taskTexts()).toEqual([])
     expect($('#add-task').getAttribute('aria-invalid')).toBe('true')
     expect($('#add-task-error').textContent).toBe('Write something first.')
+    expect($('#add-task-error').getAttribute('role')).toBe('alert')
+  })
+
+  it('announces the error again on each refused submit', () => {
+    renderApp()
+    submit($<HTMLFormElement>('form.add'))
+    const first = $('#add-task-error')
+    submit($<HTMLFormElement>('form.add'))
+
+    expect($('#add-task-error')).not.toBe(first)
+    expect(first.isConnected).toBe(false)
   })
 
   it('completes and reopens a task', () => {

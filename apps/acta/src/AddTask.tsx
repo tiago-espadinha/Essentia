@@ -7,16 +7,18 @@ interface AddTaskProps {
 
 export function AddTask({ inputRef, onAdd }: AddTaskProps) {
   const [text, setText] = useState('')
-  const [invalid, setInvalid] = useState(false)
+  // Counts refused submits; each one remounts the alert so it is announced again.
+  const [refusals, setRefusals] = useState(0)
+  const invalid = refusals > 0
 
   function submit(event: FormEvent) {
     event.preventDefault()
     if (!text.trim()) {
-      setInvalid(true)
+      setRefusals(refusals + 1)
     } else {
       onAdd(text)
       setText('')
-      setInvalid(false)
+      setRefusals(0)
     }
     inputRef.current?.focus()
   }
@@ -34,7 +36,7 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
           value={text}
           onChange={(event) => {
             setText(event.target.value)
-            setInvalid(false)
+            setRefusals(0)
           }}
           placeholder="Add something to do…"
           autoComplete="off"
@@ -49,7 +51,7 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
         </button>
       </div>
       {invalid && (
-        <p id="add-task-error" className="field-error">
+        <p key={refusals} id="add-task-error" className="field-error" role="alert">
           Write something first.
         </p>
       )}

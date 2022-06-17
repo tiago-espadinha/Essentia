@@ -30,7 +30,16 @@ export function isIsoDay(value: string): boolean {
   return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)
 }
 
-export function createTask(text: string, id: string = crypto.randomUUID()): Task {
+/**
+ * A random id. `crypto.randomUUID` exists only in secure contexts (https or
+ * localhost), so plain-http LAN testing falls back to `getRandomValues`.
+ */
+export function newId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('')
+}
+
+export function createTask(text: string, id: string = newId()): Task {
   return { id, text: text.trim(), completed: false, category: DEFAULT_CATEGORY, due: '' }
 }
 

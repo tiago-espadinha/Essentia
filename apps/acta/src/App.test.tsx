@@ -10,9 +10,7 @@ describe('Acta', () => {
     renderApp()
     expect($('#empty-title').textContent).toBe('Nothing on the list.')
     expect(taskTexts()).toEqual([])
-
-    click(buttonNamed('Add a task'))
-    expect(document.activeElement).toBe($('#add-task'))
+    expect(document.querySelector('[role="progressbar"]')).toBeNull()
   })
 
   it('adds tasks to the top, clears the input and keeps focus', () => {
@@ -23,7 +21,7 @@ describe('Acta', () => {
     expect(taskTexts()).toEqual(['Second', 'First'])
     expect($<HTMLInputElement>('#add-task').value).toBe('')
     expect(document.activeElement).toBe($('#add-task'))
-    expect($('.hero__sub').textContent).toBe('2 tasks · 2 remaining')
+    expect($('.progress__count').textContent).toBe('0 of 2 done')
   })
 
   it('refuses an empty task with an inline error', () => {
@@ -33,6 +31,17 @@ describe('Acta', () => {
     expect(taskTexts()).toEqual([])
     expect($('#add-task').getAttribute('aria-invalid')).toBe('true')
     expect($('#add-task-error').textContent).toBe('Write something first.')
+    expect($('#add-task-error').getAttribute('role')).toBe('alert')
+  })
+
+  it('announces the error again on each refused submit', () => {
+    renderApp()
+    submit($<HTMLFormElement>('form.add'))
+    const first = $('#add-task-error')
+    submit($<HTMLFormElement>('form.add'))
+
+    expect($('#add-task-error')).not.toBe(first)
+    expect(first.isConnected).toBe(false)
   })
 
   it('completes and reopens a task', () => {
@@ -43,8 +52,9 @@ describe('Acta', () => {
 
     click(check)
     expect(check.checked).toBe(true)
-    expect($('.hero__sub').textContent).toBe('1 task · 0 remaining')
+    expect($('.progress__count').textContent).toBe('1 of 1 done')
     expect($('[role="progressbar"]').getAttribute('aria-valuenow')).toBe('100')
+    expect($('[role="progressbar"]').getAttribute('aria-valuetext')).toBe('1 of 1 done')
 
     click(check)
     expect(check.checked).toBe(false)
@@ -57,6 +67,7 @@ describe('Acta', () => {
     click(buttonNamed('Delete “Drop”'))
 
     expect(taskTexts()).toEqual(['Keep'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toHaveLength(1)
   })
 
   it('keeps tasks after a reload', () => {
@@ -83,6 +94,77 @@ describe('Acta', () => {
   })
 })
 
+describe('undoing a delete', () => {
+  function checkOf(text: string): HTMLInputElement {
+    const label = [...document.querySelectorAll('.task__text')].find((element) => element.textContent === text)!
+    return document.querySelector(`[aria-labelledby="${label.id}"]`)!
+  }
+
+  it('puts the task back in its place, saved, and clears the notice', () => {
+    renderApp()
+    addTask('Third')
+    addTask('Second')
+    addTask('First')
+    click(buttonNamed('Delete “Second”'))
+    expect($('[role="status"]').textContent).toBe('Deleted “Second”.Undo')
+
+    click(buttonNamed('Undo'))
+    expect(taskTexts()).toEqual(['First', 'Second', 'Third'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toHaveLength(3)
+    expect($('[role="status"]').textContent).toBe('')
+    expect(document.activeElement).toBe(checkOf('Second'))
+  })
+
+  it('puts the task back in its place when another was added since', () => {
+    renderApp()
+    addTask('Third')
+    addTask('Second')
+    addTask('First')
+    click(buttonNamed('Delete “Second”'))
+    addTask('New')
+
+    click(buttonNamed('Undo'))
+    expect(taskTexts()).toEqual(['New', 'First', 'Second', 'Third'])
+  })
+
+  it('offers undo only for the latest delete', () => {
+    renderApp()
+    addTask('One')
+    addTask('Two')
+    click(buttonNamed('Delete “Two”'))
+    click(buttonNamed('Delete “One”'))
+    expect($('[role="status"]').textContent).toBe('Deleted “One”.Undo')
+
+    click(buttonNamed('Undo'))
+    expect(taskTexts()).toEqual(['One'])
+  })
+
+  it('does not keep the undo after a reload', () => {
+    renderApp()
+    addTask('Gone')
+    click(buttonNamed('Delete “Gone”'))
+    unmount()
+
+    renderApp()
+    expect($('[role="status"]').textContent).toBe('')
+  })
+
+  it('moves focus to the next task, the previous one at the end, then the add field', () => {
+    renderApp()
+    addTask('C')
+    addTask('B')
+    addTask('A')
+    click(buttonNamed('Delete “A”'))
+    expect(document.activeElement).toBe(checkOf('B'))
+
+    click(buttonNamed('Delete “C”'))
+    expect(document.activeElement).toBe(checkOf('B'))
+
+    click(buttonNamed('Delete “B”'))
+    expect(document.activeElement).toBe($('#add-task'))
+  })
+})
+
 describe('editing a task', () => {
   function field(label: string): HTMLInputElement {
     const labelElement = [...document.querySelectorAll('.editor label')].find((l) => l.textContent === label)
@@ -101,6 +183,7 @@ describe('editing a task', () => {
     submit($<HTMLFormElement>('form.editor'))
 
     expect(taskTexts()).toEqual(['Final'])
+    expect(document.activeElement).toBe(buttonNamed('Edit “Final”'))
     expect($('.task__tag').textContent).toBe('Design')
     expect($('time').getAttribute('datetime')).toBe('2999-05-28')
     expect($('time').textContent).toBe('May 28')
@@ -134,6 +217,7 @@ describe('editing a task', () => {
     type(field('Task'), 'Changed')
     click(buttonNamed('Cancel'))
     expect(taskTexts()).toEqual(['Original'])
+    expect(document.activeElement).toBe(buttonNamed('Edit “Original”'))
 
     click(buttonNamed('Edit “Original”'))
     type(field('Task'), 'Changed')
@@ -142,6 +226,38 @@ describe('editing a task', () => {
     })
     expect(document.querySelector('form.editor')).toBeNull()
     expect(taskTexts()).toEqual(['Original'])
+    expect(document.activeElement).toBe(buttonNamed('Edit “Original”'))
+  })
+
+  it('does not pull focus back to the row when a filter shows it again', () => {
+    renderApp()
+    addTask('Open')
+    click(buttonNamed('Edit “Open”'))
+    click(buttonNamed('Cancel'))
+    click(buttonNamed('Done'))
+    act(() => buttonNamed('All').focus())
+    click(buttonNamed('All'))
+
+    expect(document.activeElement).toBe(buttonNamed('All'))
+  })
+
+  it('moves focus to the add field when the saved task leaves the filter', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        { id: '1', text: 'Move me', completed: false, category: 'Work', due: '' },
+        { id: '2', text: 'Stay', completed: false, category: 'Work', due: '' },
+        { id: '3', text: 'Sketch', completed: false, category: 'Design', due: '' },
+      ]),
+    )
+    renderApp()
+    click(buttonNamed('Work'))
+    click(buttonNamed('Edit “Move me”'))
+    type(field('Category'), 'Design')
+    submit($<HTMLFormElement>('form.editor'))
+
+    expect(taskTexts()).toEqual(['Stay'])
+    expect(document.activeElement).toBe($('#add-task'))
   })
 })
 
@@ -180,6 +296,17 @@ describe('filtering tasks', () => {
 
     click(buttonNamed('Work'))
     expect(taskTexts()).toEqual(['Sketch', 'Review'])
+  })
+
+  it('clears the category with the Any chip', () => {
+    seed()
+    expect(buttonNamed('Any').getAttribute('aria-pressed')).toBe('true')
+    click(buttonNamed('Design'))
+    expect(buttonNamed('Any').getAttribute('aria-pressed')).toBe('false')
+
+    click(buttonNamed('Any'))
+    expect(taskTexts()).toEqual(['Sketch', 'Ship', 'Review'])
+    expect(buttonNamed('Design').getAttribute('aria-pressed')).toBe('false')
   })
 
   it('shows a filtered empty state that resets the filters', () => {

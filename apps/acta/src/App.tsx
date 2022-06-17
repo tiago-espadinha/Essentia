@@ -1,26 +1,32 @@
-import { useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { AddTask } from './AddTask'
 import { AppHeader } from './AppHeader'
 import { Filters } from './Filters'
 import { Hero } from './Hero'
-import { TaskItem } from './TaskItem'
+import { TaskItem, type FocusRequest } from './TaskItem'
+import { UndoNotice } from './UndoNotice'
 import {
+  applyDraft,
   categoriesOf,
   filterTasks,
   progressOf,
   STATUS_LABELS,
   todayIso,
   type StatusFilter,
+  type Task,
   type TaskDraft,
 } from './tasks'
 import { useTasks } from './useTasks'
 
 export default function App() {
-  const { tasks, saveFailed, add, toggle, remove, update } = useTasks()
+  const { tasks, saveFailed, add, toggle, remove, restore, update } = useTasks()
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [focusRequest, setFocusRequest] = useState<FocusRequest>()
+  const [deleted, setDeleted] = useState<{ task: Task; beforeId: string | null } | null>(null)
   const addInput = useRef<HTMLInputElement>(null)
+  const clearFocusRequest = useCallback(() => setFocusRequest(undefined), [])
 
   const today = todayIso()
   const categories = categoriesOf(tasks)
@@ -32,11 +38,44 @@ export default function App() {
       : null
   if (category === null && selectedCategory !== null) setSelectedCategory(null)
   const visible = filterTasks(tasks, status, category)
-  const remaining = tasks.filter((task) => !task.completed).length
+  const done = tasks.filter((task) => task.completed).length
+
+  // Closing the editor hands focus back to the row's Edit button, or to the add
+  // field when the saved task no longer fits the filter.
+  function closeEditor(edited?: Task) {
+    if (editingId === null) return
+    if (!edited || filterTasks([edited], status, category).length > 0) {
+      setFocusRequest({ id: editingId, target: 'edit' })
+    } else {
+      addInput.current?.focus()
+    }
+    setEditingId(null)
+  }
 
   function save(id: string, draft: TaskDraft) {
+    const task = tasks.find((candidate) => candidate.id === id)!
     update(id, draft)
-    setEditingId(null)
+    closeEditor(applyDraft(task, draft) ?? task)
+  }
+
+  // Focus moves to the next row (or the previous one at the end), else to the add field.
+  function deleteTask(id: string) {
+    const position = visible.findIndex((task) => task.id === id)
+    const neighbour = visible[position + 1] ?? visible[position - 1]
+    const task = visible[position]
+    remove(id)
+    setDeleted({ task, beforeId: tasks[tasks.indexOf(task) + 1]?.id ?? null })
+    if (neighbour) setFocusRequest({ id: neighbour.id, target: 'check' })
+    else addInput.current?.focus()
+  }
+
+  function undoDelete() {
+    if (!deleted) return
+    restore(deleted.task, deleted.beforeId)
+    setDeleted(null)
+    const shown = filterTasks([deleted.task], status, category).length > 0
+    if (shown) setFocusRequest({ id: deleted.task.id, target: 'check' })
+    else addInput.current?.focus()
   }
 
   function showAll() {
@@ -48,8 +87,9 @@ export default function App() {
     <>
       <AppHeader />
       <main className="acta">
-        <Hero total={tasks.length} remaining={remaining} progress={progressOf(tasks)} />
+        <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
         <AddTask inputRef={addInput} onAdd={add} />
+        <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
 
         {saveFailed && (
           <p className="notice" role="alert">
@@ -62,10 +102,7 @@ export default function App() {
             <h2 id="empty-title" className="empty__title">
               Nothing on the list.
             </h2>
-            <p className="empty__text">Add the first thing you want to get done.</p>
-            <button type="button" className="button-primary" onClick={() => addInput.current?.focus()}>
-              Add a task
-            </button>
+            <p className="empty__text">Write the first thing you want to get done in the field above.</p>
           </section>
         ) : (
           <>
@@ -102,9 +139,12 @@ export default function App() {
                       today={today}
                       categories={categories}
                       editing={task.id === editingId}
+                      focusRequest={focusRequest?.id === task.id ? focusRequest : undefined}
                       onToggle={toggle}
-                      onDelete={remove}
+                      onDelete={deleteTask}
+                      onFocused={clearFocusRequest}
                       onEdit={setEditingId}
+                      onCloseEditor={closeEditor}
                       onSave={save}
                     />
                   ))}
@@ -114,16 +154,6 @@ export default function App() {
           </>
         )}
 
-        {tasks.length > 0 && (
-          <footer className="summary label">
-            <span>
-              <strong>{tasks.length - remaining}</strong> completed
-            </span>
-            <span>
-              <strong>{remaining}</strong> left to do
-            </span>
-          </footer>
-        )}
       </main>
     </>
   )

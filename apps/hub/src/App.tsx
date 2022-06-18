@@ -26,6 +26,7 @@ export default function App() {
                     <span className="hub__app-name">{app.name}</span>
                     <span className="hub__app-latin">{app.latin}</span>
                     <span className="hub__app-desc">{app.description}</span>
+                    <span className="hub__app-arrow" aria-hidden="true">→</span>
                   </a>
                 </li>
               ))}

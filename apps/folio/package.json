@@ -14,6 +14,7 @@
   "dependencies": {
     "@essentia/tokens": "workspace:*",
     "@essentia/ui": "workspace:*",
+    "dompurify": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

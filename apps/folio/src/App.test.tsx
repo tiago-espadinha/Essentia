@@ -57,6 +57,18 @@ describe('editing notes', () => {
     expect($('.note-row__preview').textContent).toBe('Phase one Keep it calm.')
   })
 
+  it('moves from the title to the body on Enter, and saves tags on Enter', () => {
+    renderApp()
+    newNote('Plan')
+    const title = $<HTMLTextAreaElement>('#note-title')
+    act(() => title.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })))
+    expect(document.activeElement).toBe($('.editor__body'))
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    type(tags, 'Work')
+    act(() => tags.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })))
+    expect(savedNotes()[0].tags).toEqual(['work'])
+  })
+
   it('keeps a title on one line', () => {
     renderApp()
     newNote('one\ntwo')
@@ -164,5 +176,118 @@ describe('rich text', () => {
     click(buttonNamed('Bold'))
     expect(execCommand).toHaveBeenCalledWith('bold', false, undefined)
     expect(document.activeElement).toBe($('.editor__body'))
+  })
+})
+
+describe('finding notes', () => {
+  function seed() {
+    newNote('Roadmap')
+    writeBody('<p>Phase one</p>')
+    newNote('Recipes')
+    writeBody('<p>Sourdough starter</p>')
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    type(tags, 'home')
+    blur(tags)
+  }
+
+  const search = (query: string) => type($<HTMLInputElement>('#search'), query)
+
+  it('searches titles, body text and tags', () => {
+    renderApp()
+    seed()
+    search('SOURDOUGH')
+    expect(rowTitles()).toEqual(['Recipes'])
+    search('road')
+    expect(rowTitles()).toEqual(['Roadmap'])
+    search('home')
+    expect(rowTitles()).toEqual(['Recipes'])
+  })
+
+  it('shows when nothing matches and clears the search', () => {
+    renderApp()
+    seed()
+    search('lisbon')
+    expect($('.empty__title').textContent).toBe('Nothing matches.')
+    click(buttonNamed('Clear search'))
+    expect($<HTMLInputElement>('#search').value).toBe('')
+    expect(rowTitles()).toEqual(['Recipes', 'Roadmap'])
+  })
+
+  it('filters by a tag and back to all notes', () => {
+    renderApp()
+    seed()
+    click(buttonNamed('#home'))
+    expect(buttonNamed('#home').getAttribute('aria-pressed')).toBe('true')
+    expect(rowTitles()).toEqual(['Recipes'])
+    click(buttonNamed('All notes'))
+    expect(rowTitles()).toEqual(['Recipes', 'Roadmap'])
+  })
+
+  it('clears the filters for a new note so it shows in the list', () => {
+    renderApp()
+    seed()
+    click(buttonNamed('#home'))
+    search('sour')
+    newNote()
+    expect(rowTitles()).toEqual(['Untitled', 'Recipes', 'Roadmap'])
+    expect($<HTMLInputElement>('#search').value).toBe('')
+  })
+
+  it('drops the tag filter once no note has the tag', () => {
+    renderApp()
+    seed()
+    click(buttonNamed('#home'))
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    type(tags, '')
+    blur(tags)
+    expect(rowTitles()).toEqual(['Recipes', 'Roadmap'])
+    expect(document.body.querySelector('.tag-list')).toBeNull()
+  })
+})
+
+describe('pinning notes', () => {
+  it('lists pinned notes first, under Pinned, and keeps the pin after a reload', () => {
+    renderApp()
+    newNote('Old')
+    newNote('New')
+    click(buttonNamed(/^Old/))
+    click(buttonNamed('Pin'))
+    expect(buttonNamed('Pin').getAttribute('aria-pressed')).toBe('true')
+    expect(rowTitles()).toEqual(['Old', 'New'])
+    expect([...document.querySelectorAll('.group-label')].map((label) => label.textContent)).toEqual(['Pinned', 'Notes'])
+
+    unmount()
+    renderApp()
+    expect(rowTitles()).toEqual(['Old', 'New'])
+    click(buttonNamed('Pin'))
+    expect(rowTitles()).toEqual(['New', 'Old'])
+    expect(document.querySelector('.group-label')).toBeNull()
+  })
+})
+
+describe('editing while the list changes', () => {
+  it('keeps the open note when an edit moves it out of the filtered list', () => {
+    renderApp()
+    newNote('Alpha')
+    newNote('Beta')
+    unmount()
+    renderApp()
+    type($<HTMLInputElement>('#search'), 'beta')
+    expect($<HTMLTextAreaElement>('#note-title').value).toBe('Beta')
+    type($<HTMLTextAreaElement>('#note-title'), 'Gamma')
+    expect($<HTMLTextAreaElement>('#note-title').value).toBe('Gamma')
+    expect(savedNotes().map((note: { title: string }) => note.title)).toEqual(['Gamma', 'Alpha'])
+  })
+
+  it('saves both the tags and the body when the toolbar is used straight from the tags field', () => {
+    Object.assign(document, { execCommand: vi.fn(() => true) })
+    renderApp()
+    newNote('x')
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    act(() => tags.focus())
+    type(tags, 'work')
+    click(buttonNamed('Bold'))
+    expect(savedNotes()[0].tags).toEqual(['work'])
+    delete (document as Partial<Document>).execCommand
   })
 })

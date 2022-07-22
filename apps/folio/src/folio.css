@@ -22,7 +22,7 @@
 /* Workspace: on wide screens the panes fill the window and scroll on their own. */
 .folio {
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 220px 300px minmax(0, 1fr);
 }
 
 @media (min-width: 1024px) {
@@ -36,12 +36,6 @@
     flex: 1;
     min-height: 0;
   }
-}
-
-/* Below 1024 px the panes stack; pane-by-pane navigation comes later. */
-@media (max-width: 1023px) {
-  .folio { grid-template-columns: minmax(0, 1fr); }
-  .pane { border-right: none; border-bottom: 1px solid var(--color-faint); }
 }
 
 .pane {
@@ -315,4 +309,67 @@
 .toolbar__button[aria-pressed='true'] {
   background: var(--color-paper);
   color: var(--color-accent-text);
+}
+
+.button-ghost--outlined { border-color: var(--color-line-strong); }
+
+.pin-button[aria-pressed='true'] {
+  background: var(--color-paper);
+  color: var(--color-accent-text);
+}
+
+/* Library: search and tags */
+.search {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+}
+
+.search::placeholder { color: var(--color-mid); }
+
+.library { padding: var(--space-6) var(--space-4); }
+
+.tag-list {
+  display: grid;
+  gap: var(--space-0-5);
+  margin-top: var(--space-3);
+  list-style: none;
+}
+
+.tag-button {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-mid);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease), color var(--duration-fast) var(--ease);
+}
+
+.tag-button:hover {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.tag-button[aria-pressed='true'] {
+  background: var(--color-paper);
+  color: var(--color-accent-text);
+  font-weight: 500;
+}
+
+.group-label {
+  padding: var(--space-4) var(--space-4) var(--space-2);
+  border-bottom: 1px solid var(--color-faint);
+}
+
+/* Below 1024 px the panes stack; pane-by-pane navigation comes later. */
+@media (max-width: 1023px) {
+  .folio { grid-template-columns: minmax(0, 1fr); }
+  .pane { border-right: none; border-bottom: 1px solid var(--color-faint); }
 }

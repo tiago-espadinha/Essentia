@@ -58,6 +58,23 @@ export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: Edito
     <>
       <div className="editor__bar">
         <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
+        <button
+          type="button"
+          className="button-ghost pin-button"
+          aria-pressed={note.pinned}
+          onClick={() => onChange({ pinned: !note.pinned })}
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path
+              d="M6 2.5h4M7 2.5v4L4.5 9.5h7L9 6.5v-4M8 9.5v4"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Pin
+        </button>
         <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>
           Delete
         </button>

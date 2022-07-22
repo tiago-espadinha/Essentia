@@ -10,6 +10,13 @@ export interface SuiteApp {
 
 export const suiteApps: SuiteApp[] = [
   {
+    name: 'Folio',
+    path: '/folio/',
+    latin: 'a leaf',
+    description: 'Notes with rich text, tags and pins.',
+    port: 5101,
+  },
+  {
     name: 'Acta',
     path: '/acta/',
     latin: 'things done',

@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
+import { insertTransfer, placeCaretAt } from './editing'
 import { countWords, formatDate, parseTags, plainText, type Note, type NoteChanges } from './notes'
 import { sanitizeHtml } from './sanitize'
+import { Toolbar } from './Toolbar'
 
 interface EditorProps {
   note: Note
@@ -15,8 +17,11 @@ interface EditorProps {
 export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  // Text dragged within the body moves natively; anything from outside is cleaned first.
+  const draggingInside = useRef(false)
 
-  useEffect(() => {
+  // Before paint, so switching notes never shows an empty body.
+  useLayoutEffect(() => {
     bodyRef.current!.innerHTML = note.body
     // Only on mount: afterwards the DOM is the source and the note follows it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -32,6 +37,14 @@ export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: Edito
     onChange({ body: sanitizeHtml(bodyRef.current!.innerHTML) })
   }
 
+  function drop(event: DragEvent<HTMLDivElement>) {
+    if (draggingInside.current) return
+    event.preventDefault()
+    placeCaretAt(event.clientX, event.clientY)
+    insertTransfer(event.dataTransfer)
+    saveBody()
+  }
+
   // Enter in the title moves on to the body instead of breaking the title.
   function titleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== 'Enter') return
@@ -44,6 +57,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: Edito
   return (
     <>
       <div className="editor__bar">
+        <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
         <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>
           Delete
         </button>
@@ -83,6 +97,14 @@ export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: Edito
             data-placeholder="Start writing"
             onFocus={() => document.execCommand?.('defaultParagraphSeparator', false, 'p')}
             onInput={saveBody}
+            onPaste={(event) => {
+              event.preventDefault()
+              insertTransfer(event.clipboardData)
+              saveBody()
+            }}
+            onDragStart={() => (draggingInside.current = true)}
+            onDragEnd={() => (draggingInside.current = false)}
+            onDrop={drop}
           />
         </article>
       </div>
@@ -90,7 +112,10 @@ export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: Edito
   )
 }
 
-/** Comma-separated tags, saved when the field is left or Enter is pressed. */
+/**
+ * Comma-separated tags, saved when the field is left or Enter is pressed. The
+ * draft never re-syncs from props: the editor remounts per note.
+ */
 function TagsField({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
   const [draft, setDraft] = useState(tags.join(', '))
 

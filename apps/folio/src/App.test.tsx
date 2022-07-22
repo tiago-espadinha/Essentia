@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
+import { act } from 'react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   $,
   blur,
@@ -111,5 +112,57 @@ describe('saving', () => {
     renderApp()
     newNote('x')
     expect($('[role="alert"]').textContent).toContain('Couldn’t save on this device')
+  })
+})
+
+describe('rich text', () => {
+  // jsdom has no execCommand; this stand-in inserts HTML the way a browser does.
+  function stubEditing() {
+    const execCommand = vi.fn((command: string, _ui?: boolean, value?: string) => {
+      if (command === 'insertHTML') $('.editor__body').insertAdjacentHTML('beforeend', value ?? '')
+      return true
+    })
+    Object.assign(document, { execCommand })
+    return execCommand
+  }
+
+  function dispatchWithData(kind: 'paste' | 'drop', html: string) {
+    const event = new Event(kind, { bubbles: true, cancelable: true })
+    const data = { getData: (type: string) => (type === 'text/html' ? html : '') }
+    Object.defineProperty(event, kind === 'paste' ? 'clipboardData' : 'dataTransfer', { value: data })
+    act(() => $('.editor__body').dispatchEvent(event))
+    return event
+  }
+
+  afterEach(() => delete (document as Partial<Document>).execCommand)
+
+  it('strips scripts and event handlers from pasted HTML', () => {
+    const execCommand = stubEditing()
+    renderApp()
+    newNote('x')
+    const event = dispatchWithData('paste', '<p onclick="alert(1)">safe</p><script>alert(1)</script><img src=x onerror=alert(1)>')
+    expect(event.defaultPrevented).toBe(true)
+    expect(execCommand).toHaveBeenCalledWith('insertHTML', false, '<p>safe</p>')
+    expect($('.editor__body').innerHTML).toBe('<p>safe</p>')
+    expect(savedNotes()[0].body).toBe('<p>safe</p>')
+  })
+
+  it('strips dropped HTML from outside the editor', () => {
+    const execCommand = stubEditing()
+    renderApp()
+    newNote('x')
+    dispatchWithData('drop', '<p style="color:red">dropped</p><iframe src="https://example.com"></iframe>')
+    expect(execCommand).toHaveBeenCalledWith('insertHTML', false, '<p>dropped</p>')
+    expect(savedNotes()[0].body).toBe('<p>dropped</p>')
+  })
+
+  it('formats from the toolbar and saves the result', () => {
+    const execCommand = stubEditing()
+    renderApp()
+    newNote('x')
+    expect($('[role="toolbar"]').getAttribute('aria-label')).toBe('Formatting')
+    click(buttonNamed('Bold'))
+    expect(execCommand).toHaveBeenCalledWith('bold', false, undefined)
+    expect(document.activeElement).toBe($('.editor__body'))
   })
 })

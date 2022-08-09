@@ -75,6 +75,10 @@ export function click(element: HTMLElement) {
   act(() => element.click())
 }
 
+export function press(element: HTMLElement, key: string) {
+  act(() => element.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })))
+}
+
 export function blur(element: HTMLElement) {
   act(() => element.dispatchEvent(new FocusEvent('focusout', { bubbles: true })))
 }

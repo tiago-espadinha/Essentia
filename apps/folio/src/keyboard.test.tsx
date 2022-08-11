@@ -55,3 +55,21 @@ describe('formatting toolbar', () => {
     expect(toolbarStops()).toEqual(['Quote'])
   })
 })
+
+describe('focus after a delete', () => {
+  it('goes to the row of the note that opens next', () => {
+    renderApp()
+    newNote('A')
+    newNote('B')
+    click(buttonNamed(/^B/))
+    click(buttonNamed('Delete'))
+    expect(document.activeElement).toBe(buttonNamed(/^A/))
+  })
+
+  it('goes to New note once the last note is gone', () => {
+    renderApp()
+    newNote('A')
+    click(buttonNamed('Delete'))
+    expect(document.activeElement).toBe(buttonNamed('New note'))
+  })
+})

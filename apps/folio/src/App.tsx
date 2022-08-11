@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppHeader } from './AppHeader'
 import { Editor } from './Editor'
 import { Library } from './Library'
@@ -13,6 +13,18 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   const clearFresh = useCallback(() => setFreshId(null), [])
+  // A row to focus once the list has rendered; `id: null` means New note.
+  const rowToFocus = useRef<{ id: string | null } | null>(null)
+  const mainRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const target = rowToFocus.current
+    if (!target) return
+    rowToFocus.current = null
+    const main = mainRef.current!
+    const row = [...main.querySelectorAll<HTMLElement>('.note-row')].find((r) => r.dataset.noteId === target.id)
+    ;(row ?? main.querySelector<HTMLElement>('.list-pane .button-primary'))?.focus()
+  })
 
   const tags = tagsOf(notes)
   // A tag filter lapses once no note carries the tag any more.
@@ -35,17 +47,19 @@ export default function App() {
     setFreshId(note.id)
   }
 
-  // The next note in the list opens (or the previous one at the end).
+  // The next note in the list opens (or the previous one at the end), and focus goes to its row.
   function deleteNote(id: string) {
     const position = visible.findIndex((note) => note.id === id)
+    const next = (visible[position + 1] ?? visible[position - 1])?.id ?? null
     remove(id)
-    setSelectedId((visible[position + 1] ?? visible[position - 1])?.id ?? null)
+    setSelectedId(next)
+    rowToFocus.current = { id: next }
   }
 
   return (
     <>
       <AppHeader />
-      <main className="folio">
+      <main className="folio" ref={mainRef}>
         <h1 className="visually-hidden">Folio notes</h1>
         <Library
           query={query}

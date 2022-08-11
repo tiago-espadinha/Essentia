@@ -84,6 +84,7 @@ function NoteRow({ note, selected, onSelect }: { note: Note; selected: boolean; 
     <button
       type="button"
       className="note-row"
+      data-note-id={note.id}
       aria-current={selected ? 'true' : undefined}
       onClick={() => onSelect(note.id)}
     >

@@ -25,7 +25,7 @@
   grid-template-columns: 220px 300px minmax(0, 1fr);
 }
 
-@media (min-width: 768px) {
+@media (width >= 768px) {
   #root {
     display: flex;
     flex-direction: column;
@@ -378,6 +378,9 @@
 /* The Filter toggle exists for the folded Library, 768 to 1023 px. */
 .filter-toggle { display: none; }
 
+/* Back to the list exists for one-pane phones. */
+.back-button { display: none; }
+
 .filter-toggle[aria-expanded='true'] {
   background: var(--color-paper);
   color: var(--color-accent-text);
@@ -438,4 +441,38 @@
   }
 
   .editor { padding: var(--space-8) var(--space-6) var(--space-12); }
+}
+
+/* Below 768 px one pane at a time: the Library sits open above the list, and
+   the editor replaces both with a back control. */
+@media (width < 768px) {
+  .folio { display: block; }
+  .pane { border-right: none; }
+  .library-pane:not([data-open]) { display: flex; }
+  .filter-toggle { display: none; }
+  .folio[data-view='list'] .editor-pane,
+  .folio[data-view='editor'] .library-pane,
+  .folio[data-view='editor'] .list-pane { display: none; }
+
+  .back-button {
+    display: inline-flex;
+    margin-right: auto;
+  }
+
+  .editor__bar { padding: var(--space-2) var(--space-1); }
+  .editor { padding: var(--space-6) var(--space-4) var(--space-12); }
+
+  /* One row of 44 px buttons spread across the width; narrower phones scroll it.
+     The padding keeps the focus ring inside the scroll box. */
+  .editor__bar .toolbar {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    overflow-x: auto;
+    padding: var(--space-1);
+  }
+
+  .toolbar__group + .toolbar__group {
+    margin-left: 0;
+    padding-left: 0;
+  }
 }

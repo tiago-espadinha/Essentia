@@ -1,6 +1,6 @@
 import axe from 'axe-core'
 import { describe, expect, it } from 'vitest'
-import { $, newNote, renderApp, setupApp, type, writeBody } from './testing'
+import { $, blur, buttonNamed, click, newNote, renderApp, setupApp, type, writeBody } from './testing'
 
 setupApp()
 
@@ -30,6 +30,17 @@ describe('accessibility', () => {
     const container = renderApp()
     newNote('Sourdough')
     type($<HTMLInputElement>('#search'), 'zzz')
+    expect(await seriousViolations(container)).toEqual([])
+  })
+
+  it('has no serious violations with the Filter bar open on a tag', async () => {
+    const container = renderApp()
+    newNote('Sourdough')
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    type(tags, 'baking')
+    blur(tags)
+    click(buttonNamed('Filter'))
+    click(buttonNamed('#baking'))
     expect(await seriousViolations(container)).toEqual([])
   })
 })

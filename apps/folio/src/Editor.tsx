@@ -6,15 +6,17 @@ import { Toolbar } from './Toolbar'
 
 interface EditorProps {
   note: Note
-  /** Focus the title on mount (a note just created). */
+  /** Focus the title (a note just created, or opened on a phone). */
   autoFocus: boolean
   onFocused: () => void
   onChange: (changes: NoteChanges) => void
+  /** Back to the note list, shown below 768 px. */
+  onBack: () => void
   onDelete: () => void
 }
 
 /** One note. Remounted per note (keyed by id), so the body is written into the DOM once. */
-export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: EditorProps) {
+export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   // Text dragged within the body moves natively; anything from outside is cleaned first.
@@ -57,6 +59,12 @@ export function Editor({ note, autoFocus, onFocused, onChange, onDelete }: Edito
   return (
     <>
       <div className="editor__bar">
+        <button type="button" className="button-ghost back-button" onClick={onBack}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Notes
+        </button>
         <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
         <button
           type="button"

@@ -6,12 +6,24 @@ interface NoteListProps {
   /** How many notes exist at all. */
   total: number
   selectedId: string | null
+  /** Whether the Filter bar (the Library, below 1024 px) is open. */
+  filtersOpen: boolean
   onSelect: (id: string) => void
+  onToggleFilters: () => void
   onNew: () => void
   onClearFilters: () => void
 }
 
-export function NoteList({ notes, total, selectedId, onSelect, onNew, onClearFilters }: NoteListProps) {
+export function NoteList({
+  notes,
+  total,
+  selectedId,
+  filtersOpen,
+  onSelect,
+  onToggleFilters,
+  onNew,
+  onClearFilters,
+}: NoteListProps) {
   const pinned = notes.filter((note) => note.pinned)
   const others = notes.filter((note) => !note.pinned)
   const rows = (group: Note[]) => (
@@ -30,7 +42,23 @@ export function NoteList({ notes, total, selectedId, onSelect, onNew, onClearFil
         <h2 id="list-title" className="label">
           Notes · {notes.length}
         </h2>
-        {total > 0 && <NewNoteButton onClick={onNew} />}
+        {total > 0 && (
+          <div className="pane__actions">
+            <button
+              type="button"
+              className="button-ghost filter-toggle"
+              aria-expanded={filtersOpen}
+              aria-controls="library"
+              onClick={onToggleFilters}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M2.5 4h11M4.5 8h7M6.5 12h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              Filter
+            </button>
+            <NewNoteButton onClick={onNew} />
+          </div>
+        )}
       </div>
 
       <div className="pane__body">
@@ -84,6 +112,7 @@ function NoteRow({ note, selected, onSelect }: { note: Note; selected: boolean; 
     <button
       type="button"
       className="note-row"
+      data-note-id={note.id}
       aria-current={selected ? 'true' : undefined}
       onClick={() => onSelect(note.id)}
     >

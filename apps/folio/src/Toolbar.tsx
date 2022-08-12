@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode, type RefObject } from 'react'
+import { useEffect, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
 import { activeFormats, applyFormat, type Format } from './editing'
 
 const svg = (path: ReactNode) => (
@@ -34,15 +34,21 @@ const TOOLS: { format: Format; label: string; icon: ReactNode }[][] = [
   ],
 ]
 
+const FORMATS = TOOLS.flat().map((tool) => tool.format)
+
 interface ToolbarProps {
   bodyRef: RefObject<HTMLDivElement | null>
   /** Called after a format is applied, so the body can be saved. */
   onFormat: () => void
 }
 
-/** Formatting for the note body, with pressed states that follow the selection. */
+/**
+ * Formatting for the note body, with pressed states that follow the selection.
+ * One Tab stop: the arrow keys, Home and End move between the buttons.
+ */
 export function Toolbar({ bodyRef, onFormat }: ToolbarProps) {
   const [active, setActive] = useState<Set<Format>>(() => new Set())
+  const [current, setCurrent] = useState<Format>(FORMATS[0])
 
   useEffect(() => {
     // Selection changes anywhere on the page; re-render only when the formats differ.
@@ -59,12 +65,27 @@ export function Toolbar({ bodyRef, onFormat }: ToolbarProps) {
     const body = bodyRef.current!
     if (!body.contains(document.activeElement)) body.focus()
     applyFormat(body, target)
+    setCurrent(target)
     setActive(activeFormats(body))
     onFormat()
   }
 
+  function moveFocus(event: KeyboardEvent<HTMLDivElement>) {
+    const index = FORMATS.indexOf(current)
+    const next = {
+      ArrowRight: (index + 1) % FORMATS.length,
+      ArrowLeft: (index - 1 + FORMATS.length) % FORMATS.length,
+      Home: 0,
+      End: FORMATS.length - 1,
+    }[event.key]
+    if (next === undefined) return
+    event.preventDefault()
+    setCurrent(FORMATS[next])
+    event.currentTarget.querySelectorAll('button')[next].focus()
+  }
+
   return (
-    <div className="toolbar" role="toolbar" aria-label="Formatting">
+    <div className="toolbar" role="toolbar" aria-label="Formatting" onKeyDown={moveFocus}>
       {TOOLS.map((group, index) => (
         <div key={index} className="toolbar__group">
           {group.map(({ format: target, label, icon }) => (
@@ -75,6 +96,8 @@ export function Toolbar({ bodyRef, onFormat }: ToolbarProps) {
               aria-label={label}
               title={label}
               aria-pressed={active.has(target)}
+              tabIndex={target === current ? 0 : -1}
+              onFocus={() => setCurrent(target)}
               // Keep the selection in the body when the button is pressed.
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => format(target)}

@@ -12,6 +12,8 @@ export default function App() {
   const [freshId, setFreshId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  // Below 1024 px the search and tags fold into a Filter bar above the list.
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const clearFresh = useCallback(() => setFreshId(null), [])
   // A row to focus once the list has rendered; `id: null` means New note.
   const rowToFocus = useRef<{ id: string | null } | null>(null)
@@ -34,9 +36,18 @@ export default function App() {
   // With nothing chosen yet, or the chosen note gone, the first note in the list is open.
   const selected = notes.find((note) => note.id === selectedId) ?? visible[0] ?? null
 
+  // An active filter keeps the bar open, so the list is never narrowed out of sight.
+  const libraryOpen = filtersOpen || query !== '' || activeTag !== null
+
   function clearFilters() {
     setQuery('')
     setSelectedTag(null)
+  }
+
+  // Closing the bar also clears what it filtered.
+  function toggleFilters() {
+    if (libraryOpen) clearFilters()
+    setFiltersOpen(!libraryOpen)
   }
 
   // A new note is blank, so the filters are cleared to show it in the list.
@@ -65,6 +76,7 @@ export default function App() {
           query={query}
           tags={tags}
           activeTag={activeTag}
+          open={libraryOpen}
           onQueryChange={setQuery}
           onTagChange={setSelectedTag}
         />
@@ -72,7 +84,9 @@ export default function App() {
           notes={visible}
           total={notes.length}
           selectedId={selected?.id ?? null}
+          filtersOpen={libraryOpen}
           onSelect={setSelectedId}
+          onToggleFilters={toggleFilters}
           onNew={newNote}
           onClearFilters={clearFilters}
         />

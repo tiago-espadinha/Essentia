@@ -1,0 +1,43 @@
+/* Virtus: a single 520 px column on the shared tokens. */
+
+.virtus-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-sand);
+  border-bottom: 1px solid var(--color-faint);
+}
+
+.virtus-header__inner {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  max-width: var(--width-column);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.virtus-header__inner > :last-child { justify-self: end; }
+
+.virtus-header__title {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+}
+
+.virtus {
+  max-width: var(--width-column);
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-4) var(--space-16);
+}
+
+/* Hero */
+.hero { text-align: center; }
+
+.hero__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-4xl);
+  line-height: var(--leading-tight);
+}
+
+.hero__title em { color: var(--color-mid); }

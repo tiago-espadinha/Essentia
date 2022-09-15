@@ -102,6 +102,9 @@ export function newId(): string {
   return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('')
 }
 
+/** The id of a row's first control, so focus can be handed to a row after it re-renders. */
+export const controlId = (habit: Habit) => `habit-${habit.id}-control`
+
 export const isNumeric = (habit: Pick<Habit, 'unit'>) => habit.unit !== ''
 
 export function isScheduled(habit: Habit, day: string): boolean {
@@ -236,4 +239,24 @@ export function queryHabits(habits: Habit[], query: ListQuery, today: string): H
     default:
       return matches.toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
   }
+}
+
+export interface TodayGroups {
+  due: Habit[]
+  done: Habit[]
+  notDue: Habit[]
+}
+
+/**
+ * Splits the list for today: due and still open, done (including a bonus
+ * check-in on a day off), and not due today. Each group keeps the list order.
+ */
+export function groupForToday(habits: Habit[], today: string): TodayGroups {
+  const groups: TodayGroups = { due: [], done: [], notDue: [] }
+  for (const habit of habits) {
+    if (isDone(habit, today)) groups.done.push(habit)
+    else if (isScheduled(habit, today)) groups.due.push(habit)
+    else groups.notDue.push(habit)
+  }
+  return groups
 }

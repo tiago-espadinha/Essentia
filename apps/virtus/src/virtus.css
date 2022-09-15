@@ -33,7 +33,22 @@
 /* Hero */
 .hero { text-align: center; }
 
+.hero__day {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-accent-text);
+}
+
+.hero__day::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-faint);
+}
+
 .hero__title {
+  margin-top: var(--space-6);
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: var(--text-4xl);
@@ -41,3 +56,541 @@
 }
 
 .hero__title em { color: var(--color-mid); }
+
+.progress {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-full);
+  background: var(--color-paper);
+}
+
+.progress__track {
+  position: relative;
+  width: 64px;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--color-faint);
+}
+
+.progress__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--color-terracotta);
+  transition: width var(--duration-normal) var(--ease);
+}
+
+/* Buttons */
+.button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-terracotta);
+  color: var(--color-on-accent);
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease);
+}
+
+.button-primary:hover { opacity: 0.9; }
+
+.button-ghost {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease);
+}
+
+.button-ghost:hover { border-color: var(--color-line-strong); }
+
+/* Inputs */
+.input,
+.add__input {
+  width: 100%;
+  min-height: 44px;
+  font-size: var(--text-md);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+}
+
+.input::placeholder,
+.add__input::placeholder { color: var(--color-mid); }
+
+[aria-invalid='true'] { border-color: var(--color-danger); }
+
+.field-error {
+  margin-top: var(--space-1);
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+}
+
+/* Add */
+.add { margin-top: var(--space-12); }
+
+.add__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.add__input { padding-inline: var(--space-4); }
+
+.add__button { flex: none; width: 44px; padding: 0; }
+
+.notice {
+  margin-top: var(--space-4);
+  color: var(--color-danger);
+}
+
+/* Undo */
+.undo:not(:empty) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-left: var(--space-4);
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  color: var(--color-mid);
+}
+
+.undo__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.undo__button {
+  flex: none;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--color-accent-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.undo__button:hover { color: var(--color-ink); }
+
+/* Filters */
+.filters {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.filters__status {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.filters__status-button {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
+}
+
+.filters__status-button:hover { color: var(--color-ink); }
+
+.filters__status-button[aria-pressed='true'] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-terracotta);
+}
+
+.filters__categories {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.chip {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
+}
+
+.chip:hover { color: var(--color-ink); }
+
+/* Ink, not terracotta: the default "Any" is pressed, and the one terracotta
+   action per view stays the add button. */
+.chip[aria-pressed='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+/* List */
+.section-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: var(--space-8) 0 var(--space-2);
+}
+
+.section-row h2 { font-weight: 400; }
+
+.section-row__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-faint);
+}
+
+.habits { list-style: none; }
+
+.habit {
+  --mark-size: 20px;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  margin: 0 calc(-1 * var(--space-2));
+  border-bottom: 1px solid var(--color-faint);
+  transition: background var(--duration-fast) var(--ease);
+}
+
+.habit:hover,
+.habit:focus-within { background: var(--color-paper); }
+
+.habit__mark {
+  flex: none;
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: var(--mark-size);
+  height: var(--mark-size);
+  margin-top: 2px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
+}
+
+/* A numeric row's mark only shows the state; the amount field is the control. */
+.habit__mark:not(input) { border-style: dashed; cursor: default; }
+.habit--done .habit__mark:not(input) {
+  border-style: solid;
+  border-color: var(--color-terracotta);
+  background: var(--color-terracotta);
+}
+
+.habit__streak { color: var(--color-accent-text); }
+
+/* The small circle keeps a 44 px hit area. */
+.habit__check { position: relative; }
+.habit__check::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+}
+
+.habit__check:hover { border-color: var(--color-accent-text); }
+
+.habit__check:checked {
+  border-color: var(--color-terracotta);
+  background: var(--color-terracotta);
+}
+
+.habit__check:checked::after {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border-left: 1.5px solid var(--color-on-accent);
+  border-bottom: 1.5px solid var(--color-on-accent);
+  transform: translateY(-1px) rotate(-45deg);
+}
+
+.habit__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.habit__name {
+  font-size: var(--text-md);
+  overflow-wrap: anywhere;
+}
+
+.habit--done .habit__name {
+  color: var(--color-mid);
+  text-decoration: line-through;
+}
+
+.habit__meta {
+  display: flex;
+  overflow-wrap: anywhere;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin-top: var(--space-1);
+}
+
+.habit__category { color: var(--color-accent-text); }
+
+.habit__due--over { color: var(--color-danger); }
+
+/* With a pointer, the actions float over the row's end so hidden ones take no
+   width from the habit name. */
+.habit__actions {
+  position: absolute;
+  top: 0;
+  right: var(--space-2);
+  display: flex;
+  gap: var(--space-1);
+  background: var(--color-paper);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease);
+}
+
+.habit__actions::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 100%;
+  bottom: 0;
+  width: var(--space-8);
+  background: linear-gradient(to right, transparent, var(--color-paper));
+}
+
+.habit:hover .habit__actions,
+.habit:focus-within .habit__actions { opacity: 1; }
+
+/* On touch and narrow screens they are always shown, at the end of the meta
+   line; the negative margins keep their 44 px targets from growing the row. */
+@media (hover: none), (max-width: 480px) {
+  .habit__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--space-3);
+  }
+
+  .habit__name { flex-basis: 100%; }
+
+  .habit__meta { flex: 1 1 auto; }
+
+  .habit__actions {
+    position: static;
+    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-2)) calc(-1 * var(--space-3)) auto;
+    background: none;
+    opacity: 1;
+  }
+
+  .habit__actions::before { content: none; }
+}
+
+.habit__action {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.habit__action:hover { color: var(--color-accent-text); }
+
+/* Fields: add options and the edit dialog */
+.fields {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  border: none;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+select.input { cursor: pointer; }
+
+.days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.days__day {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-mid);
+  cursor: pointer;
+}
+
+.days__day[aria-pressed='true'] {
+  border-color: var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.add__options {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 44px;
+  margin-top: var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.add__options:hover { color: var(--color-ink); }
+
+.add__options svg { transition: transform var(--duration-fast) var(--ease); }
+.add__options[aria-expanded='true'] svg { transform: rotate(180deg); }
+
+/* Amount logging on numeric rows */
+.amount {
+  flex-basis: 100%;
+  margin-top: var(--space-2);
+}
+
+.amount__today { color: var(--color-mid); }
+
+.amount__value {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  color: var(--color-ink);
+}
+
+.amount__row {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.amount__input { width: 8rem; }
+
+.amount__button { border-color: var(--color-line-strong); }
+
+/* Hero week */
+.week-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  list-style: none;
+  color: var(--color-mid);
+  font-size: var(--text-xs);
+}
+
+.week-dots__day {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+}
+
+.week-dots__day[aria-current='date'] { color: var(--color-ink); }
+
+.week-dots__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-faint);
+}
+
+.week-dots__dot--on { background: var(--color-terracotta); }
+
+/* Empty states */
+.empty {
+  margin-top: var(--space-8);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--color-faint);
+  text-align: center;
+}
+
+.empty--filtered {
+  margin-top: 0;
+  border-top: none;
+  padding-top: var(--space-6);
+}
+
+.empty--filtered .button-ghost {
+  margin-top: var(--space-6);
+  border-color: var(--color-line-strong);
+}
+
+.empty__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-2xl);
+}
+
+.empty__text {
+  margin-top: var(--space-2);
+  color: var(--color-mid);
+}
+
+@media (max-width: 480px) {
+  .virtus { padding-top: var(--space-8); }
+  .chip { min-height: 44px; }
+  .hero__title { margin-top: var(--space-4); font-size: var(--text-3xl); }
+  .progress { margin-top: var(--space-4); }
+  .add { margin-top: var(--space-8); }
+  .filters { margin-top: var(--space-6); }
+}
+
+@media (hover: none) {
+  .chip { min-height: 44px; }
+}

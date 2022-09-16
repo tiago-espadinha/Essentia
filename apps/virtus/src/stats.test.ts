@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Habit } from './habits'
-import { dayState, percent, summarize, tally } from './stats'
+import { bestStreaks, categoryTallies, checkInsSince, dayState, dayTally, heatmap, percent, summarize, tally, withStarts } from './stats'
 
 // 2022-08-15 is a Monday.
 const today = '2022-08-15'
@@ -73,5 +73,46 @@ describe('dayState', () => {
     expect(dayState(custom, today, today)).toBe('open')
     expect(dayState(custom, '2022-08-17', today)).toBe('later')
     expect(dayState(custom, '2022-08-01', today)).toBe('off')
+  })
+})
+
+describe('dashboard figures', () => {
+  const daily = habit({ id: 'a', category: 'Health', log: checked('2022-08-13', '2022-08-14') })
+  const weekend = habit({ id: 'b', category: 'Social', days: [0, 6], log: checked('2022-08-13') })
+
+  it('tallies one day across habits', () => {
+    const started = withStarts([daily, weekend])
+    expect(dayTally(started, '2022-08-14', today)).toEqual({ done: 1, due: 2 })
+    expect(dayTally(started, today, today)).toEqual({ done: 0, due: 0 })
+  })
+
+  it('builds twelve Monday-first weeks with a level per day', () => {
+    const days = heatmap([daily, weekend], today)
+    expect(days).toHaveLength(84)
+    expect(days[0].day).toBe('2022-05-30')
+    expect(days.at(-1)!.day).toBe('2022-08-21')
+    const level = (day: string) => days.find((item) => item.day === day)!.level
+    expect(level('2022-08-13')).toBe(4)
+    expect(level('2022-08-14')).toBe(2)
+    expect(level('2022-08-09')).toBe(0)
+    expect(level('2022-08-01')).toBeNull()
+    expect(level(today)).toBeNull()
+    expect(level('2022-08-20')).toBeNull()
+  })
+
+  it('tallies by category and finds the best streaks', () => {
+    expect(categoryTallies([daily, weekend], '2022-08-01', today)).toEqual([
+      { category: 'Health', tally: { done: 2, due: 7 } },
+      { category: 'Social', tally: { done: 1, due: 2 } },
+    ])
+    const best = bestStreaks([daily, weekend], today)
+    expect(best.current).toMatchObject({ habit: { id: 'a' }, days: 2 })
+    expect(best.longest).toMatchObject({ habit: { id: 'a' }, days: 2 })
+    expect(bestStreaks([], today)).toEqual({ current: null, longest: null })
+  })
+
+  it('counts check-ins in a range', () => {
+    expect(checkInsSince([daily, weekend], '2022-08-14', today)).toBe(1)
+    expect(checkInsSince([daily, weekend], '2022-08-01', today)).toBe(3)
   })
 })

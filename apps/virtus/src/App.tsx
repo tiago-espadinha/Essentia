@@ -10,6 +10,7 @@ import { Hero } from './Hero'
 import { categoriesOf, controlId, queryHabits, todayKey, type Habit, type ListQuery } from './habits'
 import { UndoNotice } from './UndoNotice'
 import { useHabits } from './useHabits'
+import { StatsView } from './StatsView'
 import { sectionsFor, type View } from './views'
 import { Views } from './Views'
 import { WeekView } from './WeekView'
@@ -47,7 +48,7 @@ export default function App() {
   // recategorized, or only one category is left and the chips are hidden.
   const category = categories.length > 1 && query.category !== null && categories.includes(query.category) ? query.category : null
   if (category !== query.category) setQuery({ ...query, category })
-  const sections = view === 'week' ? [] : sectionsFor(view, habits, query, today)
+  const sections = view === 'week' || view === 'stats' ? [] : sectionsFor(view, habits, query, today)
   const shown = sections.flatMap((section) => section.habits)
 
   // Focus moves to the next row (or the previous one at the end), else to the
@@ -93,6 +94,7 @@ export default function App() {
   )
 
   function list() {
+    if (view === 'stats') return <StatsView habits={habits} today={today} />
     if (habits.length === 0) {
       return (
         <section className="empty" aria-labelledby="empty-title">

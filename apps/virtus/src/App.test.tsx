@@ -393,3 +393,35 @@ describe('week and habit stats', () => {
     expect(document.activeElement).toBe($('#habit-h0-stats'))
   })
 })
+
+describe('stats view', () => {
+  it('says there is not enough data without habits', () => {
+    renderApp()
+    click(buttonNamed('Stats'))
+    expect($('#empty-title').textContent).toBe('Not enough data yet.')
+  })
+
+  it('shows rates for the chosen range, the chart, the heatmap and badges', () => {
+    store([
+      { name: 'Stretch', category: 'Health', log: { '2022-08-13': 1, '2022-08-14': 1 } },
+      { name: 'Call home', category: 'Social', days: [0], log: { '2022-08-14': 1 } },
+    ])
+    renderApp()
+    click(buttonNamed('Stats'))
+
+    const tiles = () => [...document.querySelectorAll('.tiles__item')].map((tile) => tile.textContent)
+    // 30 days from 17 July, both created on 1 August: Stretch 2 of 14, Call home 1 of 2.
+    expect(tiles()[0]).toBe('Completion19%3 of 16 due days')
+    expect(tiles()[2]).toBe('Current best2dStretch')
+    click(buttonNamed('7 days'))
+    expect(tiles()[0]).toBe('Completion43%3 of 7 due days')
+    expect($('[aria-label="Range"] [aria-pressed="true"]').textContent).toBe('7 days')
+
+    expect([...document.querySelectorAll('.categories__row')].map((row) => row.textContent)).toEqual(['Health33%', 'Social100%'])
+    expect(document.querySelectorAll('.chart__day')).toHaveLength(7)
+    expect($('.chart__day:nth-child(7) .visually-hidden').textContent).toBe('Monday: 0 of 0 done')
+    expect(document.querySelectorAll('.heatmap__grid .heatmap__cell')).toHaveLength(84)
+    expect($('.heatmap__caption').textContent).toContain('3 of 16 due days done; every habit done on 2 days.')
+    expect($('#stats-badges').closest('section')!.textContent).toContain('3 of 10')
+  })
+})

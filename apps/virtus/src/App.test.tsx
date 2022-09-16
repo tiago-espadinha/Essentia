@@ -1,3 +1,4 @@
+import { act } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { Habit } from './habits'
 import { STORAGE_KEY } from './storage'
@@ -225,5 +226,59 @@ describe('Virtus', () => {
       expect($('.notice').textContent).toContain('Couldn’t save on this device.')
       expect(habitNames()).toEqual(['Stretch'])
     })
+  })
+})
+
+describe('editing', () => {
+  const dialog = () => document.querySelector('dialog')
+
+  it('edits the settings in a dialog, keeps the check-ins and returns focus', () => {
+    store([{ name: 'Read', log: { [TODAY]: 1 } }])
+    renderApp()
+    click(buttonNamed('Edit “Read”'))
+
+    expect(dialog()?.open).toBe(true)
+    expect(document.activeElement).toBe($('#edit-name'))
+    expect($<HTMLInputElement>('#edit-name').value).toBe('Read')
+    type($<HTMLInputElement>('#edit-name'), 'Read fiction')
+    type($<HTMLInputElement>('#edit-category'), 'Learning')
+    choose($<HTMLSelectElement>('#edit-schedule'), 'some')
+    click($('.days__day[aria-label="Monday"]'))
+    submit($<HTMLFormElement>('.dialog__body'))
+
+    expect(dialog()).toBeNull()
+    expect(saved()[0]).toMatchObject({ name: 'Read fiction', category: 'Learning', days: [1], log: { [TODAY]: 1 } })
+    expect(document.activeElement).toBe($('#habit-h0-edit'))
+  })
+
+  it('refuses an empty name and keeps the dialog open', () => {
+    store([{ name: 'Read' }])
+    renderApp()
+    click(buttonNamed('Edit “Read”'))
+    type($<HTMLInputElement>('#edit-name'), ' ')
+    submit($<HTMLFormElement>('.dialog__body'))
+
+    expect(dialog()?.open).toBe(true)
+    expect($('#edit-name-error').textContent).toBe('Name the habit first.')
+    expect(saved()[0].name).toBe('Read')
+  })
+
+  it('discards changes on Cancel and when the dialog closes with Esc', () => {
+    store([{ name: 'Read' }])
+    renderApp()
+    click(buttonNamed('Edit “Read”'))
+    type($<HTMLInputElement>('#edit-name'), 'Changed')
+    click(buttonNamed('Cancel'))
+    expect(dialog()).toBeNull()
+    expect(document.activeElement).toBe($('#habit-h0-edit'))
+
+    click(buttonNamed('Edit “Read”'))
+    type($<HTMLInputElement>('#edit-name'), 'Changed')
+    // The browser fires close after Esc.
+    act(() => {
+      dialog()!.dispatchEvent(new Event('close'))
+    })
+    expect(dialog()).toBeNull()
+    expect(saved()[0].name).toBe('Read')
   })
 })

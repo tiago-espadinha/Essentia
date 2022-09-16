@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { controlId, describeDays, isDone, isNumeric, MILESTONES, streaks, type Habit } from './habits'
+import { controlId, describeDays, editId, isDone, isNumeric, MILESTONES, streaks, type Habit } from './habits'
 
 interface HabitRowProps {
   habit: Habit
@@ -7,10 +7,11 @@ interface HabitRowProps {
   showLongest?: boolean
   onToggle: (id: string) => void
   onLog: (id: string, value: number) => void
+  onEdit: (habit: Habit) => void
   onDelete: (id: string) => void
 }
 
-export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, onDelete }: HabitRowProps) {
+export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, onEdit, onDelete }: HabitRowProps) {
   const nameId = `habit-${habit.id}-name`
   const done = isDone(habit, today)
   const { current, longest } = streaks(habit, today)
@@ -44,6 +45,9 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, o
           {showLongest && <span className="label">Best {longest}</span>}
         </p>
         <div className="habit__actions">
+          <button id={editId(habit)} type="button" className="habit__action" onClick={() => onEdit(habit)}>
+            Edit<span className="visually-hidden"> “{habit.name}”</span>
+          </button>
           <button type="button" className="habit__action" onClick={() => onDelete(habit.id)}>
             Delete<span className="visually-hidden"> “{habit.name}”</span>
           </button>

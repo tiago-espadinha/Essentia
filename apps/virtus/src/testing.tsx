@@ -9,6 +9,11 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
+// jsdom has <dialog> without its methods; the browser's focus trap and Esc are not emulated.
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+  this.open = true
+}
+
 export const TODAY_DATE = new Date(2022, 7, 15, 9, 30)
 export const TODAY = '2022-08-15'
 

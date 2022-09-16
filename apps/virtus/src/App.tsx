@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AddHabit } from './AddHabit'
 import { AppHeader } from './AppHeader'
+import { EditDialog } from './EditDialog'
 import { HabitRow } from './HabitRow'
 import { HabitSection } from './HabitSection'
 import { Hero } from './Hero'
@@ -9,7 +10,8 @@ import { UndoNotice } from './UndoNotice'
 import { useHabits } from './useHabits'
 
 export default function App() {
-  const { habits, saveFailed, add, toggle, log, remove, restore } = useHabits()
+  const { habits, saveFailed, add, update, toggle, log, remove, restore } = useHabits()
+  const [editing, setEditing] = useState<Habit | null>(null)
   const [deleted, setDeleted] = useState<{ habit: Habit; beforeId: string | null } | null>(null)
   // The control to focus once the list has re-rendered: rows remount when they
   // change section, and a delete or an undo moves focus to another row.
@@ -62,6 +64,7 @@ export default function App() {
         log(id, today, value)
         setFocusId(controlId(habit))
       }}
+      onEdit={setEditing}
       onDelete={deleteHabit}
     />
   )
@@ -101,6 +104,18 @@ export default function App() {
           </>
         )}
       </main>
+
+      {editing && (
+        <EditDialog
+          habit={editing}
+          categories={categories}
+          onSave={(draft) => {
+            update(editing.id, draft)
+            setEditing(null)
+          }}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </>
   )
 }

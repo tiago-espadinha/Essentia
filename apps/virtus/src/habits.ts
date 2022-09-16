@@ -105,6 +105,8 @@ export function newId(): string {
 /** The id of a row's first control, so focus can be handed to a row after it re-renders. */
 export const controlId = (habit: Habit) => `habit-${habit.id}-control`
 
+export const editId = (habit: Habit) => `habit-${habit.id}-edit`
+
 export const isNumeric = (habit: Pick<Habit, 'unit'>) => habit.unit !== ''
 
 export function isScheduled(habit: Habit, day: string): boolean {

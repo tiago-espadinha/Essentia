@@ -23,4 +23,11 @@ export const suiteApps: SuiteApp[] = [
     description: 'Tasks with categories, due dates and filters.',
     port: 5102,
   },
+  {
+    name: 'Virtus',
+    path: '/virtus/',
+    latin: 'strength of character',
+    description: 'Habits with streaks, a heatmap and badges.',
+    port: 5103,
+  },
 ]

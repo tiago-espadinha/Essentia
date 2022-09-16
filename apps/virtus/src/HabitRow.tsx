@@ -35,7 +35,7 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, o
           {habit.name}
         </p>
         <p className="habit__meta">
-          <span className="label habit__category">{habit.category}</span>
+          <span className="label">{habit.category}</span>
           {habit.days.length > 0 && <span className="label">{describeDays(habit.days)}</span>}
           {current > 0 && (
             <span className="label habit__streak">

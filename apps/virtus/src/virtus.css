@@ -366,7 +366,6 @@
 
 .habit--done .habit__name {
   color: var(--color-mid);
-  text-decoration: line-through;
 }
 
 .habit__meta {
@@ -376,10 +375,6 @@
   gap: var(--space-1) var(--space-3);
   margin-top: var(--space-1);
 }
-
-.habit__category { color: var(--color-accent-text); }
-
-.habit__due--over { color: var(--color-danger); }
 
 /* With a pointer, the actions float over the row's end so hidden ones take no
    width from the habit name. */

@@ -193,21 +193,18 @@
 
 .undo__button:hover { color: var(--color-ink); }
 
-/* Filters */
-.filters {
-  display: grid;
-  gap: var(--space-3);
-  margin-top: var(--space-8);
-}
-
-.filters__status {
+/* Views */
+.views {
   display: flex;
   justify-content: center;
   gap: var(--space-2);
+  margin-top: var(--space-8);
+  border-bottom: 1px solid var(--color-faint);
 }
 
-.filters__status-button {
+.views__button {
   min-height: 44px;
+  margin-bottom: -1px;
   padding: 0 var(--space-3);
   border: none;
   border-bottom: 2px solid transparent;
@@ -221,12 +218,28 @@
   transition: color var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
 }
 
-.filters__status-button:hover { color: var(--color-ink); }
+.views__button:hover { color: var(--color-ink); }
 
-.filters__status-button[aria-pressed='true'] {
+.views__button[aria-current='page'] {
   color: var(--color-ink);
   border-bottom-color: var(--color-terracotta);
 }
+
+/* Search, category and sort */
+.filters {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+
+.filters__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.filters__search { flex: 1; }
+
+.filters__sort { flex: none; width: auto; }
 
 .filters__categories {
   display: flex;
@@ -584,14 +597,15 @@ select.input { cursor: pointer; }
 
 @media (max-width: 480px) {
   .virtus { padding-top: var(--space-8); }
-  .chip { min-height: 44px; }
   .hero__title { margin-top: var(--space-4); font-size: var(--text-3xl); }
   .progress { margin-top: var(--space-4); }
   .add { margin-top: var(--space-8); }
   .filters { margin-top: var(--space-6); }
+  .views { margin-top: var(--space-6); }
 }
 
-@media (hover: none) {
+/* 44 px targets below 1024, and on touch screens at any width. */
+@media (max-width: 1023px), (hover: none) {
   .chip { min-height: 44px; }
 }
 

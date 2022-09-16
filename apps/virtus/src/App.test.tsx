@@ -282,3 +282,79 @@ describe('editing', () => {
     expect(saved()[0].name).toBe('Read')
   })
 })
+
+describe('finding and views', () => {
+  function seed() {
+    store([
+      { name: 'Run', category: 'Fitness', createdAt: '2022-08-03T08:00:00.000Z', log: { '2022-08-14': 1 } },
+      { name: 'Meditate', category: 'Mindfulness', createdAt: '2022-08-02T08:00:00.000Z', log: { '2022-08-13': 1, '2022-08-14': 1 } },
+      { name: 'Journal', category: 'Mindfulness', createdAt: '2022-08-01T08:00:00.000Z' },
+    ])
+  }
+
+  it('searches names and categories, and clears a search with no match', () => {
+    seed()
+    renderApp()
+    type($<HTMLInputElement>('#search'), 'mind')
+    expect(habitNames()).toEqual(['Meditate', 'Journal'])
+
+    type($<HTMLInputElement>('#search'), 'swim')
+    expect($('#empty-title').textContent).toBe('No habits match.')
+    click(buttonNamed('Clear search and category'))
+    expect(habitNames()).toEqual(['Run', 'Meditate', 'Journal'])
+  })
+
+  it('filters by category chip and sorts', () => {
+    seed()
+    renderApp()
+    click(buttonNamed('Fitness'))
+    expect(habitNames()).toEqual(['Run'])
+    click(buttonNamed('Any'))
+
+    choose($<HTMLSelectElement>('#sort'), 'name')
+    expect(habitNames()).toEqual(['Journal', 'Meditate', 'Run'])
+    choose($<HTMLSelectElement>('#sort'), 'streak')
+    expect(habitNames()).toEqual(['Meditate', 'Run', 'Journal'])
+  })
+
+  it('drops a category filter once its last habit is gone', () => {
+    seed()
+    renderApp()
+    click(buttonNamed('Fitness'))
+    click(buttonNamed('Delete “Run”'))
+    expect(habitNames()).toEqual(['Meditate', 'Journal'])
+    expect(document.activeElement).toBe($('#add-habit'))
+  })
+
+  it('lists every habit by current streak with its best in Streaks, without the add field', () => {
+    seed()
+    renderApp()
+    click(buttonNamed('Streaks'))
+
+    expect($('.views__button[aria-current="page"]').textContent).toBe('Streaks')
+    expect(document.querySelector('#add-habit')).toBeNull()
+    expect(document.querySelector('#sort')).toBeNull()
+    expect(section('section-streaks')).toEqual(['Meditate', 'Run', 'Journal'])
+    expect($('.habit__meta').textContent).toContain('Best 2')
+  })
+
+  it('keeps focus on the Streaks tab when the very last habit goes, and on the row after undo', () => {
+    store([{ name: 'Only' }])
+    renderApp()
+    click(buttonNamed('Streaks'))
+    click(buttonNamed('Delete “Only”'))
+    expect(document.activeElement).toBe(buttonNamed('Streaks'))
+    click(buttonNamed('Undo'))
+    expect(document.activeElement).toBe($('#habit-h0-control'))
+  })
+
+  it('keeps the search across views and focuses search when the last row in Streaks goes', () => {
+    seed()
+    renderApp()
+    type($<HTMLInputElement>('#search'), 'run')
+    click(buttonNamed('Streaks'))
+    expect(habitNames()).toEqual(['Run'])
+    click(buttonNamed('Delete “Run”'))
+    expect(document.activeElement).toBe($('#search'))
+  })
+})

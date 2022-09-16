@@ -2,16 +2,23 @@ import { useEffect, useRef, useState } from 'react'
 import { AddHabit } from './AddHabit'
 import { AppHeader } from './AppHeader'
 import { EditDialog } from './EditDialog'
+import { Filters } from './Filters'
 import { HabitRow } from './HabitRow'
 import { HabitSection } from './HabitSection'
 import { Hero } from './Hero'
-import { categoriesOf, controlId, groupForToday, queryHabits, todayKey, type Habit } from './habits'
+import { categoriesOf, controlId, queryHabits, todayKey, type Habit, type ListQuery } from './habits'
 import { UndoNotice } from './UndoNotice'
 import { useHabits } from './useHabits'
+import { sectionsFor, type View } from './views'
+import { Views } from './Views'
+
+const NO_FILTER: ListQuery = { search: '', category: null, sort: 'newest' }
 
 export default function App() {
   const { habits, saveFailed, add, update, toggle, log, remove, restore } = useHabits()
   const [editing, setEditing] = useState<Habit | null>(null)
+  const [view, setView] = useState<View>('today')
+  const [query, setQuery] = useState(NO_FILTER)
   const [deleted, setDeleted] = useState<{ habit: Habit; beforeId: string | null } | null>(null)
   // The control to focus once the list has re-rendered: rows remount when they
   // change section, and a delete or an undo moves focus to another row.
@@ -20,7 +27,10 @@ export default function App() {
 
   useEffect(() => {
     if (focusNext.current === null) return
-    document.getElementById(focusNext.current)?.focus()
+    // The target may be gone (the last row deleted, an undo in a view with no
+    // rows); the current view's tab keeps focus in the page.
+    const target = document.getElementById(focusNext.current) ?? document.querySelector<HTMLElement>('.views__button[aria-current]')
+    target?.focus()
     focusNext.current = null
   })
 
@@ -30,10 +40,15 @@ export default function App() {
 
   const today = todayKey()
   const categories = categoriesOf(habits)
-  const groups = groupForToday(queryHabits(habits, { search: '', category: null, sort: 'newest' }, today), today)
-  const shown = [...groups.due, ...groups.done, ...groups.notDue]
+  // A category filter lapses once its chip is gone: its last habit was removed or
+  // recategorized, or only one category is left and the chips are hidden.
+  const category = categories.length > 1 && query.category !== null && categories.includes(query.category) ? query.category : null
+  if (category !== query.category) setQuery({ ...query, category })
+  const sections = sectionsFor(view, habits, query, today)
+  const shown = sections.flatMap((section) => section.habits)
 
-  // Focus moves to the next row (or the previous one at the end), else to the add field.
+  // Focus moves to the next row (or the previous one at the end), else to the
+  // add field, or the search field in a view without one.
   function deleteHabit(id: string) {
     const position = shown.findIndex((habit) => habit.id === id)
     const neighbour = shown[position + 1] ?? shown[position - 1]
@@ -41,14 +56,17 @@ export default function App() {
     remove(id)
     setDeleted({ habit, beforeId: habits[habits.indexOf(habit) + 1]?.id ?? null })
     if (neighbour) setFocusId(controlId(neighbour))
-    else addInput.current?.focus()
+    else fallbackFocus()
   }
+
+  const fallbackFocus = () => setFocusId(view === 'today' ? 'add-habit' : 'search')
 
   function undoDelete() {
     if (!deleted) return
     restore(deleted.habit, deleted.beforeId)
     setDeleted(null)
-    setFocusId(controlId(deleted.habit))
+    if (queryHabits([deleted.habit], query, today).length > 0) setFocusId(controlId(deleted.habit))
+    else fallbackFocus()
   }
 
   const row = (habit: Habit) => (
@@ -64,17 +82,55 @@ export default function App() {
         log(id, today, value)
         setFocusId(controlId(habit))
       }}
+      showLongest={view === 'streaks'}
       onEdit={setEditing}
       onDelete={deleteHabit}
     />
   )
+
+  function list() {
+    if (habits.length === 0) {
+      return (
+        <section className="empty" aria-labelledby="empty-title">
+          <h2 id="empty-title" className="empty__title">
+            No habits yet.
+          </h2>
+          <p className="empty__text">
+            {view === 'today' ? 'Add one above, then check it in each day to build a streak.' : 'Add one in Today to start a streak.'}
+          </p>
+        </section>
+      )
+    }
+    return (
+      <>
+        <Filters query={query} categories={categories} sortable={view === 'today'} onChange={setQuery} />
+        {shown.length === 0 ? (
+          <section className="empty empty--filtered" aria-labelledby="empty-title">
+            <h2 id="empty-title" className="empty__title">
+              No habits match.
+            </h2>
+            <button type="button" className="button-ghost" onClick={() => setQuery({ ...NO_FILTER, sort: query.sort })}>
+              Clear search and category
+            </button>
+          </section>
+        ) : (
+          sections.map((section) => (
+            <HabitSection key={section.id} id={section.id} title={section.title} count={section.habits.length}>
+              {section.habits.map(row)}
+            </HabitSection>
+          ))
+        )}
+      </>
+    )
+  }
 
   return (
     <>
       <AppHeader />
       <main className="virtus">
         <Hero habits={habits} today={today} />
-        <AddHabit inputRef={addInput} categories={categories} onAdd={add} />
+        <Views view={view} onChange={setView} />
+        {view === 'today' && <AddHabit inputRef={addInput} categories={categories} onAdd={add} />}
         <UndoNotice deleted={deleted?.habit ?? null} onUndo={undoDelete} />
 
         {saveFailed && (
@@ -83,26 +139,7 @@ export default function App() {
           </p>
         )}
 
-        {habits.length === 0 ? (
-          <section className="empty" aria-labelledby="empty-title">
-            <h2 id="empty-title" className="empty__title">
-              No habits yet.
-            </h2>
-            <p className="empty__text">Add one above, then check it in each day to build a streak.</p>
-          </section>
-        ) : (
-          <>
-            <HabitSection id="section-due" title="To do" count={groups.due.length}>
-              {groups.due.map(row)}
-            </HabitSection>
-            <HabitSection id="section-done" title="Done today" count={groups.done.length}>
-              {groups.done.map(row)}
-            </HabitSection>
-            <HabitSection id="section-not-due" title="Not due today" count={groups.notDue.length}>
-              {groups.notDue.map(row)}
-            </HabitSection>
-          </>
-        )}
+        {list()}
       </main>
 
       {editing && (

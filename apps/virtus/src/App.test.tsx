@@ -358,3 +358,38 @@ describe('finding and views', () => {
     expect(document.activeElement).toBe($('#search'))
   })
 })
+
+describe('week and habit stats', () => {
+  it('shows this week per habit and checks in today from the week', () => {
+    store([
+      { name: 'Stretch', log: { '2022-08-14': 1 } },
+      { name: 'Read', unit: 'pages', target: 20, log: { [TODAY]: 12 } },
+    ])
+    renderApp()
+    click(buttonNamed('Week'))
+
+    const rows = [...document.querySelectorAll('.week tbody tr')]
+    expect(rows.map((row) => row.querySelector('.week__name')?.textContent)).toEqual(['Stretch, show stats', 'Read, show stats'])
+    expect(document.querySelectorAll('.week thead th[scope="col"]').length).toBe(8)
+    expect(rows[1].textContent).toContain('Monday: not yet, 12 pages')
+    expect(rows[1].querySelector('input')).toBeNull()
+
+    click($('#habit-h0-control'))
+    expect(saved()[0].log).toEqual({ '2022-08-14': 1, [TODAY]: 1 })
+  })
+
+  it('opens a habit’s stats from its row and returns focus on close', () => {
+    store([{ name: 'Stretch', log: { '2022-08-13': 1, '2022-08-14': 1 } }])
+    renderApp()
+    click(buttonNamed('Stats for “Stretch”'))
+
+    expect($('#stats-title').textContent).toBe('Stretch')
+    const metrics = [...document.querySelectorAll('.metrics__item')].map((item) => item.textContent)
+    expect(metrics).toEqual(['Current streak2', 'Best streak2', 'Check-ins2'])
+    expect($('.strip__header').textContent).toContain('2 of 14 due days · 14%')
+
+    click(buttonNamed('Close'))
+    expect(document.querySelector('dialog')).toBeNull()
+    expect(document.activeElement).toBe($('#habit-h0-stats'))
+  })
+})

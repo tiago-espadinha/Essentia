@@ -106,6 +106,7 @@ export function newId(): string {
 export const controlId = (habit: Habit) => `habit-${habit.id}-control`
 
 export const editId = (habit: Habit) => `habit-${habit.id}-edit`
+export const statsId = (habit: Habit) => `habit-${habit.id}-stats`
 
 export const isNumeric = (habit: Pick<Habit, 'unit'>) => habit.unit !== ''
 

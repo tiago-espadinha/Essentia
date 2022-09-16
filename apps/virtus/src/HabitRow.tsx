@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { controlId, describeDays, editId, isDone, isNumeric, MILESTONES, streaks, type Habit } from './habits'
+import { controlId, describeDays, editId, statsId, isDone, isNumeric, MILESTONES, streaks, type Habit } from './habits'
 
 interface HabitRowProps {
   habit: Habit
@@ -7,11 +7,12 @@ interface HabitRowProps {
   showLongest?: boolean
   onToggle: (id: string) => void
   onLog: (id: string, value: number) => void
+  onShowStats: (habit: Habit) => void
   onEdit: (habit: Habit) => void
   onDelete: (id: string) => void
 }
 
-export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, onEdit, onDelete }: HabitRowProps) {
+export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, onShowStats, onEdit, onDelete }: HabitRowProps) {
   const nameId = `habit-${habit.id}-name`
   const done = isDone(habit, today)
   const { current, longest } = streaks(habit, today)
@@ -45,6 +46,9 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, o
           {showLongest && <span className="label">Best {longest}</span>}
         </p>
         <div className="habit__actions">
+          <button id={statsId(habit)} type="button" className="habit__action" onClick={() => onShowStats(habit)}>
+            Stats<span className="visually-hidden"> for “{habit.name}”</span>
+          </button>
           <button id={editId(habit)} type="button" className="habit__action" onClick={() => onEdit(habit)}>
             Edit<span className="visually-hidden"> “{habit.name}”</span>
           </button>

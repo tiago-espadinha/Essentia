@@ -1,10 +1,11 @@
 import { groupForToday, queryHabits, type Habit, type ListQuery } from './habits'
 
-export type View = 'today' | 'streaks'
+export type View = 'today' | 'streaks' | 'week'
 
 export const VIEW_LABELS: Record<View, string> = {
   today: 'Today',
   streaks: 'Streaks',
+  week: 'Week',
 }
 
 export interface ListSection {
@@ -13,8 +14,8 @@ export interface ListSection {
   habits: Habit[]
 }
 
-/** The titled lists a view shows; Streaks orders by current streak whatever the sort. */
-export function sectionsFor(view: View, habits: Habit[], query: ListQuery, today: string): ListSection[] {
+/** The titled lists of a list view; Streaks orders by current streak whatever the sort. */
+export function sectionsFor(view: Exclude<View, 'week'>, habits: Habit[], query: ListQuery, today: string): ListSection[] {
   if (view === 'streaks') {
     return [{ id: 'section-streaks', title: 'By streak', habits: queryHabits(habits, { ...query, sort: 'streak' }, today) }]
   }

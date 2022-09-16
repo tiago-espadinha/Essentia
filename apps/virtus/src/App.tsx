@@ -5,18 +5,21 @@ import { EditDialog } from './EditDialog'
 import { Filters } from './Filters'
 import { HabitRow } from './HabitRow'
 import { HabitSection } from './HabitSection'
+import { HabitStatsDialog } from './HabitStatsDialog'
 import { Hero } from './Hero'
 import { categoriesOf, controlId, queryHabits, todayKey, type Habit, type ListQuery } from './habits'
 import { UndoNotice } from './UndoNotice'
 import { useHabits } from './useHabits'
 import { sectionsFor, type View } from './views'
 import { Views } from './Views'
+import { WeekView } from './WeekView'
 
 const NO_FILTER: ListQuery = { search: '', category: null, sort: 'newest' }
 
 export default function App() {
   const { habits, saveFailed, add, update, toggle, log, remove, restore } = useHabits()
   const [editing, setEditing] = useState<Habit | null>(null)
+  const [statsFor, setStatsFor] = useState<Habit | null>(null)
   const [view, setView] = useState<View>('today')
   const [query, setQuery] = useState(NO_FILTER)
   const [deleted, setDeleted] = useState<{ habit: Habit; beforeId: string | null } | null>(null)
@@ -44,7 +47,7 @@ export default function App() {
   // recategorized, or only one category is left and the chips are hidden.
   const category = categories.length > 1 && query.category !== null && categories.includes(query.category) ? query.category : null
   if (category !== query.category) setQuery({ ...query, category })
-  const sections = sectionsFor(view, habits, query, today)
+  const sections = view === 'week' ? [] : sectionsFor(view, habits, query, today)
   const shown = sections.flatMap((section) => section.habits)
 
   // Focus moves to the next row (or the previous one at the end), else to the
@@ -83,6 +86,7 @@ export default function App() {
         setFocusId(controlId(habit))
       }}
       showLongest={view === 'streaks'}
+      onShowStats={setStatsFor}
       onEdit={setEditing}
       onDelete={deleteHabit}
     />
@@ -99,6 +103,16 @@ export default function App() {
             {view === 'today' ? 'Add one above, then check it in each day to build a streak.' : 'Add one in Today to start a streak.'}
           </p>
         </section>
+      )
+    }
+    if (view === 'week') {
+      return (
+        <WeekView
+          habits={queryHabits(habits, NO_FILTER, today)}
+          today={today}
+          onToggle={(id) => toggle(id, today)}
+          onShowStats={setStatsFor}
+        />
       )
     }
     return (
@@ -141,6 +155,8 @@ export default function App() {
 
         {list()}
       </main>
+
+      {statsFor && <HabitStatsDialog habit={statsFor} today={today} onClose={() => setStatsFor(null)} />}
 
       {editing && (
         <EditDialog

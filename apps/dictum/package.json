@@ -15,7 +15,10 @@
     "@essentia/tokens": "workspace:*",
     "@essentia/ui": "workspace:*",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-markdown": "catalog:",
+    "rehype-highlight": "catalog:",
+    "remark-gfm": "catalog:"
   },
   "devDependencies": {
     "@essentia/config": "workspace:*",

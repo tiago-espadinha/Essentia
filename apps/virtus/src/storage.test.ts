@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Habit } from './habits'
-import { loadHabits, saveHabits, STORAGE_KEY } from './storage'
+import { loadHabits, loadStamps, saveHabits, saveStamps, STORAGE_KEY, SYNC_KEY } from './storage'
+import { NO_STAMPS } from './sync'
 
 const valid: Habit = {
   id: 'a',
@@ -78,5 +79,30 @@ describe('habit storage', () => {
       throw new DOMException('Quota exceeded', 'QuotaExceededError')
     })
     expect(saveHabits([valid])).toBe(false)
+  })
+})
+
+describe('sync stamp storage', () => {
+  const stamps = {
+    owner: 'user-1',
+    habits: { a: '2022-09-20T08:00:00.000Z' },
+    deleted: { b: '2022-09-21T08:00:00.000Z' },
+    days: { a: { '2022-09-20': '2022-09-20T09:00:00.000Z' } },
+  }
+
+  it('round-trips the stamps under their own key', () => {
+    expect(saveStamps(stamps)).toBe(true)
+    expect(JSON.parse(localStorage.getItem(SYNC_KEY)!)).toEqual(stamps)
+    expect(loadStamps()).toEqual(stamps)
+  })
+
+  it('starts over from missing, corrupt or malformed stamps', () => {
+    expect(loadStamps()).toEqual(NO_STAMPS)
+    localStorage.setItem(SYNC_KEY, '{')
+    expect(loadStamps()).toEqual(NO_STAMPS)
+    for (const bad of [[], { ...stamps, owner: 1 }, { ...stamps, habits: { a: 'soon' } }, { ...stamps, days: { a: { x: 3 } } }]) {
+      localStorage.setItem(SYNC_KEY, JSON.stringify(bad))
+      expect(loadStamps()).toEqual(NO_STAMPS)
+    }
   })
 })

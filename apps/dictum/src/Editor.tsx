@@ -1,5 +1,7 @@
-import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { countWords, readingMinutes, type Doc, type DocChanges } from './documents'
+import { formatEdit, SHORTCUTS, type Format } from './formatting'
+import { Toolbar } from './Toolbar'
 
 const Preview = lazy(() => import('./Preview'))
 
@@ -22,13 +24,42 @@ interface EditorProps {
 
 export function Editor({ doc, mode, autoFocus, onFocused, onModeChange, onChange, onBack, actions }: EditorProps) {
   const titleRef = useRef<HTMLInputElement>(null)
+  const textRef = useRef<HTMLTextAreaElement>(null)
+  // The selection to restore once a formatting change has rendered.
+  const pendingSelection = useRef<[number, number] | null>(null)
   const words = countWords(doc.content)
+
+  useLayoutEffect(() => {
+    if (!pendingSelection.current) return
+    textRef.current!.setSelectionRange(...pendingSelection.current)
+    pendingSelection.current = null
+  })
 
   useEffect(() => {
     if (!autoFocus) return
     titleRef.current?.focus()
     onFocused()
   }, [autoFocus, onFocused])
+
+  // Through insertText where the browser has it, so Ctrl+Z undoes the format.
+  function applyFormat(format: Format) {
+    const text = textRef.current!
+    const edit = formatEdit(text.value, text.selectionStart, text.selectionEnd, format)
+    text.focus()
+    text.setSelectionRange(edit.start, edit.end)
+    if (!document.execCommand?.('insertText', false, edit.text)) {
+      onChange({ content: text.value.slice(0, edit.start) + edit.text + text.value.slice(edit.end) })
+    }
+    pendingSelection.current = [edit.selectStart, edit.selectEnd]
+    text.setSelectionRange(edit.selectStart, edit.selectEnd)
+  }
+
+  function shortcut(event: KeyboardEvent<HTMLTextAreaElement>) {
+    const format = SHORTCUTS[event.key.toLowerCase()]
+    if (!format || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return
+    event.preventDefault()
+    applyFormat(format)
+  }
 
   return (
     <>
@@ -75,16 +106,19 @@ export function Editor({ doc, mode, autoFocus, onFocused, onModeChange, onChange
 
       <div className="panes" data-mode={mode}>
         <div className="write-pane">
+          <Toolbar onFormat={applyFormat} />
           <label htmlFor="doc-content" className="visually-hidden">
             Markdown
           </label>
           <textarea
             id="doc-content"
+            ref={textRef}
             className="write-pane__text"
             placeholder="Write in markdown: # for a heading, ** for bold, - for a list"
             spellCheck
             value={doc.content}
             onChange={(event) => onChange({ content: event.target.value })}
+            onKeyDown={shortcut}
           />
         </div>
         <section className="preview-pane" aria-label="Preview">

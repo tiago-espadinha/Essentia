@@ -5,6 +5,7 @@ import {
   click,
   contentField,
   newDoc,
+  press,
   previewLoaded,
   reload,
   renderApp,
@@ -69,6 +70,42 @@ describe('Dictum', () => {
     click(buttonNamed('Preview'))
     expect($('.panes').dataset.mode).toBe('preview')
     expect(buttonNamed('Preview').getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('formatting', () => {
+  setupApp()
+
+  it('formats the selection from the toolbar and keeps the result selected', () => {
+    renderApp()
+    newDoc('Doc', 'make this bold')
+    contentField().setSelectionRange(10, 14)
+    click(buttonNamed('Bold'))
+    expect(contentField().value).toBe('make this **bold**')
+    expect(savedDocs()[0].content).toBe('make this **bold**')
+    expect([contentField().selectionStart, contentField().selectionEnd]).toEqual([12, 16])
+    expect(document.activeElement).toBe(contentField())
+  })
+
+  it('turns lines into a list', () => {
+    renderApp()
+    newDoc('Doc', 'milk\nbread')
+    contentField().setSelectionRange(0, 10)
+    click(buttonNamed('Bulleted list'))
+    expect(contentField().value).toBe('- milk\n- bread')
+  })
+
+  it('formats with Ctrl or Cmd shortcuts in the editor', () => {
+    renderApp()
+    newDoc('Doc', 'word')
+    contentField().setSelectionRange(0, 4)
+    press(contentField(), 'b', { ctrlKey: true })
+    expect(contentField().value).toBe('**word**')
+    contentField().setSelectionRange(2, 6)
+    press(contentField(), 'i', { metaKey: true })
+    expect(contentField().value).toBe('**_word_**')
+    press(contentField(), 'b', { ctrlKey: true, shiftKey: true })
+    expect(contentField().value).toBe('**_word_**')
   })
 })
 

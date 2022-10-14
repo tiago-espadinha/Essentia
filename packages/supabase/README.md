@@ -10,7 +10,6 @@ const client = getSupabase() // null without VITE_SUPABASE_URL and VITE_SUPABASE
 const auth = useAuth(client) // 'disabled' | 'loading' | 'signed-out' | 'signed-in'
 ```
 
-Each app reads the two variables from its own `.env.local` (names in
-`.env.example`). Without them the app hides sign-in and keeps data on the
-device. Only the publishable (anon) key belongs in client code; row level
+Each app reads the two variables above from its own `.env.local`, which git
+ignores. Without them the app hides sign-in and keeps data on the device. Only the publishable (anon) key belongs in client code; row level
 security in each app's `supabase/migration.sql` is what protects the data.

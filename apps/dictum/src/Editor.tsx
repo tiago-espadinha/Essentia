@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { DocFields } from './DocFields'
 import { countWords, readingMinutes, type Doc, type DocChanges } from './documents'
 import { formatEdit, SHORTCUTS, type Format } from './formatting'
@@ -31,6 +31,8 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
   // The selection to restore once a formatting change has rendered.
   const pendingSelection = useRef<[number, number] | null>(null)
   const words = countWords(doc.content)
+  // Typing stays responsive in a long document: the preview catches up between keystrokes.
+  const previewContent = useDeferredValue(doc.content)
 
   useLayoutEffect(() => {
     if (!pendingSelection.current) return
@@ -71,7 +73,7 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          Documents
+          <span className="action-text">Documents</span>
         </button>
         <div className="mode-switch" role="group" aria-label="Show">
           {(['write', 'preview'] as const).map((value) => (
@@ -127,7 +129,7 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
         </div>
         <section className="preview-pane" aria-label="Preview">
           <Suspense fallback={<p className="preview__idle">Loading the preview…</p>}>
-            <Preview content={doc.content} />
+            <Preview content={previewContent} />
           </Suspense>
         </section>
       </div>

@@ -10,11 +10,13 @@ interface DocListProps {
   /** Search and filters, shown once there is something to filter. */
   filters: ReactNode
   onClearFilters: () => void
+  /** The undo notice after a delete. */
+  notice: ReactNode
   onSelect: (id: string) => void
   onNew: () => void
 }
 
-export function DocList({ docs, total, selectedId, filters, onClearFilters, onSelect, onNew }: DocListProps) {
+export function DocList({ docs, total, selectedId, filters, onClearFilters, notice, onSelect, onNew }: DocListProps) {
   return (
     <section className="pane list-pane" aria-labelledby="list-title">
       <div className="pane__head">
@@ -24,6 +26,7 @@ export function DocList({ docs, total, selectedId, filters, onClearFilters, onSe
         {total > 0 && <NewDocButton onClick={onNew} />}
       </div>
       {total > 0 && filters}
+      {notice}
 
       <div className="pane__body">
         {total === 0 ? (

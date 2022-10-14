@@ -30,4 +30,11 @@ export const suiteApps: SuiteApp[] = [
     description: 'Habits with streaks, a heatmap and badges.',
     port: 5103,
   },
+  {
+    name: 'Dictum',
+    path: '/dictum/',
+    latin: 'a thing said',
+    description: 'Markdown writing with a live preview and versions.',
+    port: 5104,
+  },
 ]

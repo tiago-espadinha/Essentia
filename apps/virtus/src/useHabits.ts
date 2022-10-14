@@ -7,6 +7,9 @@ import { merge, NO_STAMPS, readRemote, stampChanges, type Stamps } from './sync'
 
 export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
 
+/** One wording for a failed sync, on the page and in the account dialog. */
+export const SYNC_FAILED = 'Couldn’t sync with your account. Your changes are kept on this device.'
+
 interface Saved {
   habits: Habit[]
   stamps: Stamps

@@ -218,12 +218,18 @@ importers:
 
   apps/virtus:
     dependencies:
+      '@essentia/supabase':
+        specifier: workspace:*
+        version: link:../../packages/supabase
       '@essentia/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens
       '@essentia/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@supabase/supabase-js':
+        specifier: 'catalog:'
+        version: 2.117.3
       react:
         specifier: 'catalog:'
         version: 19.3.1

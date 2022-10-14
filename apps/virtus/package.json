@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@essentia/tokens": "workspace:*",
+    "@essentia/supabase": "workspace:*",
     "@essentia/ui": "workspace:*",
+    "@supabase/supabase-js": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

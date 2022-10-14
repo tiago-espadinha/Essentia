@@ -25,6 +25,9 @@ catalog:
   globals: ^17.6.0
   '@supabase/supabase-js': ^2.117.3
   dompurify: ^3.4.16
+  react-markdown: ^10.1.0
+  remark-gfm: ^4.0.1
+  rehype-highlight: ^7.0.2
 
 allowBuilds:
   esbuild: true

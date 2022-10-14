@@ -96,7 +96,7 @@ export function AuthForm({ client, intro }: AuthFormProps) {
           {failure}
         </p>
       )}
-      <button type="submit" className="auth__submit">
+      <button type="submit" className="auth__submit" aria-disabled={pending}>
         {pending ? 'Please wait…' : signingIn ? 'Sign in' : 'Create account'}
       </button>
       <p className="auth__switch">

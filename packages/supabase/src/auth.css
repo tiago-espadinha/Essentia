@@ -42,6 +42,8 @@
 
 .auth__submit:hover { opacity: 0.9; }
 
+.auth__submit[aria-disabled='true'] { opacity: 0.7; cursor: default; }
+
 .auth__switch { color: var(--color-mid); }
 
 .auth__link {

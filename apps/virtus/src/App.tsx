@@ -1,4 +1,6 @@
+import { getSupabase, useAuth } from '@essentia/supabase'
 import { useEffect, useRef, useState } from 'react'
+import { AccountMenu } from './AccountMenu'
 import { AddHabit } from './AddHabit'
 import { AppHeader } from './AppHeader'
 import { EditDialog } from './EditDialog'
@@ -9,7 +11,7 @@ import { HabitStatsDialog } from './HabitStatsDialog'
 import { Hero } from './Hero'
 import { categoriesOf, controlId, queryHabits, todayKey, type Habit, type ListQuery } from './habits'
 import { UndoNotice } from './UndoNotice'
-import { useHabits } from './useHabits'
+import { SYNC_FAILED, useHabits } from './useHabits'
 import { StatsView } from './StatsView'
 import { sectionsFor, type View } from './views'
 import { Views } from './Views'
@@ -17,8 +19,12 @@ import { WeekView } from './WeekView'
 
 const NO_FILTER: ListQuery = { search: '', category: null, sort: 'newest' }
 
+// Null without a configured project: no sign-in, and habits stay on this device.
+const client = getSupabase()
+
 export default function App() {
-  const { habits, saveFailed, add, update, toggle, log, remove, restore } = useHabits()
+  const auth = useAuth(client)
+  const { habits, saveFailed, syncState, sync, add, update, toggle, log, remove, restore } = useHabits(client)
   const [editing, setEditing] = useState<Habit | null>(null)
   const [statsFor, setStatsFor] = useState<Habit | null>(null)
   const [view, setView] = useState<View>('today')
@@ -142,12 +148,21 @@ export default function App() {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main className="virtus">
         <Hero habits={habits} today={today} />
         <Views view={view} onChange={setView} />
         {view === 'today' && <AddHabit inputRef={addInput} categories={categories} onAdd={add} />}
         <UndoNotice deleted={deleted?.habit ?? null} onUndo={undoDelete} />
+
+        {syncState === 'failed' && (
+          <div className="sync-notice" role="status">
+            <span className="sync-notice__text">{SYNC_FAILED}</span>
+            <button type="button" className="undo__button" onClick={() => void sync()}>
+              Try again
+            </button>
+          </div>
+        )}
 
         {saveFailed && (
           <p className="notice" role="alert">

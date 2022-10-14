@@ -1,23 +1,139 @@
-import { useState } from 'react'
-import { applyDraft, createHabit, logValue, toggleDay, type Habit, type HabitDraft } from './habits'
-import { loadHabits, saveHabits } from './storage'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { applyDraft, createHabit, logValue, todayKey, toggleDay, type Habit, type HabitDraft } from './habits'
+import { fetchRemote, pushChanges } from './remote'
+import { FIRST_DAY, loadHabits, loadStamps, saveHabits, saveStamps } from './storage'
+import { merge, NO_STAMPS, readRemote, stampChanges, type Stamps } from './sync'
 
-/** The habit list, saved to this device on every change. */
-export function useHabits() {
-  const [habits, setHabits] = useState<Habit[]>(loadHabits)
+export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
+
+/** One wording for a failed sync, on the page and in the account dialog. */
+export const SYNC_FAILED = 'Couldn’t sync with your account. Your changes are kept on this device.'
+
+interface Saved {
+  habits: Habit[]
+  stamps: Stamps
+}
+
+/** A burst of check-ins goes up in one sync. */
+const SYNC_DELAY = 1500
+
+/**
+ * The habit list, saved to this device on every change and, when signed in,
+ * merged with the account: on sign-in, after local changes, and when the page
+ * comes back into view or online. The device's copy belongs to one account at
+ * a time; signing out (here or in another app) removes it.
+ */
+export function useHabits(client: SupabaseClient | null = null) {
+  const [saved, setSaved] = useState<Saved>(() => ({ habits: loadHabits(), stamps: loadStamps() }))
+  // Syncs finish after renders; they merge into the newest list, not the one they started from.
+  const latest = useRef(saved)
   const [saveFailed, setSaveFailed] = useState(false)
+  const [syncState, setSyncState] = useState<SyncState>('off')
+  const [edits, setEdits] = useState(0)
+  const inFlight = useRef<Promise<boolean> | null>(null)
+  const queued = useRef(false)
+  // Set by Supabase's auth events, which can come from another app or tab.
+  const userId = useRef<string | null>(null)
 
-  function commit(next: Habit[]) {
-    setHabits(next)
-    setSaveFailed(!saveHabits(next))
+  function store(next: Saved) {
+    latest.current = next
+    setSaved(next)
+    const habitsSaved = saveHabits(next.habits)
+    const stampsSaved = saveStamps(next.stamps)
+    setSaveFailed(!habitsSaved || !stampsSaved)
   }
 
+  function commit(habits: Habit[]) {
+    const { habits: before, stamps } = latest.current
+    store({ habits, stamps: stampChanges(before, habits, stamps, new Date().toISOString()) })
+    setEdits((count) => count + 1)
+  }
+
+  /** Resolves to whether everything on this device reached the account. */
+  function sync(): Promise<boolean> {
+    if (!client || !userId.current) return Promise.resolve(false)
+    if (inFlight.current) {
+      queued.current = true
+      return inFlight.current
+    }
+    inFlight.current = run(client, userId.current).finally(() => {
+      inFlight.current = null
+    })
+    return inFlight.current
+  }
+
+  async function run(client: SupabaseClient, user: string): Promise<boolean> {
+    setSyncState('syncing')
+    try {
+      do {
+        queued.current = false
+        const fetched = await fetchRemote(client)
+        // Signed out while the request was out: the list is no longer this account's.
+        if (latest.current.stamps.owner !== user) return false
+        const remote = readRemote(fetched.habits, fetched.checkIns, FIRST_DAY, todayKey())
+        const result = merge(latest.current.habits, latest.current.stamps, remote, new Date().toISOString())
+        store({ habits: result.habits, stamps: result.stamps })
+        await pushChanges(client, result.push)
+      } while (queued.current)
+      setSyncState('synced')
+      return true
+    } catch {
+      // Shown with a retry; the changes stay on this device and go up next time.
+      setSyncState('failed')
+      return false
+    }
+  }
+
+  const syncNow = useEffectEvent(() => void sync())
+
+  /** Hands the device's list to the account now signed in, or clears another account's. */
+  const claim = useEffectEvent((user: string | null) => {
+    userId.current = user
+    const { owner } = latest.current.stamps
+    if (owner !== null && owner !== user) store({ habits: [], stamps: NO_STAMPS })
+    if (!user) {
+      setSyncState('off')
+      return
+    }
+    if (latest.current.stamps.owner !== user) store({ ...latest.current, stamps: { ...latest.current.stamps, owner: user } })
+    // Supabase asks not to call it from inside its own auth callback.
+    setTimeout(syncNow, 0)
+  })
+
+  useEffect(() => {
+    if (!client) return
+    const { data } = client.auth.onAuthStateChange((_event, session) => claim(session?.user.id ?? null))
+    return () => data.subscription.unsubscribe()
+  }, [client])
+
+  useEffect(() => {
+    if (edits === 0) return
+    const timer = setTimeout(syncNow, SYNC_DELAY)
+    return () => clearTimeout(timer)
+  }, [edits])
+
+  useEffect(() => {
+    const onReturn = () => {
+      if (document.visibilityState === 'visible') syncNow()
+    }
+    document.addEventListener('visibilitychange', onReturn)
+    window.addEventListener('online', onReturn)
+    return () => {
+      document.removeEventListener('visibilitychange', onReturn)
+      window.removeEventListener('online', onReturn)
+    }
+  }, [])
+
+  const { habits } = saved
   const change = (id: string, edit: (habit: Habit) => Habit) =>
     commit(habits.map((habit) => (habit.id === id ? edit(habit) : habit)))
 
   return {
     habits,
     saveFailed,
+    syncState,
+    sync,
     /** Returns false when the draft has no name. */
     add: (draft: HabitDraft) => {
       const habit = createHabit(draft)

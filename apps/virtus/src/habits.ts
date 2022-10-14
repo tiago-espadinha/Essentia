@@ -94,12 +94,17 @@ export function weekOf(day: string): string[] {
 }
 
 /**
- * A random id. `crypto.randomUUID` exists only in secure contexts (https or
- * localhost), so plain-http LAN testing falls back to `getRandomValues`.
+ * A random (version 4) uuid, the form the habits table stores. `crypto.randomUUID`
+ * exists only in secure contexts (https or localhost), so plain-http LAN testing
+ * builds one from `getRandomValues`.
  */
 export function newId(): string {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
-  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (byte) => byte.toString(16).padStart(2, '0')).join('')
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  bytes[6] = (bytes[6] & 0x0f) | 0x40
+  bytes[8] = (bytes[8] & 0x3f) | 0x80
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
 /** The id of a row's first control, so focus can be handed to a row after it re-renders. */

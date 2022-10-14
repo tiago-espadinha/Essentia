@@ -9,7 +9,8 @@ export default defineConfig({
     environment: 'jsdom',
     // Node 25+ ships its own localStorage global, which hides jsdom's.
     execArgv: ['--no-experimental-webstorage'],
-    // Far from UTC, so a day keyed with toISOString lands on the wrong date.
-    env: { TZ: 'Pacific/Auckland' },
+    // Far from UTC, so a day keyed with toISOString lands on the wrong date; and
+    // no Supabase project, whatever the local env file holds, so tests stay offline.
+    env: { TZ: 'Pacific/Auckland', VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' },
   },
 })

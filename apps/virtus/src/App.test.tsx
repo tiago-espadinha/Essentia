@@ -32,6 +32,15 @@ function store(habits: Partial<Habit>[]) {
 }
 
 describe('Virtus', () => {
+  it('stays on this device without a Supabase project: no sign-in, no sync notice', () => {
+    renderApp()
+    addHabit('Read')
+    expect(document.querySelector('#account-button')).toBeNull()
+    expect([...document.querySelectorAll('button')].some((b) => b.textContent === 'Sign in')).toBe(false)
+    expect(document.querySelector('.sync-notice')).toBeNull()
+    expect(saved().map((habit) => habit.name)).toEqual(['Read'])
+  })
+
   it('starts with the empty state and no demo habits', () => {
     renderApp()
     expect($('#empty-title').textContent).toBe('No habits yet.')

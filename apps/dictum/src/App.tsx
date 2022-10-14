@@ -2,11 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppHeader } from './AppHeader'
 import { DocList } from './DocList'
 import { Editor, type Mode } from './Editor'
-import { filterDocs } from './documents'
+import { Filters } from './Filters'
+import { filterDocs, foldersOf, tagsOf, type DocFilter } from './documents'
 import { useDocuments } from './useDocuments'
 
 /** Matches dictum.css: one pane at a time below 768 px. */
 const PHONE = '(width < 768px)'
+
+const NO_FILTER: DocFilter = { query: '', folder: null, tag: null }
 
 export default function App() {
   const { docs, saveFailed, add, update } = useDocuments()
@@ -16,6 +19,7 @@ export default function App() {
   // Below 768 px one pane shows at a time: the list, or the open document.
   const [view, setView] = useState<'list' | 'doc'>('list')
   const [mode, setMode] = useState<Mode>('write')
+  const [filter, setFilter] = useState<DocFilter>(NO_FILTER)
   const clearTitleFocus = useCallback(() => setTitleFocusId(null), [])
   // A row to focus once the list has rendered.
   const rowToFocus = useRef<string | null>(null)
@@ -30,12 +34,22 @@ export default function App() {
     ;(row ?? main.querySelector<HTMLElement>('.list-pane .button-primary'))?.focus()
   })
 
-  const visible = filterDocs(docs, { query: '', folder: null, tag: null })
+  const folders = foldersOf(docs)
+  const tags = tagsOf(docs)
+  // A folder or tag filter lapses once no document carries it any more.
+  const activeFilter: DocFilter = {
+    query: filter.query,
+    folder: filter.folder === null || filter.folder === '' || folders.includes(filter.folder) ? filter.folder : null,
+    tag: filter.tag !== null && tags.includes(filter.tag) ? filter.tag : null,
+  }
+  const visible = filterDocs(docs, activeFilter)
   // With nothing chosen yet, or the chosen document gone, the first in the list is open.
   const selected = docs.find((doc) => doc.id === selectedId) ?? visible[0] ?? null
 
+  // A new document is blank, so the search and tag are cleared to show it; it joins the folder in view.
   function newDoc() {
-    const doc = add()
+    const doc = add(activeFilter.folder ?? '')
+    setFilter({ ...NO_FILTER, folder: activeFilter.folder })
     setSelectedId(doc.id)
     setTitleFocusId(doc.id)
     setView('doc')
@@ -59,7 +73,15 @@ export default function App() {
       <AppHeader />
       <main className="dictum" ref={mainRef} data-view={selected && view === 'doc' ? 'doc' : 'list'}>
         <h1 className="visually-hidden">Dictum documents</h1>
-        <DocList docs={visible} selectedId={selected?.id ?? null} onSelect={openDoc} onNew={newDoc} />
+        <DocList
+          docs={visible}
+          total={docs.length}
+          selectedId={selected?.id ?? null}
+          filters={<Filters filter={activeFilter} folders={folders} tags={tags} onChange={setFilter} />}
+          onClearFilters={() => setFilter(NO_FILTER)}
+          onSelect={openDoc}
+          onNew={newDoc}
+        />
         <section className="pane doc-pane" aria-label="Document">
           {saveFailed && (
             <p className="notice" role="alert">
@@ -70,6 +92,7 @@ export default function App() {
             <Editor
               key={selected.id}
               doc={selected}
+              folders={folders}
               mode={mode}
               autoFocus={selected.id === titleFocusId}
               onFocused={clearTitleFocus}

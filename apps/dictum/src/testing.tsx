@@ -103,3 +103,20 @@ export function savedDocs() {
 export async function previewLoaded() {
   await act(() => import('./Preview'))
 }
+
+export function choose(select: HTMLSelectElement, value: string) {
+  act(() => {
+    select.value = value
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+}
+
+/** A field by its visible label text, within the document or the filters. */
+export function fieldLabelled<T extends HTMLElement = HTMLInputElement>(scope: string, label: string): T {
+  const match = [...container.querySelectorAll(`${scope} label`)].find(
+    (element) => element.querySelector('.label')?.textContent === label,
+  )
+  const field = match?.querySelector<T>('input, select')
+  if (!field) throw new Error(`No ${label} field in ${scope}`)
+  return field
+}

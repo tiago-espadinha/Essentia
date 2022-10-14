@@ -1,28 +1,44 @@
+import type { ReactNode } from 'react'
 import { displayTitle, formatDate, type Doc } from './documents'
 
 interface DocListProps {
+  /** The documents that pass the filters. */
   docs: Doc[]
+  /** How many documents exist at all. */
+  total: number
   selectedId: string | null
+  /** Search and filters, shown once there is something to filter. */
+  filters: ReactNode
+  onClearFilters: () => void
   onSelect: (id: string) => void
   onNew: () => void
 }
 
-export function DocList({ docs, selectedId, onSelect, onNew }: DocListProps) {
+export function DocList({ docs, total, selectedId, filters, onClearFilters, onSelect, onNew }: DocListProps) {
   return (
     <section className="pane list-pane" aria-labelledby="list-title">
       <div className="pane__head">
         <h2 id="list-title" className="label">
           Documents · {docs.length}
         </h2>
-        {docs.length > 0 && <NewDocButton onClick={onNew} />}
+        {total > 0 && <NewDocButton onClick={onNew} />}
       </div>
+      {total > 0 && filters}
 
       <div className="pane__body">
-        {docs.length === 0 ? (
+        {total === 0 ? (
           <div className="empty">
             <h3 className="empty__title">Nothing written yet.</h3>
             <p className="empty__text">Start a document and it stays on this device.</p>
             <NewDocButton onClick={onNew} />
+          </div>
+        ) : docs.length === 0 ? (
+          <div className="empty">
+            <h3 className="empty__title">Nothing matches.</h3>
+            <p className="empty__text">No documents fit these filters.</p>
+            <button type="button" className="button-ghost button-ghost--outlined" onClick={onClearFilters}>
+              Clear filters
+            </button>
           </div>
         ) : (
           <ul className="docs">
@@ -36,7 +52,10 @@ export function DocList({ docs, selectedId, onSelect, onNew }: DocListProps) {
                   onClick={() => onSelect(doc.id)}
                 >
                   <span className="doc-row__title">{displayTitle(doc)}</span>
-                  <span className="label">{formatDate(doc.updatedAt)}</span>
+                  <span className="label">
+                    {formatDate(doc.updatedAt)}
+                    {doc.folder && ` · ${doc.folder}`}
+                  </span>
                 </button>
               </li>
             ))}

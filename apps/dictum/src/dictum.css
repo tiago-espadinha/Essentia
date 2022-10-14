@@ -107,6 +107,46 @@
   color: var(--color-danger);
 }
 
+/* Fields */
+.field-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+}
+
+.field-input::placeholder { color: var(--color-mid); }
+
+.field-input:disabled {
+  color: var(--color-mid);
+  cursor: not-allowed;
+}
+
+.button-ghost--outlined { border-color: var(--color-line-strong); }
+
+/* Search and filters, above the list */
+.filters {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-faint);
+}
+
+.filters__selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.filters__field,
+.doc-fields__field {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
 /* Document list */
 .docs { list-style: none; }
 
@@ -227,6 +267,16 @@
 }
 
 .doc-head__stats { margin-top: var(--space-2); }
+
+.doc-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.doc-fields__field { flex: 1 1 160px; }
+.doc-fields__field--wide { flex-grow: 2; }
 
 /* Write and preview: side by side from 1280 px, one at a time below. */
 .panes {

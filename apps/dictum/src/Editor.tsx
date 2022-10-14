@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
+import { DocFields } from './DocFields'
 import { countWords, readingMinutes, type Doc, type DocChanges } from './documents'
 import { formatEdit, SHORTCUTS, type Format } from './formatting'
 import { Toolbar } from './Toolbar'
@@ -10,6 +11,8 @@ export type Mode = 'write' | 'preview'
 
 interface EditorProps {
   doc: Doc
+  /** Existing folders, offered when filing the document. */
+  folders: string[]
   mode: Mode
   /** Focus the title (a document just created, or opened on a phone). */
   autoFocus: boolean
@@ -22,7 +25,7 @@ interface EditorProps {
   actions?: ReactNode
 }
 
-export function Editor({ doc, mode, autoFocus, onFocused, onModeChange, onChange, onBack, actions }: EditorProps) {
+export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange, onChange, onBack, actions }: EditorProps) {
   const titleRef = useRef<HTMLInputElement>(null)
   const textRef = useRef<HTMLTextAreaElement>(null)
   // The selection to restore once a formatting change has rendered.
@@ -102,6 +105,7 @@ export function Editor({ doc, mode, autoFocus, onFocused, onModeChange, onChange
         <p className="label doc-head__stats">
           {words} {words === 1 ? 'word' : 'words'} · {readingMinutes(words)} min read
         </p>
+        <DocFields folder={doc.folder} tags={doc.tags} folders={folders} onChange={onChange} />
       </div>
 
       <div className="panes" data-mode={mode}>

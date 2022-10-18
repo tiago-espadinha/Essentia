@@ -1,4 +1,4 @@
-import { Dialog } from './Dialog'
+import { Dialog } from '@essentia/ui'
 import { addDays, daysBetween, describeDays, statsId, WEEK, WEEKDAY_NAMES, type Habit } from './habits'
 import { DAY_STATE_LABELS, dayState, percent, summarize } from './stats'
 

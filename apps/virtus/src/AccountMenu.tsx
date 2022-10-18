@@ -1,7 +1,7 @@
 import { AuthForm, signOut, type Auth } from '@essentia/supabase'
+import { Dialog } from '@essentia/ui'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState } from 'react'
-import { Dialog } from './Dialog'
 import { SYNC_FAILED, type SyncState } from './useHabits'
 
 /** One id for both header buttons, so a dialog closed by signing in or out hands focus back. */

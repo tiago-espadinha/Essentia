@@ -1,5 +1,5 @@
+import { Dialog } from '@essentia/ui'
 import { useState, type FormEvent } from 'react'
-import { Dialog } from './Dialog'
 import { HabitFields } from './HabitFields'
 import { formOf, readForm, type FormErrors } from './habitForm'
 import { editId, type Habit, type HabitDraft } from './habits'

@@ -2,3 +2,4 @@ export { THEME_KEY, applyStoredTheme, currentTheme, setTheme, type Theme } from 
 export { useTheme } from './useTheme'
 export { ThemeToggle } from './ThemeToggle'
 export { HubLink } from './HubLink'
+export { Dialog } from './Dialog'

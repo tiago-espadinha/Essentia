@@ -25,37 +25,6 @@
   gap: var(--space-1);
 }
 
-/* Quiet like the hub link opposite it: a mono label, not a second primary button. */
-.account__sign-in {
-  min-height: 44px;
-  padding: 0 var(--space-2);
-  border: none;
-  background: transparent;
-  color: var(--color-mid);
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color var(--duration-fast) var(--ease);
-}
-
-.account__sign-in:hover { color: var(--color-ink); }
-
-.account__email { overflow-wrap: anywhere; }
-
-.account__sync {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  min-height: 44px;
-  color: var(--color-mid);
-}
-
-/* Signing out clears the device, so this is body text, not fine print. */
-.account__note { color: var(--color-ink); }
-
 .virtus-header__title {
   font-family: var(--font-serif);
   font-size: var(--text-xl);

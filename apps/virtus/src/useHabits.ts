@@ -1,3 +1,4 @@
+import type { SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { applyDraft, createHabit, logValue, todayKey, toggleDay, type Habit, type HabitDraft } from './habits'
@@ -5,7 +6,7 @@ import { fetchRemote, pushChanges } from './remote'
 import { FIRST_DAY, loadHabits, loadStamps, saveHabits, saveStamps } from './storage'
 import { merge, NO_STAMPS, readRemote, stampChanges, type Stamps } from './sync'
 
-export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
+export type { SyncState }
 
 /** One wording for a failed sync, on the page and in the account dialog. */
 export const SYNC_FAILED = 'Couldn’t sync with your account. Your changes are kept on this device.'

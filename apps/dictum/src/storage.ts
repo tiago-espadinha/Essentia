@@ -1,8 +1,10 @@
 import { cleanFolder, parseTags, type Doc } from './documents'
+import { NO_STAMPS, type Stamps } from './sync'
 import type { Version } from './versions'
 
 export const DOCS_KEY = 'essentia-dictum-documents'
 export const VERSIONS_KEY = 'essentia-dictum-versions'
+export const SYNC_KEY = 'essentia-dictum-sync'
 
 const isString = (value: unknown): value is string => typeof value === 'string'
 const isTimestamp = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value))
@@ -70,8 +72,31 @@ export function loadVersions(docIds: string[]): Version[] {
     .map(({ id, docId, title, content, savedAt }) => ({ id, docId, title, content, savedAt }))
 }
 
+function isStamps(value: unknown): value is Stamps {
+  return (
+    isRecord(value) &&
+    (value.owner === null || isString(value.owner)) &&
+    isRecord(value.deleted) &&
+    !Array.isArray(value.deleted) &&
+    Object.values(value.deleted).every(isTimestamp)
+  )
+}
+
+/**
+ * Reads which account the documents belong to and the deletions not yet synced.
+ * Unreadable stamps start over: the documents then count as never synced.
+ */
+export function loadStamps(): Stamps {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(SYNC_KEY) ?? 'null')
+    return isStamps(saved) ? { owner: saved.owner, deleted: { ...saved.deleted } } : NO_STAMPS
+  } catch {
+    return NO_STAMPS
+  }
+}
+
 /** Returns false when the browser refuses to store the data (private mode, quota). */
-export function save(key: typeof DOCS_KEY | typeof VERSIONS_KEY, items: Doc[] | Version[]): boolean {
+export function save(key: typeof DOCS_KEY | typeof VERSIONS_KEY | typeof SYNC_KEY, items: Doc[] | Version[] | Stamps): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(items))
     return true

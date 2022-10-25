@@ -2,6 +2,7 @@ import { lazy, Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, t
 import { DocFields } from './DocFields'
 import { countWords, readingMinutes, type Doc, type DocChanges } from './documents'
 import { formatEdit, SHORTCUTS, type Format } from './formatting'
+import { LIMITS } from './sync'
 import { Toolbar } from './Toolbar'
 
 const Preview = lazy(() => import('./Preview'))
@@ -101,6 +102,7 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
           className="doc-head__title"
           placeholder="Untitled"
           autoComplete="off"
+          maxLength={LIMITS.title}
           value={doc.title}
           onChange={(event) => onChange({ title: event.target.value })}
         />
@@ -122,6 +124,7 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
             className="write-pane__text"
             placeholder="Write in markdown: # for a heading, ** for bold, - for a list"
             spellCheck
+            maxLength={LIMITS.content}
             value={doc.content}
             onChange={(event) => onChange({ content: event.target.value })}
             onKeyDown={shortcut}

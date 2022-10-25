@@ -1,4 +1,6 @@
+import { getSupabase, useAuth } from '@essentia/supabase'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AccountMenu } from './AccountMenu'
 import { AppHeader } from './AppHeader'
 import { DocActions } from './DocActions'
 import { DocList } from './DocList'
@@ -8,7 +10,7 @@ import { UndoNotice } from './UndoNotice'
 import { VersionsDialog } from './VersionsDialog'
 import { displayTitle, filterDocs, foldersOf, tagsOf, type Doc, type DocFilter } from './documents'
 import { useAutoVersion } from './useAutoVersion'
-import { useDocuments } from './useDocuments'
+import { SYNC_FAILED, useDocuments } from './useDocuments'
 import { versionsOf } from './versions'
 
 /** Matches dictum.css: one pane at a time below 768 px. */
@@ -16,8 +18,11 @@ const PHONE = '(width < 768px)'
 
 const NO_FILTER: DocFilter = { query: '', folder: null, tag: null }
 
+const client = getSupabase()
+
 export default function App() {
-  const { docs, versions, saveFailed, add, update, saveVersion, restore, remove, putBack } = useDocuments()
+  const auth = useAuth(client)
+  const { docs, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // The document whose title takes focus when its editor mounts or shows.
   const [titleFocusId, setTitleFocusId] = useState<string | null>(null)
@@ -98,15 +103,25 @@ export default function App() {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main className="dictum" ref={mainRef} data-view={selected && view === 'doc' ? 'doc' : 'list'}>
         <h1 className="visually-hidden">Dictum documents</h1>
         <DocList
           notice={
-            <UndoNotice
-              deleted={deleted && { id: deleted.doc.id, title: displayTitle(deleted.doc) }}
-              onUndo={undoDelete}
-            />
+            <>
+              <UndoNotice
+                deleted={deleted && { id: deleted.doc.id, title: displayTitle(deleted.doc) }}
+                onUndo={undoDelete}
+              />
+              {syncState === 'failed' && (
+                <div className="sync-notice" role="status">
+                  <span className="sync-notice__text">{SYNC_FAILED}</span>
+                  <button type="button" className="undo__button" onClick={() => void sync()}>
+                    Try again
+                  </button>
+                </div>
+              )}
+            </>
           }
           docs={visible}
           total={docs.length}

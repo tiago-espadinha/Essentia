@@ -28,6 +28,14 @@ describe('Dictum', () => {
     expect(rowTitles()).toEqual(['Untitled'])
   })
 
+  it('has no sign-in or sync without a Supabase project', () => {
+    const page = renderApp()
+    newDoc('Local')
+    expect(page.querySelector('#account-button')).toBeNull()
+    expect(page.querySelector('.sync-notice')).toBeNull()
+    expect(savedDocs().map((doc: { title: string }) => doc.title)).toEqual(['Local'])
+  })
+
   it('saves the title and text and brings them back after a reload', () => {
     renderApp()
     newDoc('Essay', '# On quiet\n\nTools that step back.')

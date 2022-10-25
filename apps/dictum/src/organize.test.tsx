@@ -13,6 +13,7 @@ import {
   rowTitles,
   savedDocs,
   setupApp,
+  titleField,
   type,
 } from './testing'
 
@@ -108,5 +109,15 @@ describe('organizing documents', () => {
     expect(tagFilter().value).toBe('*')
     expect(tagFilter().disabled).toBe(true)
     expect(rowTitles()).toEqual(['Letter'])
+  })
+
+  it('stops title, folder and tags at what the account can hold', () => {
+    renderApp()
+    newDoc('Doc')
+    expect(titleField().maxLength).toBe(300)
+    expect(folderField().maxLength).toBe(100)
+    type(tagsField(), Array.from({ length: 60 }, (_, i) => `t${i}`).join(', '))
+    blur(tagsField())
+    expect(savedDocs()[0].tags).toHaveLength(50)
   })
 })

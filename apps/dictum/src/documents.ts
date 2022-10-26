@@ -45,7 +45,7 @@ export function applyChanges(doc: Doc, changes: DocChanges, now: Date = new Date
   return { ...doc, ...changes, updatedAt: now.toISOString() }
 }
 
-export function displayTitle(doc: Doc): string {
+export function displayTitle(doc: Pick<Doc, 'title'>): string {
   return doc.title.trim() || 'Untitled'
 }
 

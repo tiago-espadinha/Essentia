@@ -675,3 +675,50 @@
     min-height: 44px;
   }
 }
+
+/* Shared reading view: one column at the width of the preview */
+.shared {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-8) 0 var(--space-16);
+}
+
+.shared__head,
+.shared__message,
+.shared > .shared__note { padding: 0 var(--space-6); }
+
+.shared__head {
+  display: grid;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-faint);
+}
+
+.shared__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.shared__message {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  padding-top: var(--space-12);
+}
+
+.shared__note { color: var(--color-mid); }
+
+/* A link that looks like the other ghost buttons. */
+.shared__message .button-ghost { text-decoration: none; }
+
+@media (width < 768px) {
+  .shared { padding-top: var(--space-6); }
+
+  .shared__head,
+  .shared__message,
+  .shared > .shared__note,
+  .shared .prose { padding-inline: var(--space-4); }
+}

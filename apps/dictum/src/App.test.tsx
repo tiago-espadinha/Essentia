@@ -139,6 +139,17 @@ describe('the preview', () => {
     expect(preview.querySelector('a')?.getAttribute('href')).toBe('')
   })
 
+  it('opens links out in a new tab without a referrer, and keeps footnotes in the page', async () => {
+    renderApp()
+    newDoc('Doc', 'See [the site](https://example.com).[^1]\n\n[^1]: A note.')
+    await previewLoaded()
+    const [out, footnote] = [...$('.preview-pane').querySelectorAll('a')]
+    expect(out.getAttribute('target')).toBe('_blank')
+    expect(out.getAttribute('rel')).toBe('noopener noreferrer')
+    expect(footnote.getAttribute('href')).toMatch(/^#/)
+    expect(footnote.hasAttribute('target')).toBe(false)
+  })
+
   it('says where the preview will show while the document is empty', async () => {
     renderApp()
     newDoc()

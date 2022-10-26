@@ -37,3 +37,29 @@ export async function pushChanges(client: SupabaseClient, push: Push) {
     if (error) throw error
   }
 }
+
+/** The link id of one of the account's documents, or null while it is not shared. */
+export async function fetchShareId(client: SupabaseClient, documentId: string): Promise<string | null> {
+  const { data, error } = await client.from('documents').select('share_id').eq('id', documentId).maybeSingle()
+  if (error) throw error
+  return (data as { share_id: string | null } | null)?.share_id ?? null
+}
+
+/** Shares the document and returns its link id; null when the account does not have it. */
+export async function shareDocument(client: SupabaseClient, documentId: string): Promise<string | null> {
+  const { data, error } = await client.rpc('share_document', { document_id: documentId })
+  if (error) throw error
+  return typeof data === 'string' ? data : null
+}
+
+export async function unshareDocument(client: SupabaseClient, documentId: string) {
+  const { error } = await client.rpc('unshare_document', { document_id: documentId })
+  if (error) throw error
+}
+
+/** The document behind a share link, unchecked; anyone may call it, signed in or not. */
+export async function fetchShared(client: SupabaseClient, linkId: string): Promise<unknown> {
+  const { data, error } = await client.rpc('get_shared_document', { link_id: linkId })
+  if (error) throw error
+  return Array.isArray(data) ? (data[0] ?? null) : null
+}

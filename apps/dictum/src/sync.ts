@@ -35,7 +35,7 @@ export const LIMITS = { title: 300, content: 1_000_000, folder: 100, tags: 50 }
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** Ids from before sync or tampered ones cannot be stored as uuids, and the table refuses oversized documents. */
-const syncable = (doc: Doc) =>
+export const syncable = (doc: Doc) =>
   UUID.test(doc.id) &&
   doc.title.length <= LIMITS.title &&
   doc.content.length <= LIMITS.content &&

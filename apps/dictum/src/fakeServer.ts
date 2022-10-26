@@ -31,6 +31,12 @@ export function fakeServer() {
       select: () => {
         const query = {
           order: () => query,
+          eq: (_column: string, id: string) => ({
+            maybeSingle: () => {
+              const row = own().find((existing) => existing.id === id)
+              return result(row ? { share_id: row.share_id ?? null } : null)
+            },
+          }),
           range: (start: number, end: number) =>
             result(
               own()
@@ -62,6 +68,21 @@ export function fakeServer() {
         }),
       }),
     })
+    // The sharing functions of the migration: owner-only changes, a link read by anyone.
+    const rpc = (name: string, args: Record<string, string>) => {
+      if (failing) return result(null)
+      if (name === 'get_shared_document') {
+        const row = documents.find((existing) => existing.share_id === args.link_id && !existing.deleted_at)
+        return result(row ? [{ title: row.title, content: row.content, updated_at: row.updated_at }] : [])
+      }
+      const row = own().find((existing) => existing.id === args.document_id && !existing.deleted_at)
+      if (name === 'share_document') {
+        if (row) row.share_id ??= crypto.randomUUID()
+        return result(row?.share_id ?? null)
+      }
+      if (row) row.share_id = null
+      return result(null)
+    }
     const auth = {
       onAuthStateChange: (callback: typeof listener) => {
         listener = callback
@@ -78,7 +99,7 @@ export function fakeServer() {
       emit(id)
       await settle()
     }
-    return { client: { from, auth } as unknown as SupabaseClient, signInAs, emit }
+    return { client: { from, rpc, auth } as unknown as SupabaseClient, signInAs, emit }
   }
 
   return {

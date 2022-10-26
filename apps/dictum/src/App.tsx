@@ -6,6 +6,7 @@ import { DocActions } from './DocActions'
 import { DocList } from './DocList'
 import { Editor, type Mode } from './Editor'
 import { Filters } from './Filters'
+import { ShareDialog } from './ShareDialog'
 import { UndoNotice } from './UndoNotice'
 import { VersionsDialog } from './VersionsDialog'
 import { displayTitle, filterDocs, foldersOf, tagsOf, type Doc, type DocFilter } from './documents'
@@ -30,7 +31,9 @@ export default function App() {
   const [view, setView] = useState<'list' | 'doc'>('list')
   const [mode, setMode] = useState<Mode>('write')
   const [filter, setFilter] = useState<DocFilter>(NO_FILTER)
-  const [versionsOpen, setVersionsOpen] = useState(false)
+  // The open dialog and the document it was opened for: a sync can remove that
+  // document, and the dialog then closes rather than turn to another one.
+  const [dialog, setDialog] = useState<{ kind: 'share' | 'versions'; docId: string } | null>(null)
   // The last deleted document and what its removal took, for the undo.
   const [deleted, setDeleted] = useState<{ doc: Doc; removed: ReturnType<typeof remove> } | null>(null)
   const autoVersion = useAutoVersion(saveVersion)
@@ -59,6 +62,10 @@ export default function App() {
   const visible = filterDocs(docs, activeFilter)
   // With nothing chosen yet, or the chosen document gone, the first in the list is open.
   const selected = docs.find((doc) => doc.id === selectedId) ?? visible[0] ?? null
+  const dialogDoc = dialog && docs.find((doc) => doc.id === dialog.docId)
+  if (dialog && !dialogDoc) setDialog(null)
+  // Sharing reads from the account, so it needs a project and a known session.
+  const canShare = client !== null && (auth.status === 'signed-in' || auth.status === 'signed-out')
 
   // A new document is blank, so the search and tag are cleared to show it; it joins the folder in view.
   function newDoc() {
@@ -153,23 +160,33 @@ export default function App() {
                 autoVersion.schedule(selected.id)
               }}
               onBack={() => backToList(selected.id)}
-              actions={<DocActions doc={selected} onVersions={() => setVersionsOpen(true)} onDelete={() => deleteDoc(selected)} />}
+              actions={
+                <DocActions
+                  doc={selected}
+                  onShare={canShare ? () => setDialog({ kind: 'share', docId: selected.id }) : undefined}
+                  onVersions={() => setDialog({ kind: 'versions', docId: selected.id })}
+                  onDelete={() => deleteDoc(selected)}
+                />
+              }
             />
           ) : (
             <p className="doc-pane__idle">Your document opens here.</p>
           )}
         </section>
       </main>
-      {versionsOpen && selected && (
+      {dialog?.kind === 'share' && dialogDoc && client && (
+        <ShareDialog doc={dialogDoc} auth={auth} client={client} onSync={sync} onClose={() => setDialog(null)} />
+      )}
+      {dialog?.kind === 'versions' && dialogDoc && (
         <VersionsDialog
-          doc={selected}
-          versions={versionsOf(versions, selected.id)}
-          onSave={() => saveVersion(selected.id)}
+          doc={dialogDoc}
+          versions={versionsOf(versions, dialogDoc.id)}
+          onSave={() => saveVersion(dialogDoc.id)}
           onRestore={(version) => {
-            restore(selected.id, version)
-            setVersionsOpen(false)
+            restore(dialogDoc.id, version)
+            setDialog(null)
           }}
-          onClose={() => setVersionsOpen(false)}
+          onClose={() => setDialog(null)}
         />
       )}
     </>

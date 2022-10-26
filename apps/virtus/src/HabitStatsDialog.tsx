@@ -1,5 +1,5 @@
 import { Dialog } from './Dialog'
-import { addDays, daysBetween, describeDays, statsId, WEEK, WEEKDAY_NAMES, type Habit } from './habits'
+import { addDays, daysBetween, describeDays, shortDate, statsId, WEEK, WEEKDAY_NAMES, type Habit } from './habits'
 import { DAY_STATE_LABELS, dayState, percent, summarize } from './stats'
 
 interface HabitStatsDialogProps {
@@ -14,6 +14,8 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
   const summary = summarize(habit, today)
   const rate = percent(summary.last30)
   const peak = Math.max(1, ...summary.byWeekday)
+  const strip = daysBetween(addDays(today, -29), today).map((day) => ({ day, state: dayState(habit, day, today) }))
+  const missed = strip.filter((item) => item.state === 'missed').map((item) => shortDate(item.day))
   const metrics: [string, string][] = [
     ['Current streak', String(summary.current)],
     ['Best streak', String(summary.longest)],
@@ -53,11 +55,11 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
           </span>
         </div>
         <ol className="strip__days" aria-hidden="true">
-          {daysBetween(addDays(today, -29), today).map((day) => {
-            const state = dayState(habit, day, today)
-            return <li key={day} className={`strip__day strip__day--${state}`} title={`${day}: ${DAY_STATE_LABELS[state]}`} />
-          })}
+          {strip.map(({ day, state }) => (
+            <li key={day} className={`strip__day strip__day--${state}`} title={`${day}: ${DAY_STATE_LABELS[state]}`} />
+          ))}
         </ol>
+        <p className="visually-hidden">{missed.length === 0 ? 'No missed days.' : `Missed: ${missed.join(', ')}.`}</p>
       </section>
 
       <section className="by-day" aria-labelledby="by-day-title">

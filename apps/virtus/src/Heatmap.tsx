@@ -1,5 +1,5 @@
-import type { Habit } from './habits'
-import { heatmap, sumTallies } from './stats'
+import { shortDate, type Habit } from './habits'
+import { heatmap, heatWeeks, sumTallies } from './stats'
 
 interface HeatmapProps {
   habits: Habit[]
@@ -8,7 +8,10 @@ interface HeatmapProps {
 
 const ROW_LABELS = ['M', '', 'W', '', 'F', '', 'S']
 
-/** Twelve week columns, Monday at the top; the shade is the share of due habits done. */
+/**
+ * Twelve week columns, Monday at the top; the shade is the share of due habits done.
+ * The grid is drawn for sight; screen readers get the same weeks as a table.
+ */
 export function Heatmap({ habits, today }: HeatmapProps) {
   const days = heatmap(habits, today)
   const total = sumTallies(days.map((item) => item.tally))
@@ -29,6 +32,30 @@ export function Heatmap({ habits, today }: HeatmapProps) {
             title={item.tally.due > 0 ? `${item.day}: ${item.tally.done} of ${item.tally.due}` : item.day}
           />
         ))}
+      </div>
+      {/* Tables ignore the hidden class's size and overflow, so a wrapper hides it. */}
+      <div className="visually-hidden">
+        <table>
+          <caption>Due habits done each week</caption>
+          <thead>
+            <tr>
+              <th scope="col">Week of</th>
+              <th scope="col">Done</th>
+              <th scope="col">Days with every habit done</th>
+            </tr>
+          </thead>
+          <tbody>
+            {heatWeeks(days).map((week) => (
+              <tr key={week.start}>
+                <th scope="row">{shortDate(week.start)}</th>
+                <td>
+                  {week.tally.done} of {week.tally.due}
+                </td>
+                <td>{week.full}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       <figcaption className="heatmap__caption">
         <span>

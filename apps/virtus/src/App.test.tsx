@@ -396,6 +396,8 @@ describe('week and habit stats', () => {
     const metrics = [...document.querySelectorAll('.metrics__item')].map((item) => item.textContent)
     expect(metrics).toEqual(['Current streak2', 'Best streak2', 'Check-ins2'])
     expect($('.strip__header').textContent).toContain('2 of 14 due days · 14%')
+    const missed = Array.from({ length: 12 }, (_, i) => `Aug ${i + 1}`).join(', ')
+    expect($('.strip .visually-hidden').textContent).toBe(`Missed: ${missed}.`)
 
     click(buttonNamed('Close'))
     expect(document.querySelector('dialog')).toBeNull()
@@ -431,6 +433,13 @@ describe('stats view', () => {
     expect($('.chart__day:nth-child(7) .visually-hidden').textContent).toBe('Monday: 0 of 0 done')
     expect(document.querySelectorAll('.heatmap__grid .heatmap__cell')).toHaveLength(84)
     expect($('.heatmap__caption').textContent).toContain('3 of 16 due days done; every habit done on 2 days.')
+    const rows = [...document.querySelectorAll('.heatmap tbody tr')].map((row) => [...row.children].map((cell) => cell.textContent))
+    expect(rows).toHaveLength(12)
+    expect(rows.slice(-3)).toEqual([
+      ['Aug 1', '0 of 8', '0'],
+      ['Aug 8', '3 of 8', '2'],
+      ['Aug 15', '0 of 0', '0'],
+    ])
     expect($('#stats-badges').closest('section')!.textContent).toContain('3 of 10')
   })
 })

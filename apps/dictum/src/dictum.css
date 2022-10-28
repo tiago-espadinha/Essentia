@@ -14,6 +14,12 @@
 
 .dictum-header > :last-child { justify-self: end; }
 
+.dictum-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
 .dictum-header__title {
   font-family: var(--font-serif);
   font-size: var(--text-xl);
@@ -137,7 +143,8 @@
 }
 
 /* Undo after a delete, above the list */
-.undo:not(:empty) {
+.undo:not(:empty),
+.sync-notice {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -148,7 +155,8 @@
   color: var(--color-mid);
 }
 
-.undo__text {
+.undo__text,
+.sync-notice__text {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -176,6 +184,45 @@
   margin: var(--space-1) 0 var(--space-4);
   color: var(--color-mid);
 }
+
+/* Share */
+.share {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.share .dialog__text { margin: 0; }
+
+.share__link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* The link takes the row; on a phone Copy link drops below it, full width. */
+.share__link .field-input { flex: 1 1 240px; }
+.share__link .button-primary { flex: 1 0 auto; }
+
+.share__link .field-input {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.share__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.share__status { color: var(--color-success); }
+.share__status[data-failed] { color: var(--color-danger); }
+
+/* Empty, it stays in place for screen readers but takes no room. */
+.share__status:empty { margin-top: calc(-1 * var(--space-3)); }
+
+.button-primary[aria-disabled='true'],
+.button-ghost[aria-disabled='true'] { opacity: 0.7; cursor: default; }
 
 /* Versions */
 .versions {
@@ -600,7 +647,16 @@
   .back-button { display: inline-flex; }
 
   .mode-switch { margin-left: auto; }
-  .doc-bar { padding: var(--space-2) var(--space-1); }
+  .mode-switch__button { padding: 0 var(--space-3); }
+
+  /* Back, the switch and four 44 px actions only just fit at 375 px: no gaps, and
+     narrower phones scroll the bar from its start, so the back control stays. */
+  .doc-bar {
+    gap: 0;
+    justify-content: safe flex-end;
+    overflow-x: auto;
+    padding: var(--space-2) var(--space-1);
+  }
   .doc-head { padding: var(--space-4) var(--space-4) var(--space-3); }
   .write-pane__text,
   .prose { padding: var(--space-4); }
@@ -618,4 +674,51 @@
     min-width: 44px;
     min-height: 44px;
   }
+}
+
+/* Shared reading view: one column at the width of the preview */
+.shared {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: var(--space-8) 0 var(--space-16);
+}
+
+.shared__head,
+.shared__message,
+.shared > .shared__note { padding: 0 var(--space-6); }
+
+.shared__head {
+  display: grid;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-faint);
+}
+
+.shared__title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-3xl);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.shared__message {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-4);
+  padding-top: var(--space-12);
+}
+
+.shared__note { color: var(--color-mid); }
+
+/* A link that looks like the other ghost buttons. */
+.shared__message .button-ghost { text-decoration: none; }
+
+@media (width < 768px) {
+  .shared { padding-top: var(--space-6); }
+
+  .shared__head,
+  .shared__message,
+  .shared > .shared__note,
+  .shared .prose { padding-inline: var(--space-4); }
 }

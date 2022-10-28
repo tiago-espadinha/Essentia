@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDoc, type Doc } from './documents'
-import { DOCS_KEY, loadDocs, loadVersions, save, VERSIONS_KEY } from './storage'
+import { DOCS_KEY, loadDocs, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from './storage'
+import { NO_STAMPS } from './sync'
 import type { Version } from './versions'
 
 const doc: Doc = {
@@ -73,5 +74,26 @@ describe('version storage', () => {
   it('drops versions of documents that no longer exist, and malformed ones', () => {
     store(VERSIONS_KEY, [version, { ...version, id: 'v2', docId: 'gone' }, { ...version, id: 'v3', savedAt: 5 }])
     expect(loadVersions(['a'])).toEqual([version])
+  })
+})
+
+describe('sync stamps', () => {
+  it('start with no owner and no deletions', () => {
+    expect(loadStamps()).toEqual(NO_STAMPS)
+  })
+
+  it('round-trip the owner and the deletions', () => {
+    const stamps = { owner: 'ana', deleted: { a: '2022-10-20T10:00:00.000Z' } }
+    expect(save(SYNC_KEY, stamps)).toBe(true)
+    expect(loadStamps()).toEqual(stamps)
+  })
+
+  it('start over when the saved stamps are malformed', () => {
+    for (const bad of [{ owner: 1, deleted: {} }, { owner: null, deleted: [] }, { owner: null, deleted: { a: 'soon' } }, 'x']) {
+      store(SYNC_KEY, bad)
+      expect(loadStamps()).toEqual(NO_STAMPS)
+    }
+    localStorage.setItem(SYNC_KEY, '{')
+    expect(loadStamps()).toEqual(NO_STAMPS)
   })
 })

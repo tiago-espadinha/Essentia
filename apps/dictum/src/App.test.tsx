@@ -28,6 +28,14 @@ describe('Dictum', () => {
     expect(rowTitles()).toEqual(['Untitled'])
   })
 
+  it('has no sign-in or sync without a Supabase project', () => {
+    const page = renderApp()
+    newDoc('Local')
+    expect(page.querySelector('#account-button')).toBeNull()
+    expect(page.querySelector('.sync-notice')).toBeNull()
+    expect(savedDocs().map((doc: { title: string }) => doc.title)).toEqual(['Local'])
+  })
+
   it('saves the title and text and brings them back after a reload', () => {
     renderApp()
     newDoc('Essay', '# On quiet\n\nTools that step back.')
@@ -129,6 +137,17 @@ describe('the preview', () => {
     const preview = $('.preview-pane')
     expect(preview.querySelector('script, img')).toBeNull()
     expect(preview.querySelector('a')?.getAttribute('href')).toBe('')
+  })
+
+  it('opens links out in a new tab without a referrer, and keeps footnotes in the page', async () => {
+    renderApp()
+    newDoc('Doc', 'See [the site](https://example.com).[^1]\n\n[^1]: A note.')
+    await previewLoaded()
+    const [out, footnote] = [...$('.preview-pane').querySelectorAll('a')]
+    expect(out.getAttribute('target')).toBe('_blank')
+    expect(out.getAttribute('rel')).toBe('noopener noreferrer')
+    expect(footnote.getAttribute('href')).toMatch(/^#/)
+    expect(footnote.hasAttribute('target')).toBe(false)
   })
 
   it('says where the preview will show while the document is empty', async () => {

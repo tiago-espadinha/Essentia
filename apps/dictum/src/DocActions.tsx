@@ -1,7 +1,10 @@
 import { fileName, type Doc } from './documents'
+import { SHARE_BUTTON_ID } from './ShareDialog'
 
 interface DocActionsProps {
   doc: Doc
+  /** Absent when this build has no account to share from. */
+  onShare?: () => void
   onVersions: () => void
   onDelete: () => void
 }
@@ -17,10 +20,18 @@ function download(doc: Doc) {
   setTimeout(() => URL.revokeObjectURL(url))
 }
 
-/** Versions, export and delete; below 768 px they show as icons with hidden labels. */
-export function DocActions({ doc, onVersions, onDelete }: DocActionsProps) {
+/** Share, versions, export and delete; below 768 px they show as icons with hidden labels. */
+export function DocActions({ doc, onShare, onVersions, onDelete }: DocActionsProps) {
   return (
     <>
+      {onShare && (
+        <button type="button" id={SHARE_BUTTON_ID} className="button-ghost" aria-haspopup="dialog" onClick={onShare}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M6.5 9.5 9.5 6.5M7 4.5l1-1a2.83 2.83 0 0 1 4 4l-1 1M9 11.5l-1 1a2.83 2.83 0 0 1-4-4l1-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="action-text">Share</span>
+        </button>
+      )}
       <button type="button" id="versions-button" className="button-ghost" onClick={onVersions}>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9M2.5 2.5v2.5H5M8 5v3l2 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { cleanFolder, parseTags, type DocChanges } from './documents'
+import { LIMITS } from './sync'
 
 interface DocFieldsProps {
   folder: string
@@ -24,7 +25,8 @@ export function DocFields({ folder, tags, folders, onChange }: DocFieldsProps) {
   }
 
   function commitTags() {
-    const next = parseTags(tagsDraft)
+    // The account's table holds this many; more would keep the document off it.
+    const next = parseTags(tagsDraft).slice(0, LIMITS.tags)
     setTagsDraft(next.join(', '))
     if (next.join() !== tags.join()) onChange({ tags: next })
   }
@@ -42,6 +44,7 @@ export function DocFields({ folder, tags, folders, onChange }: DocFieldsProps) {
           list="folder-options"
           autoComplete="off"
           placeholder="Unfiled"
+          maxLength={LIMITS.folder}
           value={folderDraft}
           onChange={(event) => setFolderDraft(event.target.value)}
           onBlur={commitFolder}

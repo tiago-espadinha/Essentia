@@ -1,3 +1,4 @@
+import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
   $,
@@ -114,6 +115,37 @@ describe('formatting', () => {
     expect(contentField().value).toBe('**_word_**')
     press(contentField(), 'b', { ctrlKey: true, shiftKey: true })
     expect(contentField().value).toBe('**_word_**')
+  })
+
+  it('is one tab stop whose buttons the arrow keys, Home and End move between', () => {
+    renderApp()
+    newDoc('Doc')
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('.toolbar button')]
+    const stops = () => buttons.filter((button) => button.tabIndex === 0)
+    expect(stops()).toEqual([buttons[0]])
+
+    act(() => buttons[0].focus())
+    press(buttons[0], 'ArrowRight')
+    expect(document.activeElement).toBe(buttons[1])
+    expect(stops()).toEqual([buttons[1]])
+    press(buttons[1], 'End')
+    expect(document.activeElement).toBe(buttons.at(-1))
+    press(buttons.at(-1)!, 'ArrowRight')
+    expect(document.activeElement).toBe(buttons[0])
+    press(buttons[0], 'ArrowLeft')
+    expect(document.activeElement).toBe(buttons.at(-1))
+    press(buttons.at(-1)!, 'Home')
+    expect(document.activeElement).toBe(buttons[0])
+  })
+
+  it('names the shortcut of each button that has one', () => {
+    renderApp()
+    newDoc('Doc')
+    expect(buttonNamed('Bold').title).toBe('Bold (Ctrl+B)')
+    expect(buttonNamed('Bold').getAttribute('aria-keyshortcuts')).toBe('Control+B Meta+B')
+    expect(buttonNamed('Link').title).toBe('Link (Ctrl+K)')
+    expect(buttonNamed('Quote').title).toBe('Quote')
+    expect(buttonNamed('Quote').hasAttribute('aria-keyshortcuts')).toBe(false)
   })
 })
 

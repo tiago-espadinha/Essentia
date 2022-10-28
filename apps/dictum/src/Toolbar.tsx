@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
-import type { Format } from './formatting'
+import { useState, type KeyboardEvent, type ReactNode } from 'react'
+import { SHORTCUTS, type Format } from './formatting'
+import { shortcut } from './keys'
 
 const svg = (path: ReactNode) => (
   <svg
@@ -35,26 +36,50 @@ const TOOLS: { format: Format; label: string; icon: ReactNode }[][] = [
   ],
 ]
 
-/** Markdown formatting for the selection in the editor. */
+const KEYS = Object.fromEntries(Object.entries(SHORTCUTS).map(([key, format]) => [format, shortcut(key)]))
+
+const POSITION = new Map(TOOLS.flat().map(({ format }, position) => [format, position]))
+const COUNT = POSITION.size
+
+/**
+ * Markdown formatting for the selection in the editor. One tab stop: the arrow
+ * keys, Home and End move between the buttons, and the last one used keeps the stop.
+ */
 export function Toolbar({ onFormat }: { onFormat: (format: Format) => void }) {
+  const [current, setCurrent] = useState(0)
+
+  function move(event: KeyboardEvent<HTMLDivElement>) {
+    const next = { ArrowRight: current + 1, ArrowLeft: current - 1, Home: 0, End: COUNT - 1 }[event.key]
+    if (next === undefined) return
+    event.preventDefault()
+    event.currentTarget.querySelectorAll('button')[(next + COUNT) % COUNT].focus()
+  }
+
   return (
-    <div className="toolbar" role="toolbar" aria-label="Formatting" aria-controls="doc-content">
+    <div className="toolbar" role="toolbar" aria-label="Formatting" aria-controls="doc-content" onKeyDown={move}>
       {TOOLS.map((group) => (
         <div key={group[0].format} className="toolbar__group">
-          {group.map(({ format, label, icon }) => (
-            <button
-              key={format}
-              type="button"
-              className="toolbar__button"
-              title={label}
-              // Keeps the selection in the editor while the button is pressed.
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => onFormat(format)}
-            >
-              {icon}
-              <span className="visually-hidden">{label}</span>
-            </button>
-          ))}
+          {group.map(({ format, label, icon }) => {
+            const position = POSITION.get(format)!
+            const keys = KEYS[format]
+            return (
+              <button
+                key={format}
+                type="button"
+                className="toolbar__button"
+                title={keys ? `${label} (${keys.label})` : label}
+                aria-keyshortcuts={keys?.aria}
+                tabIndex={position === current ? 0 : -1}
+                onFocus={() => setCurrent(position)}
+                // Keeps the selection in the editor while the button is pressed.
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => onFormat(format)}
+              >
+                {icon}
+                <span className="visually-hidden">{label}</span>
+              </button>
+            )
+          })}
         </div>
       ))}
     </div>

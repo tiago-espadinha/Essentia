@@ -316,6 +316,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 6.1.2(vite@8.3.4(@types/node@24.19.2))
+      axe-core:
+        specifier: 'catalog:'
+        version: 4.13.0
       eslint:
         specifier: 'catalog:'
         version: 10.12.0

@@ -87,6 +87,11 @@ export function daysBetween(start: string, end: string): string[] {
   return days
 }
 
+/** "Aug 15", for text alternatives to the charts. */
+export function shortDate(day: string): string {
+  return new Date(`${day}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 /** Monday to Sunday of the week holding `day`. */
 export function weekOf(day: string): string[] {
   const monday = addDays(day, -((weekdayOf(day) + 6) % 7))

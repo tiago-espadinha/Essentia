@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Habit } from './habits'
-import { bestStreaks, categoryTallies, checkInsSince, dayState, dayTally, heatmap, percent, summarize, tally, withStarts } from './stats'
+import { bestStreaks, categoryTallies, checkInsSince, dayState, dayTally, heatmap, heatWeeks, percent, summarize, tally, withStarts } from './stats'
 
 // 2022-08-15 is a Monday.
 const today = '2022-08-15'
@@ -98,6 +98,15 @@ describe('dashboard figures', () => {
     expect(level('2022-08-01')).toBeNull()
     expect(level(today)).toBeNull()
     expect(level('2022-08-20')).toBeNull()
+  })
+
+  it('sums the heatmap by week, for its table', () => {
+    const weeks = heatWeeks(heatmap([daily, weekend], today))
+    expect(weeks).toHaveLength(12)
+    expect(weeks[0]).toEqual({ start: '2022-05-30', tally: { done: 0, due: 0 }, full: 0 })
+    // Both created on 8 August: the daily habit 2 of 7, the weekend one 1 of 2; only the 13th has both.
+    expect(weeks.at(-2)).toEqual({ start: '2022-08-08', tally: { done: 3, due: 9 }, full: 1 })
+    expect(weeks.at(-1)).toEqual({ start: today, tally: { done: 0, due: 0 }, full: 0 })
   })
 
   it('tallies by category and finds the best streaks', () => {

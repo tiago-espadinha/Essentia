@@ -115,6 +115,16 @@ export function heatmap(habits: Habit[], today: string): HeatDay[] {
   })
 }
 
+/** The heatmap's weeks, for its table: done of due, and days with every habit done. */
+export function heatWeeks(days: HeatDay[]): { start: string; tally: Tally; full: number }[] {
+  const weeks = []
+  for (let i = 0; i < days.length; i += 7) {
+    const week = days.slice(i, i + 7)
+    weeks.push({ start: week[0].day, tally: sumTallies(week.map((item) => item.tally)), full: week.filter((item) => item.level === 4).length })
+  }
+  return weeks
+}
+
 export function categoryTallies(habits: Habit[], from: string, today: string): { category: string; tally: Tally }[] {
   return categoriesOf(habits).map((category) => ({
     category,

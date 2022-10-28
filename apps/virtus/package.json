@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm typecheck && vite build",
-    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json && tsc -p tsconfig.sw.json",
     "lint": "eslint .",
     "test": "vitest run",
     "preview": "vite preview"
@@ -25,6 +25,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "axe-core": "catalog:",
     "eslint": "catalog:",
     "jsdom": "catalog:",
     "typescript": "catalog:",

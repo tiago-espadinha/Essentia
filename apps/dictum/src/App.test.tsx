@@ -130,6 +130,15 @@ describe('the preview', () => {
     expect(preview.querySelector('code.hljs .hljs-keyword')?.textContent).toBe('const')
   })
 
+  it('reads a task’s state out as words, since its box can’t be ticked', async () => {
+    renderApp()
+    newDoc('Doc', '- [x] Outline\n- [ ] Edit')
+    await previewLoaded()
+    const items = [...$('.preview-pane').querySelectorAll('li')]
+    expect(items.map((item) => item.textContent)).toEqual(['Done: Outline', 'To do: Edit'])
+    expect(items[0].querySelector('input')?.getAttribute('aria-hidden')).toBe('true')
+  })
+
   it('shows raw HTML as text and drops script and unsafe links', async () => {
     renderApp()
     newDoc('Doc', '<script>alert(1)</script>\n\n<img src=x onerror="alert(2)">\n\n[click](javascript:alert(3))')

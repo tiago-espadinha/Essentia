@@ -371,6 +371,9 @@ importers:
       '@essentia/tokens':
         specifier: workspace:*
         version: link:../tokens
+      '@essentia/ui':
+        specifier: workspace:*
+        version: link:../ui
       '@types/react':
         specifier: 'catalog:'
         version: 19.3.0

@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import './ui.css'
 
 interface DialogProps {
   title: string
@@ -19,13 +20,15 @@ export function Dialog({ title, titleId, returnFocusId, onClose, children }: Dia
   useEffect(() => {
     const dialog = ref.current!
     if (!dialog.open) dialog.showModal()
+    // A form dialog starts in its first field rather than on the close button.
+    dialog.querySelector<HTMLElement>('input, select, textarea')?.focus()
     return () => document.getElementById(returnFocusId)?.focus()
   }, [returnFocusId])
 
   return (
     <dialog
       ref={ref}
-      className="dialog"
+      className="ui-dialog"
       aria-labelledby={titleId}
       onClose={onClose}
       // A click on the backdrop lands on the dialog itself, outside its panel.
@@ -33,9 +36,9 @@ export function Dialog({ title, titleId, returnFocusId, onClose, children }: Dia
         if (event.target === ref.current) onClose()
       }}
     >
-      <div className="dialog__panel">
-        <div className="dialog__header">
-          <h2 id={titleId} className="dialog__title">
+      <div className="ui-dialog__panel">
+        <div className="ui-dialog__header">
+          <h2 id={titleId} className="ui-dialog__title">
             {title}
           </h2>
           <button type="button" className="ui-icon-button" onClick={onClose}>

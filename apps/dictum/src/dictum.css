@@ -169,36 +169,8 @@
 
 .undo__button:hover { color: var(--color-ink); }
 
-/* Dialog */
-.dialog {
-  width: min(100% - 2 * var(--space-4), 520px);
-  max-height: calc(100% - 2 * var(--space-8));
-  margin: auto;
-  padding: 0;
-  border: 1px solid var(--color-faint);
-  border-radius: var(--radius-lg);
-  background: var(--color-paper);
-  color: var(--color-ink);
-  box-shadow: var(--shadow-overlay);
-}
-
-.dialog::backdrop { background: color-mix(in srgb, var(--color-ink) 30%, transparent); }
-
-.dialog__panel { padding: var(--space-4) var(--space-6) var(--space-6); }
-
-.dialog__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-right: calc(-1 * var(--space-3));
-}
-
-.dialog__title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: var(--text-2xl);
-}
+/* Dialog: the versions list wants a wider panel than the shared default. */
+.ui-dialog { width: min(100% - 2 * var(--space-4), 520px); }
 
 .dialog__text {
   margin: var(--space-1) 0 var(--space-4);

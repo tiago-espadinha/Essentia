@@ -214,3 +214,79 @@ describe('on a phone', () => {
     expect(document.activeElement).toBe(titleField())
   })
 })
+
+/** Ctrl+Alt (or Cmd+Alt) on a letter key, sent from wherever focus is. */
+function viewKey(letter: string, modifiers: KeyboardEventInit = { ctrlKey: true, altKey: true }) {
+  press((document.activeElement as HTMLElement | null) ?? document.body, letter, { code: `Key${letter.toUpperCase()}`, ...modifiers })
+}
+
+describe('view shortcuts', () => {
+  setupApp()
+
+  it('starts a new document with Ctrl+Alt+N or Cmd+Alt+N, from anywhere', () => {
+    renderApp()
+    viewKey('n')
+    expect(rowTitles()).toEqual(['Untitled'])
+    expect(document.activeElement).toBe(titleField())
+    type(titleField(), 'First')
+    act(() => contentField().focus())
+    viewKey('n', { metaKey: true, altKey: true })
+    expect(rowTitles()).toEqual(['Untitled', 'First'])
+    expect(document.activeElement).toBe(titleField())
+  })
+
+  it('leaves other keys, AltGr letters, held keys and open dialogs alone', () => {
+    renderApp()
+    newDoc('Only')
+    viewKey('n', { ctrlKey: true })
+    viewKey('n', { altKey: true })
+    viewKey('n', { ctrlKey: true, altKey: true, shiftKey: true })
+    viewKey('n', { ctrlKey: true, altKey: true, modifierAltGraph: true } as KeyboardEventInit)
+    viewKey('n', { ctrlKey: true, altKey: true, repeat: true })
+    click(buttonNamed('Versions'))
+    viewKey('n')
+    expect(rowTitles()).toEqual(['Only'])
+  })
+
+  it('names the new document shortcut on its button', () => {
+    renderApp()
+    expect(buttonNamed('New document').title).toBe('New document (Ctrl+Alt+N)')
+    expect(buttonNamed('New document').getAttribute('aria-keyshortcuts')).toBe('Control+Alt+N Meta+Alt+N')
+  })
+
+  it('does not switch to the preview from 1280 px, where both show', () => {
+    renderApp()
+    newDoc('Doc')
+    act(() => contentField().focus())
+    viewKey('p')
+    expect(buttonNamed('Write').getAttribute('aria-pressed')).toBe('true')
+    expect(document.activeElement).toBe(contentField())
+  })
+})
+
+describe('view shortcuts below 1280 px', () => {
+  setupApp({ phone: true })
+
+  it('switches between writing and the preview with Ctrl+Alt+P, and focus follows', () => {
+    renderApp()
+    newDoc('Doc', 'Text')
+    act(() => contentField().focus())
+    viewKey('p')
+    expect(buttonNamed('Preview').getAttribute('aria-pressed')).toBe('true')
+    expect(document.activeElement).toBe($('.preview-pane'))
+    viewKey('p', { metaKey: true, altKey: true })
+    expect(buttonNamed('Write').getAttribute('aria-pressed')).toBe('true')
+    expect(document.activeElement).toBe(contentField())
+    expect(buttonNamed('Preview').getAttribute('aria-keyshortcuts')).toBe('Control+Alt+P Meta+Alt+P')
+    expect(buttonNamed('Write').hasAttribute('aria-keyshortcuts')).toBe(false)
+  })
+
+  it('does nothing on a phone while the list shows', () => {
+    renderApp()
+    newDoc('Doc')
+    click(buttonNamed('Documents'))
+    viewKey('p')
+    expect($('.dictum').dataset.view).toBe('list')
+    expect(document.activeElement).toBe($('.doc-row'))
+  })
+})

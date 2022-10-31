@@ -522,6 +522,22 @@
   color: var(--color-ink);
 }
 
+/* Touch-sized wherever a tablet or phone may show the editor; the buttons sit
+   closer so one row still fits the 768 px writing pane. */
+@media (width < 1280px) {
+  .toolbar__group { gap: 0; }
+
+  .toolbar__group + .toolbar__group {
+    margin-left: var(--space-1);
+    padding-left: var(--space-1);
+  }
+
+  .toolbar__button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
 /* Rendered markdown */
 .prose {
   max-width: 680px;
@@ -668,11 +684,6 @@
     flex-wrap: nowrap;
     overflow-x: auto;
     padding: var(--space-1);
-  }
-
-  .toolbar__button {
-    min-width: 44px;
-    min-height: 44px;
   }
 }
 

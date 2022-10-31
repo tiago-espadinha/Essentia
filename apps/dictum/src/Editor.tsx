@@ -2,6 +2,7 @@ import { lazy, Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, t
 import { DocFields } from './DocFields'
 import { countWords, readingMinutes, type Doc, type DocChanges } from './documents'
 import { formatEdit, SHORTCUTS, type Format } from './formatting'
+import { VIEW_KEYS } from './keys'
 import { LIMITS } from './sync'
 import { Toolbar } from './Toolbar'
 
@@ -10,13 +11,16 @@ const Preview = lazy(() => import('./Preview'))
 /** Below 1280 px one of the two shows at a time; from 1280 px both do. */
 export type Mode = 'write' | 'preview'
 
+/** The title, or the writing or preview side. */
+export type FocusTarget = 'title' | Mode
+
 interface EditorProps {
   doc: Doc
   /** Existing folders, offered when filing the document. */
   folders: string[]
   mode: Mode
-  /** Focus the title (a document just created, or opened on a phone). */
-  autoFocus: boolean
+  /** Where focus goes (the title of a document just created or opened on a phone, or the side just shown). */
+  focus: FocusTarget | null
   onFocused: () => void
   onModeChange: (mode: Mode) => void
   onChange: (changes: DocChanges) => void
@@ -26,9 +30,10 @@ interface EditorProps {
   actions?: ReactNode
 }
 
-export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange, onChange, onBack, actions }: EditorProps) {
+export function Editor({ doc, folders, mode, focus, onFocused, onModeChange, onChange, onBack, actions }: EditorProps) {
   const titleRef = useRef<HTMLInputElement>(null)
   const textRef = useRef<HTMLTextAreaElement>(null)
+  const previewRef = useRef<HTMLElement>(null)
   // The selection to restore once a formatting change has rendered.
   const pendingSelection = useRef<[number, number] | null>(null)
   const words = countWords(doc.content)
@@ -42,10 +47,11 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
   })
 
   useEffect(() => {
-    if (!autoFocus) return
-    titleRef.current?.focus()
+    if (!focus) return
+    const targets = { title: titleRef, write: textRef, preview: previewRef }
+    targets[focus].current?.focus()
     onFocused()
-  }, [autoFocus, onFocused])
+  }, [focus, onFocused])
 
   // Through insertText where the browser has it, so Ctrl+Z undoes the format.
   function applyFormat(format: Format) {
@@ -83,6 +89,9 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
               type="button"
               className="mode-switch__button"
               aria-pressed={mode === value}
+              // The key switches to the side not showing.
+              title={mode === value ? undefined : `${value === 'write' ? 'Write' : 'Preview'} (${VIEW_KEYS.preview.label})`}
+              aria-keyshortcuts={mode === value ? undefined : VIEW_KEYS.preview.aria}
               onClick={() => onModeChange(value)}
             >
               {value === 'write' ? 'Write' : 'Preview'}
@@ -130,7 +139,8 @@ export function Editor({ doc, folders, mode, autoFocus, onFocused, onModeChange,
             onKeyDown={shortcut}
           />
         </div>
-        <section className="preview-pane" aria-label="Preview">
+        {/* Focusable for the shortcut that shows it; focused, the arrow keys scroll it. */}
+        <section ref={previewRef} className="preview-pane" aria-label="Preview" tabIndex={-1}>
           <Suspense fallback={<p className="preview__idle">Loading the preview…</p>}>
             <Preview content={previewContent} />
           </Suspense>

@@ -15,6 +15,15 @@ const components: Components = {
         {children}
       </a>
     ),
+  // A task list's box can't be ticked here, so screen readers hear its state as words
+  // instead of an unlabelled, unavailable checkbox.
+  // Raw HTML is never parsed, so the only input is a task's box.
+  input: ({ checked }) => (
+    <>
+      <input type="checkbox" checked={checked} disabled aria-hidden="true" />
+      <span className="visually-hidden">{checked ? 'Done:' : 'To do:'}</span>
+    </>
+  ),
 }
 
 interface PreviewProps {

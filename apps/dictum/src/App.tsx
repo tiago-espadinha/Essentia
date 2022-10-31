@@ -1,11 +1,12 @@
 import { getSupabase, useAuth } from '@essentia/supabase'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { AccountMenu } from './AccountMenu'
 import { AppHeader } from './AppHeader'
 import { DocActions } from './DocActions'
 import { DocList } from './DocList'
-import { Editor, type Mode } from './Editor'
+import { Editor, type FocusTarget, type Mode } from './Editor'
 import { Filters } from './Filters'
+import { isViewKey } from './keys'
 import { ShareDialog } from './ShareDialog'
 import { UndoNotice } from './UndoNotice'
 import { VersionsDialog } from './VersionsDialog'
@@ -16,6 +17,8 @@ import { versionsOf } from './versions'
 
 /** Matches dictum.css: one pane at a time below 768 px. */
 const PHONE = '(width < 768px)'
+/** Matches dictum.css: Write and Preview take turns below 1280 px. */
+const NARROW = '(width < 1280px)'
 
 const NO_FILTER: DocFilter = { query: '', folder: null, tag: null }
 
@@ -25,8 +28,8 @@ export default function App() {
   const auth = useAuth(client)
   const { docs, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  // The document whose title takes focus when its editor mounts or shows.
-  const [titleFocusId, setTitleFocusId] = useState<string | null>(null)
+  // What in which document takes focus when its editor mounts or shows.
+  const [focusRequest, setFocusRequest] = useState<{ docId: string; target: FocusTarget } | null>(null)
   // Below 768 px one pane shows at a time: the list, or the open document.
   const [view, setView] = useState<'list' | 'doc'>('list')
   const [mode, setMode] = useState<Mode>('write')
@@ -37,7 +40,7 @@ export default function App() {
   // The last deleted document and what its removal took, for the undo.
   const [deleted, setDeleted] = useState<{ doc: Doc; removed: ReturnType<typeof remove> } | null>(null)
   const autoVersion = useAutoVersion(saveVersion)
-  const clearTitleFocus = useCallback(() => setTitleFocusId(null), [])
+  const clearFocusRequest = useCallback(() => setFocusRequest(null), [])
   // A row to focus once the list has rendered; an id no row has falls back to New document.
   const rowToFocus = useRef<string | null>(null)
   const mainRef = useRef<HTMLElement>(null)
@@ -72,7 +75,7 @@ export default function App() {
     const doc = add(activeFilter.folder ?? '')
     setFilter({ ...NO_FILTER, folder: activeFilter.folder })
     setSelectedId(doc.id)
-    setTitleFocusId(doc.id)
+    setFocusRequest({ docId: doc.id, target: 'title' })
     setView('doc')
     setMode('write')
   }
@@ -81,8 +84,33 @@ export default function App() {
   function openDoc(id: string) {
     setSelectedId(id)
     setView('doc')
-    if (window.matchMedia(PHONE).matches) setTitleFocusId(id)
+    if (window.matchMedia(PHONE).matches) setFocusRequest({ docId: id, target: 'title' })
   }
+
+  // Focus follows into the side that shows, since the other one hides.
+  function switchMode(doc: Doc) {
+    const next = mode === 'write' ? 'preview' : 'write'
+    setMode(next)
+    setFocusRequest({ docId: doc.id, target: next })
+  }
+
+  const onViewKey = useEffectEvent((event: KeyboardEvent) => {
+    if (isViewKey(event, 'n')) {
+      event.preventDefault()
+      newDoc()
+    } else if (isViewKey(event, 'p') && selected && window.matchMedia(NARROW).matches) {
+      // A phone showing the list has no document in view to switch.
+      if (view === 'list' && window.matchMedia(PHONE).matches) return
+      event.preventDefault()
+      switchMode(selected)
+    }
+  })
+
+  useEffect(() => {
+    const listener = (event: KeyboardEvent) => onViewKey(event)
+    window.addEventListener('keydown', listener)
+    return () => window.removeEventListener('keydown', listener)
+  }, [])
 
   function backToList(id: string) {
     setView('list')
@@ -150,8 +178,8 @@ export default function App() {
               doc={selected}
               folders={folders}
               mode={mode}
-              autoFocus={selected.id === titleFocusId}
-              onFocused={clearTitleFocus}
+              focus={focusRequest?.docId === selected.id ? focusRequest.target : null}
+              onFocused={clearFocusRequest}
               onModeChange={setMode}
               onChange={(changes) => {
                 // Editing holds the document open, even as it moves to the top of the list.

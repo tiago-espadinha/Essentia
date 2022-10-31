@@ -1,3 +1,4 @@
+import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
   $,
@@ -115,6 +116,37 @@ describe('formatting', () => {
     press(contentField(), 'b', { ctrlKey: true, shiftKey: true })
     expect(contentField().value).toBe('**_word_**')
   })
+
+  it('is one tab stop whose buttons the arrow keys, Home and End move between', () => {
+    renderApp()
+    newDoc('Doc')
+    const buttons = [...document.querySelectorAll<HTMLButtonElement>('.toolbar button')]
+    const stops = () => buttons.filter((button) => button.tabIndex === 0)
+    expect(stops()).toEqual([buttons[0]])
+
+    act(() => buttons[0].focus())
+    press(buttons[0], 'ArrowRight')
+    expect(document.activeElement).toBe(buttons[1])
+    expect(stops()).toEqual([buttons[1]])
+    press(buttons[1], 'End')
+    expect(document.activeElement).toBe(buttons.at(-1))
+    press(buttons.at(-1)!, 'ArrowRight')
+    expect(document.activeElement).toBe(buttons[0])
+    press(buttons[0], 'ArrowLeft')
+    expect(document.activeElement).toBe(buttons.at(-1))
+    press(buttons.at(-1)!, 'Home')
+    expect(document.activeElement).toBe(buttons[0])
+  })
+
+  it('names the shortcut of each button that has one', () => {
+    renderApp()
+    newDoc('Doc')
+    expect(buttonNamed('Bold').title).toBe('Bold (Ctrl+B)')
+    expect(buttonNamed('Bold').getAttribute('aria-keyshortcuts')).toBe('Control+B Meta+B')
+    expect(buttonNamed('Link').title).toBe('Link (Ctrl+K)')
+    expect(buttonNamed('Quote').title).toBe('Quote')
+    expect(buttonNamed('Quote').hasAttribute('aria-keyshortcuts')).toBe(false)
+  })
 })
 
 describe('the preview', () => {
@@ -128,6 +160,15 @@ describe('the preview', () => {
     expect(preview.querySelectorAll('td')).toHaveLength(2)
     expect(preview.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(true)
     expect(preview.querySelector('code.hljs .hljs-keyword')?.textContent).toBe('const')
+  })
+
+  it('reads a task’s state out as words, since its box can’t be ticked', async () => {
+    renderApp()
+    newDoc('Doc', '- [x] Outline\n- [ ] Edit')
+    await previewLoaded()
+    const items = [...$('.preview-pane').querySelectorAll('li')]
+    expect(items.map((item) => item.textContent)).toEqual(['Done: Outline', 'To do: Edit'])
+    expect(items[0].querySelector('input')?.getAttribute('aria-hidden')).toBe('true')
   })
 
   it('shows raw HTML as text and drops script and unsafe links', async () => {
@@ -171,5 +212,81 @@ describe('on a phone', () => {
     click($('.doc-row'))
     expect($('.dictum').dataset.view).toBe('doc')
     expect(document.activeElement).toBe(titleField())
+  })
+})
+
+/** Ctrl+Alt (or Cmd+Alt) on a letter key, sent from wherever focus is. */
+function viewKey(letter: string, modifiers: KeyboardEventInit = { ctrlKey: true, altKey: true }) {
+  press((document.activeElement as HTMLElement | null) ?? document.body, letter, { code: `Key${letter.toUpperCase()}`, ...modifiers })
+}
+
+describe('view shortcuts', () => {
+  setupApp()
+
+  it('starts a new document with Ctrl+Alt+N or Cmd+Alt+N, from anywhere', () => {
+    renderApp()
+    viewKey('n')
+    expect(rowTitles()).toEqual(['Untitled'])
+    expect(document.activeElement).toBe(titleField())
+    type(titleField(), 'First')
+    act(() => contentField().focus())
+    viewKey('n', { metaKey: true, altKey: true })
+    expect(rowTitles()).toEqual(['Untitled', 'First'])
+    expect(document.activeElement).toBe(titleField())
+  })
+
+  it('leaves other keys, AltGr letters, held keys and open dialogs alone', () => {
+    renderApp()
+    newDoc('Only')
+    viewKey('n', { ctrlKey: true })
+    viewKey('n', { altKey: true })
+    viewKey('n', { ctrlKey: true, altKey: true, shiftKey: true })
+    viewKey('n', { ctrlKey: true, altKey: true, modifierAltGraph: true } as KeyboardEventInit)
+    viewKey('n', { ctrlKey: true, altKey: true, repeat: true })
+    click(buttonNamed('Versions'))
+    viewKey('n')
+    expect(rowTitles()).toEqual(['Only'])
+  })
+
+  it('names the new document shortcut on its button', () => {
+    renderApp()
+    expect(buttonNamed('New document').title).toBe('New document (Ctrl+Alt+N)')
+    expect(buttonNamed('New document').getAttribute('aria-keyshortcuts')).toBe('Control+Alt+N Meta+Alt+N')
+  })
+
+  it('does not switch to the preview from 1280 px, where both show', () => {
+    renderApp()
+    newDoc('Doc')
+    act(() => contentField().focus())
+    viewKey('p')
+    expect(buttonNamed('Write').getAttribute('aria-pressed')).toBe('true')
+    expect(document.activeElement).toBe(contentField())
+  })
+})
+
+describe('view shortcuts below 1280 px', () => {
+  setupApp({ phone: true })
+
+  it('switches between writing and the preview with Ctrl+Alt+P, and focus follows', () => {
+    renderApp()
+    newDoc('Doc', 'Text')
+    act(() => contentField().focus())
+    viewKey('p')
+    expect(buttonNamed('Preview').getAttribute('aria-pressed')).toBe('true')
+    expect(document.activeElement).toBe($('.preview-pane'))
+    viewKey('p', { metaKey: true, altKey: true })
+    expect(buttonNamed('Write').getAttribute('aria-pressed')).toBe('true')
+    expect(document.activeElement).toBe(contentField())
+    expect(buttonNamed('Preview').getAttribute('aria-keyshortcuts')).toBe('Control+Alt+P Meta+Alt+P')
+    expect(buttonNamed('Write').hasAttribute('aria-keyshortcuts')).toBe(false)
+  })
+
+  it('does nothing on a phone while the list shows', () => {
+    renderApp()
+    newDoc('Doc')
+    click(buttonNamed('Documents'))
+    viewKey('p')
+    expect($('.dictum').dataset.view).toBe('list')
+    expect(document.activeElement).toBe($('.doc-row'))
   })
 })

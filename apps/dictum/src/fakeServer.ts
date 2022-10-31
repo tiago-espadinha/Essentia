@@ -110,3 +110,15 @@ export function fakeServer() {
     slow: (ms: number) => (delay = ms),
   }
 }
+
+/**
+ * The app reads its client once, at import. A test file mocks `getSupabase` to
+ * return `appClient`, which forwards to whichever client `account.client` holds.
+ */
+export const account = { client: null as unknown as SupabaseClient }
+
+export const appClient = {
+  from: (table: string) => account.client.from(table),
+  rpc: (name: string, args: object) => account.client.rpc(name, args),
+  auth: { onAuthStateChange: (callback: never) => account.client.auth.onAuthStateChange(callback) },
+} as unknown as SupabaseClient

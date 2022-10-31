@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { displayTitle, formatDate, type Doc } from './documents'
+import { VIEW_KEYS } from './keys'
 
 interface DocListProps {
   /** The documents that pass the filters. */
@@ -71,7 +72,13 @@ export function DocList({ docs, total, selectedId, filters, onClearFilters, noti
 
 function NewDocButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" className="button-primary" onClick={onClick}>
+    <button
+      type="button"
+      className="button-primary"
+      title={`New document (${VIEW_KEYS.newDoc.label})`}
+      aria-keyshortcuts={VIEW_KEYS.newDoc.aria}
+      onClick={onClick}
+    >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       </svg>

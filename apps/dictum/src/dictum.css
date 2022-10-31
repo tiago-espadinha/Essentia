@@ -302,6 +302,9 @@
 
 .doc-row:hover { background: var(--color-paper); }
 
+/* Inside the ring, since the list's scroll box clips anything outside a row. */
+.doc-row:focus-visible { outline-offset: -2px; }
+
 .doc-row[aria-current='true'] {
   background: var(--color-paper);
   box-shadow: inset 2px 0 0 var(--color-terracotta);

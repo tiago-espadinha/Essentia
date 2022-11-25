@@ -25,7 +25,7 @@ describe('before sign-in', () => {
     const device = server.client(null)
     await renderApp(device.client)
     await device.signInAs('ana')
-    expect($('h1').textContent).toBe('Aurum transactions')
+    expect($('h1').textContent).toBe('Your money')
     expect(document.querySelector('#auth-email')).toBeNull()
     expect($('header #account-button')).toBeTruthy()
   })

@@ -80,6 +80,9 @@ export function shortDate(day: string): string {
   return new Date(year, month - 1, date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
+/** The row's Edit button, which gets focus back when its dialog closes. */
+export const editId = (t: Pick<Transaction, 'id'>) => `transaction-${t.id}-edit`
+
 /** '  Food ' -> 'food'; nothing -> 'other'. */
 export function cleanCategory(name: string): string {
   return name.trim().replace(/\s+/g, ' ').toLowerCase() || DEFAULT_CATEGORY

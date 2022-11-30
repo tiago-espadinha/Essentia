@@ -2,16 +2,22 @@ import { describe, expect, it } from 'vitest'
 import {
   applyChanges,
   byDate,
+  categoriesOf,
   cleanCategory,
   createTransaction,
   dayKey,
+  filterTransactions,
   isDay,
+  isFiltered,
   monthLabel,
   monthOf,
+  monthsOf,
   newId,
+  NO_FILTER,
   shortDate,
   totals,
   type Transaction,
+  type TransactionFilter,
 } from './transactions'
 
 const tx = (id: string, fields: Partial<Transaction> = {}): Transaction => ({
@@ -99,5 +105,41 @@ describe('totals', () => {
   it('goes negative when more went out', () => {
     expect(totals([tx('a', { amount: 500 })]).balance).toBe(-500)
     expect(totals([])).toEqual({ income: 0, expenses: 0, balance: 0 })
+  })
+})
+
+describe('filterTransactions', () => {
+  const list = [
+    tx('Coffee', { category: 'food', date: '2022-11-03' }),
+    tx('Salary', { type: 'income', category: 'salary', date: '2022-11-01' }),
+    tx('Groceries', { category: 'food', date: '2022-10-28' }),
+    tx('Train', { category: 'transport', date: '2022-10-12' }),
+  ]
+  const names = (filter: Partial<TransactionFilter>) => filterTransactions(list, { ...NO_FILTER, ...filter }).map((t) => t.id)
+
+  it('keeps everything with no filter', () => {
+    expect(names({})).toEqual(['Coffee', 'Salary', 'Groceries', 'Train'])
+    expect(isFiltered(NO_FILTER)).toBe(false)
+    expect(isFiltered({ ...NO_FILTER, query: '  ' })).toBe(false)
+  })
+
+  it('narrows by type, category and month together', () => {
+    expect(names({ type: 'expense' })).toEqual(['Coffee', 'Groceries', 'Train'])
+    expect(names({ type: 'income' })).toEqual(['Salary'])
+    expect(names({ category: 'food' })).toEqual(['Coffee', 'Groceries'])
+    expect(names({ month: '2022-10' })).toEqual(['Groceries', 'Train'])
+    expect(names({ category: 'food', month: '2022-11' })).toEqual(['Coffee'])
+    expect(isFiltered({ ...NO_FILTER, month: '2022-10' })).toBe(true)
+  })
+
+  it('searches descriptions and categories, ignoring case', () => {
+    expect(names({ query: ' COF ' })).toEqual(['Coffee'])
+    expect(names({ query: 'transp' })).toEqual(['Train'])
+    expect(names({ query: 'nothing' })).toEqual([])
+  })
+
+  it('lists the categories and months in use', () => {
+    expect(categoriesOf(list)).toEqual(['food', 'salary', 'transport'])
+    expect(monthsOf(list)).toEqual(['2022-11', '2022-10'])
   })
 })

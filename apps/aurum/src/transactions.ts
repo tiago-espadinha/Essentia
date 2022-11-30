@@ -120,3 +120,37 @@ export function totals(transactions: Transaction[]): Totals {
   }
   return { income, expenses, balance: income - expenses }
 }
+
+/** Narrows the list: `null` means any category or any month (YYYY-MM). */
+export interface TransactionFilter {
+  type: TransactionType | null
+  query: string
+  category: string | null
+  month: string | null
+}
+
+export const NO_FILTER: TransactionFilter = { type: null, query: '', category: null, month: null }
+
+export const isFiltered = (filter: TransactionFilter) =>
+  filter.type !== null || filter.query.trim() !== '' || filter.category !== null || filter.month !== null
+
+/** The transactions of the type, category and month whose description or category holds the search. */
+export function filterTransactions(transactions: Transaction[], { type, query, category, month }: TransactionFilter): Transaction[] {
+  const needle = query.trim().toLowerCase()
+  return transactions.filter(
+    (t) =>
+      (type === null || t.type === type) &&
+      (category === null || t.category === category) &&
+      (month === null || monthOf(t.date) === month) &&
+      (!needle || t.description.toLowerCase().includes(needle) || t.category.includes(needle)),
+  )
+}
+
+export function categoriesOf(transactions: Transaction[]): string[] {
+  return [...new Set(transactions.map((t) => t.category))].sort((a, b) => a.localeCompare(b))
+}
+
+/** Newest month first. */
+export function monthsOf(transactions: Transaction[]): string[] {
+  return [...new Set(transactions.map((t) => monthOf(t.date)))].sort().reverse()
+}

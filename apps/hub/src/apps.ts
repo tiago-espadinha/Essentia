@@ -37,4 +37,11 @@ export const suiteApps: SuiteApp[] = [
     description: 'Markdown writing with a live preview and versions.',
     port: 5104,
   },
+  {
+    name: 'Aurum',
+    path: '/aurum/',
+    latin: 'gold',
+    description: 'Income and expenses, filtered and summed, in your account.',
+    port: 5105,
+  },
 ]

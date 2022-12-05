@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './AccountMenu'
 import { AppHeader } from './AppHeader'
+import { DataTools } from './DataTools'
 import { EditDialog } from './EditDialog'
 import { Filters } from './Filters'
 import { Gate } from './Gate'
@@ -117,13 +118,16 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                 <Hero count={transactions.length} totals={totals(transactions)} />
                 <Views view={view} onChange={setView} />
                 {view === 'insights' ? (
-                  <InsightsView
-                    transactions={transactions}
-                    onAdd={() => {
-                      focusAfter.current = ''
-                      setView('transactions')
-                    }}
-                  />
+                  <>
+                    <InsightsView
+                      transactions={transactions}
+                      onAdd={() => {
+                        focusAfter.current = ''
+                        setView('transactions')
+                      }}
+                    />
+                    <DataTools transactions={transactions} />
+                  </>
                 ) : (
                   <>
                     <QuickAdd

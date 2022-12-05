@@ -685,3 +685,17 @@
   font-size: var(--text-2xs);
   text-transform: uppercase;
 }
+
+/* Export and import */
+.data__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.data__button { border-color: var(--color-line-strong); }
+
+.data__button:disabled {
+  color: var(--color-mid);
+  cursor: not-allowed;
+}

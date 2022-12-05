@@ -1,5 +1,5 @@
 import { act } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fakeServer } from './fakeServer'
 import { $, buttonNamed, click, renderApp, setupApp, text, type } from './testing'
 
@@ -72,5 +72,39 @@ describe('insights', () => {
     choose($('#insight-month'), '2022-10')
     expect(spend()).toEqual(['transport€35.00100%'])
     expect($('.insight .hero__stats').textContent).toContain('Net−€35.00')
+  })
+})
+
+describe('export', () => {
+  it('cannot export before there is anything to export', async () => {
+    await signedIn()
+    click(buttonNamed('Insights'))
+    expect(buttonNamed('Export CSV').disabled).toBe(true)
+  })
+
+  it('saves every transaction as a dated CSV file', async () => {
+    await signedIn()
+    quickAdd('+Salary €2100')
+    quickAdd('Rent €900 housing')
+    let saved: Blob | null = null
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+      saved = blob as Blob
+      return 'blob:aurum'
+    })
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    click(buttonNamed('Insights'))
+    click(buttonNamed('Export CSV'))
+    expect(clicked).toHaveBeenCalledOnce()
+    expect((clicked.mock.contexts[0] as HTMLAnchorElement).download).toBe('aurum-2022-11-08.csv')
+    // Blob.text() drops the byte order mark when it decodes, so the bytes are read.
+    const bytes = new Uint8Array(await saved!.arrayBuffer())
+    expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
+    expect(new TextDecoder().decode(bytes.slice(3)).split('\r\n')).toEqual([
+      'date,type,description,category,amount',
+      '2022-11-08,expense,Rent,housing,900.00',
+      '2022-11-08,income,Salary,other,2100.00',
+      '',
+    ])
   })
 })

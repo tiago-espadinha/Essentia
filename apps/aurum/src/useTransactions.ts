@@ -159,6 +159,11 @@ export function useTransactions(client: SupabaseClient | null) {
       commit((current) => [transaction, ...current])
       return transaction
     },
+    /** Many at once, as one change and one sync: a CSV import. */
+    addAll: (list: TransactionFields[]) => {
+      const now = new Date()
+      commit((current) => [...list.map((fields) => createTransaction(fields, now)), ...current])
+    },
     update: (id: string, changes: Partial<TransactionFields>) =>
       commit((current) => current.map((t) => (t.id === id ? applyChanges(t, changes) : t))),
     remove: (id: string) => commit((current) => current.filter((t) => t.id !== id)),

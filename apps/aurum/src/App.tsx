@@ -29,7 +29,7 @@ import { Views, type View } from './Views'
 
 export default function App({ client }: { client: SupabaseClient | null }) {
   const auth = useAuth(client)
-  const { transactions, ready, saveFailed, syncState, sync, add, update, remove, putBack } = useTransactions(client)
+  const { transactions, ready, saveFailed, syncState, sync, add, addAll, update, remove, putBack } = useTransactions(client)
   // The transaction being edited, by id: a sync can remove it, and the dialog then closes.
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleted, setDeleted] = useState<Transaction | null>(null)
@@ -126,7 +126,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                         setView('transactions')
                       }}
                     />
-                    <DataTools transactions={transactions} />
+                    <DataTools transactions={transactions} onImport={addAll} />
                   </>
                 ) : (
                   <>

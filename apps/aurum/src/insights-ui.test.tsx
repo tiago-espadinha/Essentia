@@ -108,3 +108,38 @@ describe('export', () => {
     ])
   })
 })
+
+describe('import', () => {
+  async function pick(content: string, size?: number) {
+    const input = $<HTMLInputElement>('#import-file')
+    const file = new File([content], 'bank.csv', { type: 'text/csv' })
+    if (size !== undefined) Object.defineProperty(file, 'size', { value: size })
+    Object.defineProperty(input, 'files', { value: [file], configurable: true })
+    await act(async () => {
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+  }
+
+  it('adds the rows of a file, even on an empty account, and lists the skipped ones', async () => {
+    await signedIn()
+    click(buttonNamed('Insights'))
+    await pick(
+      'date,type,description,category,amount\n2022-11-02,income,Salary,salary,2100\n2022-11-03,expense,Rent,housing,900\n2022-11-04,expense,Gift,,abc\n',
+    )
+    expect($('.data__outcome').textContent).toBe(
+      'Imported 2 transactions. Skipped 1 row:Row 4: the amount is not one above zero, like 3.50.',
+    )
+    expect($('.hero__amount').textContent).toBe('€1,200.00')
+    expect($<HTMLInputElement>('#import-file').disabled).toBe(false)
+  })
+
+  it('says why a file is refused and adds nothing', async () => {
+    await signedIn()
+    click(buttonNamed('Insights'))
+    await pick('when,what\n2022-11-03,coffee\n')
+    expect($('.data__outcome').textContent).toBe('The file needs the columns date, type, description, category and amount.')
+    await pick('date,type,description,category,amount\n', 2_000_000)
+    expect($('.data__outcome').textContent).toBe('The file is over 1 MB. Split it and import each part.')
+    expect($('.hero__amount').textContent).toBe('€0.00')
+  })
+})

@@ -117,6 +117,18 @@ describe('syncing transactions with the account', () => {
     expect(server.calls.upserts).toBe(before + 1)
   })
 
+  it('adds an import as one change and sends it in pages of a thousand', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    const before = server.calls.upserts
+    act(() => hook().addAll(Array.from({ length: 1200 }, (_, i) => fields(`row ${i}`))))
+    expect(hook().transactions).toHaveLength(1200)
+    expect(new Set(hook().transactions.map((t) => t.id)).size).toBe(1200)
+    await settle()
+    expect(server.calls.upserts).toBe(before + 2)
+    expect(server.transactions.filter((row) => row.user_id === 'ana')).toHaveLength(1200)
+  })
+
   it('lists the newest day first', async () => {
     const server = fakeServer()
     await open(server.client({ user: { id: 'ana' } }).client)

@@ -28,6 +28,7 @@ catalog:
   react-markdown: ^10.1.0
   remark-gfm: ^4.0.1
   rehype-highlight: ^7.0.2
+  recharts: ^3.8.1
 
 allowBuilds:
   esbuild: true

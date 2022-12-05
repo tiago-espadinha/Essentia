@@ -534,3 +534,188 @@
   margin-top: var(--space-6);
   border-color: var(--color-line-strong);
 }
+
+/* Views */
+.views {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-8);
+  border-bottom: 1px solid var(--color-faint);
+}
+
+.views__button {
+  min-height: 44px;
+  margin-bottom: -1px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
+}
+
+.views__button:hover { color: var(--color-ink); }
+
+.views__button[aria-current='page'] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-terracotta);
+}
+
+.views + .empty { margin-top: var(--space-8); }
+
+/* Insights */
+.insight {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.insight .section-row { margin: 0; }
+
+.insight .hero__stats { margin-top: 0; }
+
+.insight__subtitle {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: var(--text-lg);
+}
+
+.insight__none {
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.amount--negative { color: var(--color-danger); }
+
+/* Spending by category: the bar is the share, the text says the same. */
+.spend {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.spend__item {
+  display: grid;
+  grid-template-columns: 1fr auto 3.5ch;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.spend__name { overflow-wrap: anywhere; }
+
+.spend__share {
+  color: var(--color-mid);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.spend__track {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--color-faint);
+}
+
+.spend__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-terracotta);
+}
+
+/* Month by month */
+.months {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.months th,
+.months td {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-faint);
+  text-align: right;
+}
+
+.months :is(th, td) + :is(th, td) { padding-left: var(--space-3); }
+
+.months th:first-child {
+  font-weight: 400;
+  text-align: left;
+}
+
+.months thead th {
+  color: var(--color-mid);
+  font-weight: 400;
+}
+
+/* The six-month chart: income in the success green, expenses in ink, as amounts are. */
+.month-chart__key {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.month-chart__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-sm);
+}
+
+.month-chart__swatch--expenses { margin-left: var(--space-2); }
+
+.month-chart__swatch--income,
+.month-chart__income path { background: var(--color-success); fill: var(--color-success); }
+
+.month-chart__swatch--expenses,
+.month-chart__expenses path { background: var(--color-ink); fill: var(--color-ink); }
+
+.month-chart .month-chart__baseline { stroke: var(--color-line-strong); }
+
+.month-chart .recharts-cartesian-axis-tick-value {
+  fill: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+}
+
+/* Export and import */
+.data__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.data__button { border-color: var(--color-line-strong); }
+
+.data__button:disabled {
+  color: var(--color-mid);
+  cursor: not-allowed;
+}
+
+.data__file:focus-visible + .data__button {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.data__button[aria-disabled='true'] {
+  color: var(--color-mid);
+  cursor: progress;
+}
+
+.data__outcome {
+  font-size: var(--text-sm);
+}
+
+.data__skipped {
+  margin-top: var(--space-2);
+  padding-left: var(--space-4);
+  color: var(--color-mid);
+}

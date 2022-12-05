@@ -655,3 +655,33 @@
   color: var(--color-mid);
   font-weight: 400;
 }
+
+/* The six-month chart: income in the success green, expenses in ink, as amounts are. */
+.month-chart__key {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.month-chart__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-sm);
+}
+
+.month-chart__swatch--expenses { margin-left: var(--space-2); }
+
+.month-chart__swatch--income,
+.month-chart__income path { background: var(--color-success); fill: var(--color-success); }
+
+.month-chart__swatch--expenses,
+.month-chart__expenses path { background: var(--color-ink); fill: var(--color-ink); }
+
+.month-chart .month-chart__baseline { stroke: var(--color-line-strong); }
+
+.month-chart .recharts-cartesian-axis-tick-value {
+  fill: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-transform: uppercase;
+}

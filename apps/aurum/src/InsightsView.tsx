@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { monthlyTotals, spendingByCategory } from './insights'
+import { MonthChart } from './MonthChart'
 import { formatMoney } from './money'
 import { monthLabel, monthOf, monthsOf, todayKey, totals, type Transaction } from './transactions'
 
@@ -96,6 +97,7 @@ function SixMonths({ transactions, last }: { transactions: Transaction[]; last: 
         </h2>
         <span className="section-row__rule" />
       </div>
+      <MonthChart months={months} />
       <table className="months">
         <thead>
           <tr>

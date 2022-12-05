@@ -7,6 +7,7 @@ import { EditDialog } from './EditDialog'
 import { Filters } from './Filters'
 import { Gate } from './Gate'
 import { Hero } from './Hero'
+import { InsightsView } from './InsightsView'
 import { QuickAdd } from './QuickAdd'
 import { TransactionRow } from './TransactionRow'
 import { formatMoney } from './money'
@@ -23,6 +24,7 @@ import {
 } from './transactions'
 import { UndoNotice } from './UndoNotice'
 import { SYNC_FAILED, useTransactions } from './useTransactions'
+import { Views, type View } from './Views'
 
 export default function App({ client }: { client: SupabaseClient | null }) {
   const auth = useAuth(client)
@@ -31,6 +33,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleted, setDeleted] = useState<Transaction | null>(null)
   const [filter, setFilter] = useState<TransactionFilter>(NO_FILTER)
+  const [view, setView] = useState<View>('transactions')
   const addRef = useRef<HTMLInputElement>(null)
   // A row whose Edit button takes focus once the list has rendered; '' or a gone row means the add field.
   const focusAfter = useRef<string | null>(null)
@@ -112,49 +115,69 @@ export default function App({ client }: { client: SupabaseClient | null }) {
             ) : (
               <>
                 <Hero count={transactions.length} totals={totals(transactions)} />
-                <QuickAdd
-                  inputRef={addRef}
-                  onAdd={(fields) => {
-                    add(fields)
-                    setDeleted(null)
-                    setFilter(NO_FILTER)
-                  }}
-                />
-                <UndoNotice deleted={deleted} onUndo={undoDelete} />
-                <section aria-labelledby="list-title">
-                  <div className="section-row">
-                    <h2 id="list-title" className="label">
-                      Transactions
-                    </h2>
-                    <span className="section-row__rule" />
-                  </div>
-                  {transactions.length > 0 && <Filters filter={activeFilter} categories={categories} months={months} onChange={setFilter} />}
-                  {filtered && (
-                    <p className="filtered" role="status">
-                      {visible.length} of {transactions.length} shown · net {formatMoney(totals(visible).balance)}
-                    </p>
-                  )}
-                  {transactions.length === 0 ? (
-                    <div className="empty">
-                      <p className="empty__title">Nothing recorded yet.</p>
-                      <p className="empty__text">Add what came in or went out today, and the balance follows.</p>
-                    </div>
-                  ) : visible.length === 0 ? (
-                    <div className="empty">
-                      <p className="empty__title">Nothing matches.</p>
-                      <p className="empty__text">No transaction fits these filters.</p>
-                      <button type="button" className="button-ghost empty__action" onClick={() => setFilter(NO_FILTER)}>
-                        Clear filters
-                      </button>
-                    </div>
-                  ) : (
-                    <ul className="rows">
-                      {visible.map((t) => (
-                        <TransactionRow key={t.id} transaction={t} onEdit={(item) => setEditingId(item.id)} onDelete={deleteTransaction} />
-                      ))}
-                    </ul>
-                  )}
-                </section>
+                <Views view={view} onChange={setView} />
+                {view === 'insights' ? (
+                  <InsightsView
+                    transactions={transactions}
+                    onAdd={() => {
+                      focusAfter.current = ''
+                      setView('transactions')
+                    }}
+                  />
+                ) : (
+                  <>
+                    <QuickAdd
+                      inputRef={addRef}
+                      onAdd={(fields) => {
+                        add(fields)
+                        setDeleted(null)
+                        setFilter(NO_FILTER)
+                      }}
+                    />
+                    <UndoNotice deleted={deleted} onUndo={undoDelete} />
+                    <section aria-labelledby="list-title">
+                      <div className="section-row">
+                        <h2 id="list-title" className="label">
+                          Transactions
+                        </h2>
+                        <span className="section-row__rule" />
+                      </div>
+                      {transactions.length > 0 && (
+                        <Filters filter={activeFilter} categories={categories} months={months} onChange={setFilter} />
+                      )}
+                      {filtered && (
+                        <p className="filtered" role="status">
+                          {visible.length} of {transactions.length} shown · net {formatMoney(totals(visible).balance)}
+                        </p>
+                      )}
+                      {transactions.length === 0 ? (
+                        <div className="empty">
+                          <p className="empty__title">Nothing recorded yet.</p>
+                          <p className="empty__text">Add what came in or went out today, and the balance follows.</p>
+                        </div>
+                      ) : visible.length === 0 ? (
+                        <div className="empty">
+                          <p className="empty__title">Nothing matches.</p>
+                          <p className="empty__text">No transaction fits these filters.</p>
+                          <button type="button" className="button-ghost empty__action" onClick={() => setFilter(NO_FILTER)}>
+                            Clear filters
+                          </button>
+                        </div>
+                      ) : (
+                        <ul className="rows">
+                          {visible.map((t) => (
+                            <TransactionRow
+                              key={t.id}
+                              transaction={t}
+                              onEdit={(item) => setEditingId(item.id)}
+                              onDelete={deleteTransaction}
+                            />
+                          ))}
+                        </ul>
+                      )}
+                    </section>
+                  </>
+                )}
               </>
             )}
           </>

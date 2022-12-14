@@ -1,6 +1,6 @@
-// Merging this device's transactions with the account's copy in Supabase. Each
-// transaction carries the time it last changed; the newer side wins, and the
-// merge lists what the server is missing or has older.
+// Merging this device's records with the account's copy in Supabase. Each
+// record carries the time it last changed; the newer side wins, and the merge
+// lists what the server is missing or has older.
 import { fromEuros, MAX_CENTS, toEuros } from './money'
 import { cleanCategory, isDay, LIMITS, type Transaction } from './transactions'
 
@@ -14,7 +14,7 @@ export interface Stamps {
 
 export const NO_STAMPS: Stamps = { owner: null, deleted: {} }
 
-export interface TransactionRow {
+export interface TransactionRow extends SyncedRow {
   id: string
   description: string
   /** Euros, as numeric(12, 2). */
@@ -23,13 +23,31 @@ export interface TransactionRow {
   category: string
   occurred_on: string
   created_at: string
+}
+
+/** What a row carries to sync: the time it last changed, and whether it was deleted. */
+export interface SyncedRow {
   updated_at: string
   deleted_at: string | null
 }
 
-export interface Push {
-  rows: TransactionRow[]
+/** The changes a merge sends: rows to upsert, and deletions by key. */
+export interface Changes<R> {
+  rows: R[]
   deletions: { id: string; at: string }[]
+}
+
+export type Push = Changes<TransactionRow>
+
+/** How a table's records map to its rows. `key` names a record on both sides. */
+export interface Codec<T, R extends SyncedRow> {
+  key: (item: T) => string
+  rowKey: (row: R) => string
+  updatedAt: (item: T) => string
+  /** What the table accepts; anything else stays on this device. */
+  syncable: (item: T) => boolean
+  toRow: (item: T) => R
+  fromRow: (row: R) => T
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -87,13 +105,24 @@ export function readRemote(rows: unknown[]): TransactionRow[] {
   return kept
 }
 
+/** Stamps the records a change removed; one put back (undo) drops its stamp. */
+export function stampRemoved<T>(
+  key: (item: T) => string,
+  before: T[],
+  after: T[],
+  deleted: Record<string, string>,
+  at: string,
+): Record<string, string> {
+  const kept = new Set(after.map(key))
+  const next = { ...deleted }
+  for (const item of before) if (!kept.has(key(item))) next[key(item)] = at
+  for (const id of kept) delete next[id]
+  return next
+}
+
 /** Stamps the transactions a change removed; one put back (undo) drops its stamp. */
 export function stampDeletions(before: Transaction[], after: Transaction[], stamps: Stamps, at: string): Stamps {
-  const kept = new Set(after.map((t) => t.id))
-  const deleted = { ...stamps.deleted }
-  for (const t of before) if (!kept.has(t.id)) deleted[t.id] = at
-  for (const id of kept) delete deleted[id]
-  return { ...stamps, deleted }
+  return { ...stamps, deleted: stampRemoved((t) => t.id, before, after, stamps.deleted, at) }
 }
 
 export const toRow = (t: Transaction): TransactionRow => ({
@@ -119,27 +148,46 @@ const fromRow = (row: TransactionRow): Transaction => ({
   updatedAt: new Date(row.updated_at).toISOString(),
 })
 
-/** Merges the account's rows into this device's transactions. */
-export function merge(local: Transaction[], stamps: Stamps, remote: TransactionRow[]) {
-  const deleted = { ...stamps.deleted }
-  const push: Push = { rows: [], deletions: [] }
-  const rows = new Map(remote.map((row) => [row.id, row]))
-  const transactions: Transaction[] = []
+export const TRANSACTION_CODEC: Codec<Transaction, TransactionRow> = {
+  key: (t) => t.id,
+  rowKey: (row) => row.id,
+  updatedAt: (t) => t.updatedAt,
+  syncable,
+  toRow,
+  fromRow,
+}
 
-  for (const t of local) {
-    const row = rows.get(t.id)
-    rows.delete(t.id)
-    if (!syncable(t)) transactions.push(t)
-    else if (!row || time(t.updatedAt) > time(row.updated_at)) {
-      // Also brings back a transaction deleted elsewhere before this edit.
-      push.rows.push(toRow(t))
-      transactions.push(t)
-    } else if (!row.deleted_at) transactions.push(time(t.updatedAt) === time(row.updated_at) ? t : fromRow(row))
+/**
+ * Merges a table's rows into this device's records. `deleted` holds the records
+ * deleted here and when, until the server has the deletion.
+ */
+export function mergeRecords<T, R extends SyncedRow>(
+  codec: Codec<T, R>,
+  local: T[],
+  deleted: Record<string, string>,
+  remote: R[],
+) {
+  const pending = { ...deleted }
+  const push: Changes<R> = { rows: [], deletions: [] }
+  const rows = new Map(remote.map((row) => [codec.rowKey(row), row]))
+  const items: T[] = []
+
+  for (const item of local) {
+    const key = codec.key(item)
+    const row = rows.get(key)
+    rows.delete(key)
+    const changed = time(codec.updatedAt(item))
+    if (!codec.syncable(item)) items.push(item)
+    else if (!row || changed > time(row.updated_at)) {
+      // Also brings back a record deleted elsewhere before this edit.
+      push.rows.push(codec.toRow(item))
+      items.push(item)
+    } else if (!row.deleted_at) items.push(changed === time(row.updated_at) ? item : codec.fromRow(row))
     // Otherwise it was deleted elsewhere after this device last changed it.
   }
 
   // Deleted here: tell the server unless it has a newer version, which comes back.
-  for (const [id, at] of Object.entries(stamps.deleted)) {
+  for (const [id, at] of Object.entries(deleted)) {
     const row = rows.get(id)
     rows.delete(id)
     if (row && !row.deleted_at && time(at) > time(row.updated_at)) {
@@ -147,11 +195,17 @@ export function merge(local: Transaction[], stamps: Stamps, remote: TransactionR
       push.deletions.push({ id, at })
       continue
     }
-    delete deleted[id]
-    if (row && !row.deleted_at) transactions.push(fromRow(row))
+    delete pending[id]
+    if (row && !row.deleted_at) items.push(codec.fromRow(row))
   }
 
-  for (const row of rows.values()) if (!row.deleted_at) transactions.push(fromRow(row))
+  for (const row of rows.values()) if (!row.deleted_at) items.push(codec.fromRow(row))
 
-  return { transactions, stamps: { ...stamps, deleted }, push }
+  return { items, deleted: pending, push }
+}
+
+/** Merges the account's rows into this device's transactions. */
+export function merge(local: Transaction[], stamps: Stamps, remote: TransactionRow[]) {
+  const result = mergeRecords(TRANSACTION_CODEC, local, stamps.deleted, remote)
+  return { transactions: result.items, stamps: { ...stamps, deleted: result.deleted }, push: result.push }
 }

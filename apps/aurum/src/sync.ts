@@ -65,7 +65,7 @@ export const syncable = (t: Transaction) =>
   isDay(t.date)
 
 const time = (stamp: string) => Date.parse(stamp)
-const isStamp = (value: unknown): value is string => typeof value === 'string' && !Number.isNaN(time(value))
+export const isStamp = (value: unknown): value is string => typeof value === 'string' && !Number.isNaN(time(value))
 const isString = (value: unknown): value is string => typeof value === 'string'
 
 /** Keeps the rows the app can trust, in cents, with the category tidied as saved data is. */

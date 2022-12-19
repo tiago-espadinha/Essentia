@@ -16,6 +16,8 @@ export const TRANSACTIONS: Table = {
   key: 'id',
 }
 
+export const BUDGETS: Table = { name: 'budgets', columns: 'category, amount, updated_at, deleted_at', key: 'category' }
+
 /** PostgREST's default cap on rows per response; longer tables are read in pages. */
 const PAGE = 1000
 

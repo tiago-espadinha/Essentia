@@ -46,3 +46,35 @@ create policy "Users change their own transactions" on public.transactions
   for update to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
+
+-- Budgets: one monthly limit per expense category. The category names the
+-- budget, so two devices that set the same one meet in one row. Synced like
+-- transactions: newer updated_at wins, removal is a deleted_at stamp.
+create table public.budgets (
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  -- Lowercase and trimmed, as the app writes it, since it names the row.
+  category text not null check (char_length(category) between 1 and 40 and category = lower(btrim(category))),
+  -- Euros a month.
+  amount numeric(12, 2) not null check (amount > 0),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz,
+  primary key (user_id, category)
+);
+
+alter table public.budgets enable row level security;
+
+revoke all on public.budgets from anon, authenticated;
+grant select on public.budgets to authenticated;
+grant insert (user_id, category, amount, updated_at, deleted_at) on public.budgets to authenticated;
+grant update (user_id, category, amount, updated_at, deleted_at) on public.budgets to authenticated;
+
+create policy "Users read their own budgets" on public.budgets
+  for select to authenticated using ((select auth.uid()) = user_id);
+
+create policy "Users add their own budgets" on public.budgets
+  for insert to authenticated with check ((select auth.uid()) = user_id);
+
+create policy "Users change their own budgets" on public.budgets
+  for update to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { loadStamps, loadTransactions, save, SYNC_KEY, TRANSACTIONS_KEY } from './storage'
+import { newBudget } from './budgets'
+import { BUDGETS_KEY, loadBudgets, loadStamps, loadTransactions, NO_BUDGETS, save, SYNC_KEY, TRANSACTIONS_KEY } from './storage'
 import { NO_STAMPS } from './sync'
 import { createTransaction, type Transaction } from './transactions'
 
@@ -75,5 +76,28 @@ describe('sync stamps', () => {
     expect(loadStamps()).toEqual(NO_STAMPS)
     store(SYNC_KEY, { owner: 'ana', deleted: { a: 'soon' } })
     expect(loadStamps()).toEqual(NO_STAMPS)
+  })
+})
+
+describe('budget storage', () => {
+  const food = newBudget('food', 20000, new Date('2022-12-12T10:00:00Z'))
+
+  it('round-trips the budgets and pending removals', () => {
+    const saved = { budgets: [food], deleted: { gifts: '2022-12-12T11:00:00.000Z' } }
+    expect(save(BUDGETS_KEY, saved)).toBe(true)
+    expect(loadBudgets()).toEqual(saved)
+  })
+
+  it('starts over from unreadable data and skips malformed or repeated budgets', () => {
+    expect(loadBudgets()).toEqual(NO_BUDGETS)
+    localStorage.setItem(BUDGETS_KEY, 'nope')
+    expect(loadBudgets()).toEqual(NO_BUDGETS)
+    store(BUDGETS_KEY, { budgets: [], deleted: { food: 'soon' } })
+    expect(loadBudgets()).toEqual(NO_BUDGETS)
+    store(BUDGETS_KEY, {
+      budgets: [food, { ...food, amount: 1 }, { ...food, category: 'x', amount: 0 }, { category: 'y' }],
+      deleted: {},
+    })
+    expect(loadBudgets()).toEqual({ budgets: [food], deleted: {} })
   })
 })

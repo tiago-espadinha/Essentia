@@ -1,10 +1,17 @@
-// Test helper: the account's transactions table in memory, scoped per user as
-// row level security does, behind the few client calls the app makes.
+// Test helper: the account's tables in memory, scoped per user as row level
+// security does, behind the few client calls the app makes.
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { act } from 'react'
 import { vi } from 'vitest'
 
-export type Row = Record<string, unknown> & { id: string; user_id: string }
+export type Row = Record<string, unknown> & { user_id: string }
+
+/** The column that names a row for its owner, and the primary key upserts meet on. */
+const TABLES = {
+  transactions: { key: 'id', conflict: ['id'] },
+  budgets: { key: 'category', conflict: ['user_id', 'category'] },
+}
+type TableName = keyof typeof TABLES
 type Session = { user: { id: string; email?: string } } | null
 
 /** Applies a change and its effects, then lets the deferred sync and its requests finish. */
@@ -14,7 +21,7 @@ export async function settle(change: () => void = () => {}) {
 }
 
 export function fakeServer() {
-  const transactions: Row[] = []
+  const tables: Record<TableName, Row[]> = { transactions: [], budgets: [] }
   const calls = { upserts: 0 }
   let failing = false
   // How long each reply takes; whether it fails is decided when it arrives.
@@ -27,53 +34,59 @@ export function fakeServer() {
     const reply = (data: unknown) => (failing ? { data: null, error: new Error('offline') } : { data, error: null })
     const result = (data: unknown) =>
       delay ? new Promise((resolve) => setTimeout(() => resolve(reply(data)), delay)) : Promise.resolve(reply(data))
-    const own = () => transactions.filter((row) => row.user_id === user())
-    const from = () => ({
-      select: () => {
-        let after = ''
-        const query = {
-          order: () => query,
-          gt: (_column: string, id: string) => {
-            after = id
-            return query
-          },
-          limit: (count: number) =>
-            result(
-              own()
-                .filter((row) => row.id > after)
-                .sort((a, b) => a.id.localeCompare(b.id))
-                .slice(0, count)
-                .map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== 'user_id'))),
-            ),
-        }
-        return query
-      },
-      upsert: (rows: Record<string, unknown>[]) => {
-        if (failing) return result(null)
-        calls.upserts += 1
-        // Row level security: a row for another account than the session's is refused, all or nothing.
-        if (rows.some((row) => row.user_id !== user() || transactions.some((t) => t.id === row.id && t.user_id !== user()))) {
-          return Promise.resolve({ data: null, error: new Error('new row violates row-level security policy') })
-        }
-        for (const row of rows) {
-          const index = transactions.findIndex((existing) => existing.id === row.id)
-          const stored = { ...transactions[index], ...row } as Row
-          if (index === -1) transactions.push(stored)
-          else transactions[index] = stored
-        }
-        return result(null)
-      },
-      update: (changes: Record<string, unknown>) => ({
-        eq: (_column: string, id: string) => ({
-          lt: (_stamp: string, before: string) => {
-            if (failing) return result(null)
-            const row = own().find((existing) => existing.id === id)
-            if (row && Date.parse(String(row.updated_at)) < Date.parse(before)) Object.assign(row, changes)
-            return result(null)
-          },
+    const from = (name: TableName) => {
+      const rows = tables[name]
+      const { key, conflict } = TABLES[name]
+      const own = () => rows.filter((row) => row.user_id === user())
+      const keyOf = (row: Record<string, unknown>) => String(row[key])
+      const same = (a: Record<string, unknown>, b: Record<string, unknown>) => conflict.every((column) => a[column] === b[column])
+      return {
+        select: () => {
+          let after = ''
+          const query = {
+            order: () => query,
+            gt: (_column: string, id: string) => {
+              after = id
+              return query
+            },
+            limit: (count: number) =>
+              result(
+                own()
+                  .filter((row) => keyOf(row) > after)
+                  .sort((a, b) => keyOf(a).localeCompare(keyOf(b)))
+                  .slice(0, count)
+                  .map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== 'user_id'))),
+              ),
+          }
+          return query
+        },
+        upsert: (changes: Record<string, unknown>[]) => {
+          if (failing) return result(null)
+          calls.upserts += 1
+          // Row level security: a row for another account than the session's is refused, all or nothing.
+          if (changes.some((row) => row.user_id !== user() || rows.some((t) => same(t, row) && t.user_id !== user()))) {
+            return Promise.resolve({ data: null, error: new Error('new row violates row-level security policy') })
+          }
+          for (const row of changes) {
+            const index = rows.findIndex((existing) => same(existing, row))
+            const stored = { ...rows[index], ...row } as Row
+            if (index === -1) rows.push(stored)
+            else rows[index] = stored
+          }
+          return result(null)
+        },
+        update: (changes: Record<string, unknown>) => ({
+          eq: (_column: string, id: string) => ({
+            lt: (_stamp: string, before: string) => {
+              if (failing) return result(null)
+              const row = own().find((existing) => keyOf(existing) === id)
+              if (row && Date.parse(String(row.updated_at)) < Date.parse(before)) Object.assign(row, changes)
+              return result(null)
+            },
+          }),
         }),
-      }),
-    })
+      }
+    }
     const auth = {
       onAuthStateChange: (callback: (event: string, session: Session) => void) => {
         listeners.add(callback)
@@ -100,7 +113,8 @@ export function fakeServer() {
   }
 
   return {
-    transactions,
+    transactions: tables.transactions,
+    budgets: tables.budgets,
     calls,
     client,
     fail: (value: boolean) => (failing = value),

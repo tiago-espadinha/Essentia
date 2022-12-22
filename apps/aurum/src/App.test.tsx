@@ -46,7 +46,7 @@ describe('sync failures', () => {
     const server = fakeServer()
     server.fail(true)
     await renderApp(server.client({ user: { id: 'ana' } }).client)
-    expect($('[role="alert"]').textContent).toContain('Couldn’t sync with your account. Your transactions are kept on this device.')
+    expect($('[role="alert"]').textContent).toContain('Couldn’t sync with your account. Your changes are kept on this device.')
     server.fail(false)
     click(buttonNamed('Try again'))
     await settle()

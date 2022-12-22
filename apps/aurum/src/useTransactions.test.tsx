@@ -3,7 +3,7 @@ import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fakeServer, settle } from './fakeServer'
-import { SYNC_KEY, TRANSACTIONS_KEY } from './storage'
+import { BUDGETS_KEY, SYNC_KEY, TRANSACTIONS_KEY } from './storage'
 import './testing'
 import type { TransactionFields } from './transactions'
 import { useTransactions } from './useTransactions'
@@ -322,5 +322,78 @@ describe('syncing transactions with the account', () => {
     act(() => hook().putBack(removed))
     act(() => hook().putBack(removed))
     expect(descriptions()).toEqual(['Rent'])
+  })
+})
+
+describe('syncing budgets with the account', () => {
+  const budgets = () => hook().budgets.map(({ category, amount }) => ({ category, amount }))
+
+  it('follows the account to another device, one per category', async () => {
+    const server = fakeServer()
+    const laptop = server.client({ user: { id: 'ana' } })
+    await open(laptop.client)
+    act(() => hook().setBudget('Food', 20000))
+    act(() => hook().setBudget('transport', 5000))
+    act(() => hook().setBudget('food', 25000))
+    await settle()
+    expect(server.budgets).toMatchObject([
+      { category: 'food', amount: 250, user_id: 'ana' },
+      { category: 'transport', amount: 50, user_id: 'ana' },
+    ])
+    close()
+
+    localStorage.clear()
+    const phone = server.client(null)
+    await open(phone.client)
+    await phone.signInAs('ana')
+    expect(budgets()).toEqual([
+      { category: 'food', amount: 25000 },
+      { category: 'transport', amount: 5000 },
+    ])
+  })
+
+  it('removes a budget on every device', async () => {
+    const server = fakeServer()
+    const laptop = server.client({ user: { id: 'ana' } })
+    await open(laptop.client)
+    act(() => hook().setBudget('food', 20000))
+    await settle()
+    close()
+
+    const phone = server.client({ user: { id: 'ana' } })
+    localStorage.clear()
+    await open(phone.client)
+    vi.advanceTimersByTime(60_000)
+    act(() => hook().removeBudget('food'))
+    await settle()
+    expect(server.budgets[0].deleted_at).not.toBeNull()
+    close()
+
+    localStorage.clear()
+    await open(laptop.client)
+    expect(budgets()).toEqual([])
+  })
+
+  it('never gives one account’s budgets to another that signs in on the device', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    act(() => hook().setBudget('food', 20000))
+    expect(hook().budgetsReady).toBe(true)
+    await settle()
+    await device.signInAs('ben')
+    expect(hook().budgets).toEqual([])
+    expect(server.budgets.map((row) => row.user_id)).toEqual(['ana'])
+  })
+
+  it('clears the budgets from the device on sign-out', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    act(() => hook().setBudget('food', 20000))
+    await settle()
+    await device.signInAs(null)
+    expect(hook().budgets).toEqual([])
+    expect(localStorage.getItem(BUDGETS_KEY)).toBe(JSON.stringify({ budgets: [], deleted: {} }))
   })
 })

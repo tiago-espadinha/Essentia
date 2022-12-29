@@ -1,9 +1,19 @@
+import { validBudget, type Budget } from './budgets'
 import { MAX_CENTS } from './money'
 import { cleanCategory, isDay, type Transaction } from './transactions'
 import { NO_STAMPS, type Stamps } from './sync'
 
 export const TRANSACTIONS_KEY = 'essentia-aurum-transactions'
 export const SYNC_KEY = 'essentia-aurum-sync'
+export const BUDGETS_KEY = 'essentia-aurum-budgets'
+
+/** The budgets, and those removed here and when, until the server has the removal. */
+export interface SavedBudgets {
+  budgets: Budget[]
+  deleted: Record<string, string>
+}
+
+export const NO_BUDGETS: SavedBudgets = { budgets: [], deleted: {} }
 
 const isString = (value: unknown): value is string => typeof value === 'string'
 const isTimestamp = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value))
@@ -27,14 +37,11 @@ function isTransaction(value: unknown): value is Transaction {
   )
 }
 
+const isStampMap = (value: unknown): value is Record<string, string> =>
+  isRecord(value) && !Array.isArray(value) && Object.values(value).every(isTimestamp)
+
 function isStamps(value: unknown): value is Stamps {
-  return (
-    isRecord(value) &&
-    (value.owner === null || isString(value.owner)) &&
-    isRecord(value.deleted) &&
-    !Array.isArray(value.deleted) &&
-    Object.values(value.deleted).every(isTimestamp)
-  )
+  return isRecord(value) && (value.owner === null || isString(value.owner)) && isStampMap(value.deleted)
 }
 
 /** Reads the saved transactions. Anything unreadable, malformed or repeated is skipped: saved data is not trusted. */
@@ -69,8 +76,29 @@ export function loadStamps(): Stamps {
   }
 }
 
+/** Reads the saved budgets, one per category; anything malformed is skipped, unreadable data starts over. */
+export function loadBudgets(): SavedBudgets {
+  let saved: unknown
+  try {
+    saved = JSON.parse(localStorage.getItem(BUDGETS_KEY) ?? 'null')
+  } catch {
+    return NO_BUDGETS
+  }
+  if (!isRecord(saved) || !Array.isArray(saved.budgets) || !isStampMap(saved.deleted)) return NO_BUDGETS
+  const byCategory = new Map<string, Budget>()
+  for (const b of saved.budgets as unknown[]) {
+    if (!isRecord(b) || !isString(b.category) || typeof b.amount !== 'number' || !isTimestamp(b.updatedAt)) continue
+    const budget = { category: cleanCategory(b.category), amount: b.amount, updatedAt: b.updatedAt }
+    if (validBudget(budget) && !byCategory.has(budget.category)) byCategory.set(budget.category, budget)
+  }
+  return { budgets: [...byCategory.values()], deleted: { ...saved.deleted } }
+}
+
 /** Returns false when the browser refuses to store the data (private mode, quota). */
-export function save(key: typeof TRANSACTIONS_KEY | typeof SYNC_KEY, value: Transaction[] | Stamps): boolean {
+export function save(
+  key: typeof TRANSACTIONS_KEY | typeof SYNC_KEY | typeof BUDGETS_KEY,
+  value: Transaction[] | Stamps | SavedBudgets,
+): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))
     return true

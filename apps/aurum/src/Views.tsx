@@ -1,8 +1,9 @@
-export type View = 'transactions' | 'insights'
+export type View = 'transactions' | 'insights' | 'plan'
 
 const VIEW_LABELS: Record<View, string> = {
   transactions: 'Transactions',
   insights: 'Insights',
+  plan: 'Plan',
 }
 
 interface ViewsProps {

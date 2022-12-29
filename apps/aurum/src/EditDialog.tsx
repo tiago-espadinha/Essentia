@@ -1,5 +1,7 @@
 import { Dialog } from '@essentia/ui'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent } from 'react'
+import { Field } from './Field'
+import { invalid } from './forms'
 import { formOf, readForm, type FormErrors, type TransactionForm } from './transactionForm'
 import { CATEGORIES, editId, LIMITS, type Transaction, type TransactionFields } from './transactions'
 
@@ -49,7 +51,13 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
           <div className="segmented">
             {(['expense', 'income'] as const).map((type) => (
               <label key={type} className="segmented__option">
-                <input type="radio" name="edit-type" value={type} checked={form.type === type} onChange={() => change({ type })} />
+                <input
+                  type="radio"
+                  name="edit-type"
+                  value={type}
+                  checked={form.type === type}
+                  onChange={() => change({ type })}
+                />
                 <span>{type === 'expense' ? 'Expense' : 'Income'}</span>
               </label>
             ))}
@@ -105,26 +113,5 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
         </div>
       </form>
     </Dialog>
-  )
-}
-
-const invalid = (id: string, error: string | undefined) => ({
-  'aria-invalid': error !== undefined,
-  'aria-describedby': error ? `${id}-error` : undefined,
-})
-
-function Field({ id, label, error, children }: { id: string; label: string; error: string | undefined; children: ReactNode }) {
-  return (
-    <div className="field">
-      <label className="label" htmlFor={id}>
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p id={`${id}-error`} className="field-error">
-          {error}
-        </p>
-      )}
-    </div>
   )
 }

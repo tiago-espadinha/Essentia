@@ -719,3 +719,56 @@
   padding-left: var(--space-4);
   color: var(--color-mid);
 }
+
+/* Budgets: a limit per category, this month's spending against it. */
+.budget-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: start;
+  gap: var(--space-3);
+}
+
+/* Lines up with the inputs under their labels. */
+.budget-form__button { margin-top: calc(var(--text-2xs) * 1.5 + var(--space-1)); }
+
+@media (max-width: 480px) {
+  .budget-form { grid-template-columns: 1fr 1fr; }
+  .budget-form__button { grid-column: 1 / -1; margin-top: 0; }
+}
+
+.budgets {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-faint);
+  list-style: none;
+}
+
+.budget {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.budget__name { overflow-wrap: anywhere; }
+
+.budget__of {
+  color: var(--color-mid);
+  font-size: var(--text-xs);
+}
+
+.budget__fill--over { background: var(--color-danger); }
+
+.budget__left {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.budget__left--over { color: var(--color-danger); }
+
+.budget__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: calc(-1 * var(--space-2));
+}

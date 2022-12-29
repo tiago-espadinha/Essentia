@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './AccountMenu'
 import { AppHeader } from './AppHeader'
+import { Budgets } from './Budgets'
 import { DataTools } from './DataTools'
 import { EditDialog } from './EditDialog'
 import { Filters } from './Filters'
@@ -29,7 +30,22 @@ import { Views, type View } from './Views'
 
 export default function App({ client }: { client: SupabaseClient | null }) {
   const auth = useAuth(client)
-  const { transactions, ready, saveFailed, syncState, sync, add, addAll, update, remove, putBack } = useTransactions(client)
+  const {
+    transactions,
+    budgets,
+    budgetsReady,
+    ready,
+    saveFailed,
+    syncState,
+    sync,
+    add,
+    addAll,
+    update,
+    remove,
+    putBack,
+    setBudget,
+    removeBudget,
+  } = useTransactions(client)
   // The transaction being edited, by id: a sync can remove it, and the dialog then closes.
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleted, setDeleted] = useState<Transaction | null>(null)
@@ -117,7 +133,15 @@ export default function App({ client }: { client: SupabaseClient | null }) {
               <>
                 <Hero count={transactions.length} totals={totals(transactions)} />
                 <Views view={view} onChange={setView} />
-                {view === 'insights' ? (
+                {view === 'plan' ? (
+                  <Budgets
+                    budgets={budgets}
+                    ready={budgetsReady}
+                    transactions={transactions}
+                    onSet={setBudget}
+                    onRemove={removeBudget}
+                  />
+                ) : view === 'insights' ? (
                   <>
                     <InsightsView
                       transactions={transactions}

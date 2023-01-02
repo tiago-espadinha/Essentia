@@ -1,5 +1,6 @@
 import { validBudget, type Budget } from './budgets'
 import { MAX_CENTS } from './money'
+import { validRecurring, type RecurringItem } from './recurring'
 import { cleanCategory, isDay, type Transaction } from './transactions'
 import { NO_STAMPS, type Stamps } from './sync'
 
@@ -15,7 +16,18 @@ export interface SavedBudgets {
 
 export const NO_BUDGETS: SavedBudgets = { budgets: [], deleted: {} }
 
+export const RECURRING_KEY = 'essentia-aurum-recurring'
+
+/** The recurring items, and those deleted here and when, until the server has the deletion. */
+export interface SavedRecurring {
+  items: RecurringItem[]
+  deleted: Record<string, string>
+}
+
+export const NO_RECURRING: SavedRecurring = { items: [], deleted: {} }
+
 const isString = (value: unknown): value is string => typeof value === 'string'
+const isStringOrNull = (value: unknown) => value === null || isString(value)
 const isTimestamp = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value))
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
 
@@ -94,10 +106,62 @@ export function loadBudgets(): SavedBudgets {
   return { budgets: [...byCategory.values()], deleted: { ...saved.deleted } }
 }
 
+/** Reads the saved recurring items; anything malformed or repeated is skipped, unreadable data starts over. */
+export function loadRecurring(): SavedRecurring {
+  let saved: unknown
+  try {
+    saved = JSON.parse(localStorage.getItem(RECURRING_KEY) ?? 'null')
+  } catch {
+    return NO_RECURRING
+  }
+  if (!isRecord(saved) || !Array.isArray(saved.items) || !isStampMap(saved.deleted)) return NO_RECURRING
+  const byId = new Map<string, RecurringItem>()
+  for (const value of saved.items as unknown[]) {
+    if (
+      !isRecord(value) ||
+      !isString(value.id) ||
+      byId.has(value.id) ||
+      !isTimestamp(value.createdAt) ||
+      !isTimestamp(value.updatedAt)
+    )
+      continue
+    const { id, description, amount, type, category, frequency, startOn, paused, pausedOn, resumedOn, createdAt, updatedAt } =
+      value
+    if (
+      !isString(description) ||
+      typeof amount !== 'number' ||
+      !isString(type) ||
+      !isString(category) ||
+      !isString(frequency) ||
+      !isString(startOn) ||
+      typeof paused !== 'boolean' ||
+      !isStringOrNull(pausedOn) ||
+      !isStringOrNull(resumedOn)
+    )
+      continue
+    const item = {
+      id,
+      description,
+      amount,
+      type,
+      category: cleanCategory(category),
+      frequency,
+      startOn,
+      paused,
+      pausedOn,
+      resumedOn,
+      createdAt,
+      updatedAt,
+    }
+    if (validRecurring(item as RecurringItem)) byId.set(id, item as RecurringItem)
+  }
+  return { items: [...byId.values()], deleted: { ...saved.deleted } }
+}
+
 /** Returns false when the browser refuses to store the data (private mode, quota). */
 export function save(
-  key: typeof TRANSACTIONS_KEY | typeof SYNC_KEY | typeof BUDGETS_KEY,
-  value: Transaction[] | Stamps | SavedBudgets,
+  key: typeof TRANSACTIONS_KEY | typeof SYNC_KEY | typeof BUDGETS_KEY | typeof RECURRING_KEY,
+  value: Transaction[] | Stamps | SavedBudgets | SavedRecurring,
 ): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))

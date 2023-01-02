@@ -78,3 +78,49 @@ create policy "Users change their own budgets" on public.budgets
   for update to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
+
+-- Recurring items: rent every month, a salary, a yearly fee. Synced like
+-- transactions; process_due_recurring() below posts what falls due.
+create table public.recurring_transactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  description text not null check (char_length(description) between 1 and 200),
+  amount numeric(12, 2) not null check (amount > 0),
+  type text not null check (type in ('income', 'expense')),
+  category text not null default 'other' check (char_length(category) between 1 and 40),
+  frequency text not null check (frequency in ('weekly', 'monthly', 'yearly')),
+  -- The first occurrence; every later one is counted from it, in the user's own calendar.
+  start_on date not null,
+  paused boolean not null default false,
+  -- The last pause ran from paused_on to resumed_on (still running while paused):
+  -- occurrences in it are skipped, not posted late. Ones due before it still post.
+  paused_on date,
+  resumed_on date,
+  check (not paused or paused_on is not null),
+  -- Occurrences dealt with so far. Only process_due_recurring() moves it; the app
+  -- never sends it, so a device with an old copy of the item cannot set it back.
+  posted integer not null default 0 check (posted >= 0),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz
+);
+
+alter table public.recurring_transactions enable row level security;
+
+revoke all on public.recurring_transactions from anon, authenticated;
+grant select on public.recurring_transactions to authenticated;
+grant insert (id, user_id, description, amount, type, category, frequency, start_on, paused, paused_on, resumed_on, created_at, updated_at, deleted_at)
+  on public.recurring_transactions to authenticated;
+grant update (id, user_id, description, amount, type, category, frequency, start_on, paused, paused_on, resumed_on, created_at, updated_at, deleted_at)
+  on public.recurring_transactions to authenticated;
+
+create policy "Users read their own recurring items" on public.recurring_transactions
+  for select to authenticated using ((select auth.uid()) = user_id);
+
+create policy "Users add their own recurring items" on public.recurring_transactions
+  for insert to authenticated with check ((select auth.uid()) = user_id);
+
+create policy "Users change their own recurring items" on public.recurring_transactions
+  for update to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);

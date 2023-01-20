@@ -11,6 +11,7 @@ import { Gate } from './Gate'
 import { Hero } from './Hero'
 import { InsightsView } from './InsightsView'
 import { QuickAdd } from './QuickAdd'
+import { Recurring } from './Recurring'
 import { TransactionRow } from './TransactionRow'
 import { formatMoney } from './money'
 import {
@@ -33,7 +34,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   const {
     transactions,
     budgets,
-    budgetsReady,
+    planReady,
     ready,
     saveFailed,
     syncState,
@@ -45,6 +46,10 @@ export default function App({ client }: { client: SupabaseClient | null }) {
     putBack,
     setBudget,
     removeBudget,
+    recurring,
+    addRecurring,
+    setRecurringPaused,
+    removeRecurring,
   } = useTransactions(client)
   // The transaction being edited, by id: a sync can remove it, and the dialog then closes.
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -134,13 +139,22 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                 <Hero count={transactions.length} totals={totals(transactions)} />
                 <Views view={view} onChange={setView} />
                 {view === 'plan' ? (
-                  <Budgets
-                    budgets={budgets}
-                    ready={budgetsReady}
-                    transactions={transactions}
-                    onSet={setBudget}
-                    onRemove={removeBudget}
-                  />
+                  <>
+                    <Budgets
+                      budgets={budgets}
+                      ready={planReady}
+                      transactions={transactions}
+                      onSet={setBudget}
+                      onRemove={removeBudget}
+                    />
+                    <Recurring
+                      items={recurring}
+                      ready={planReady}
+                      onAdd={addRecurring}
+                      onPause={setRecurringPaused}
+                      onRemove={removeRecurring}
+                    />
+                  </>
                 ) : view === 'insights' ? (
                   <>
                     <InsightsView

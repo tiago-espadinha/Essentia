@@ -380,7 +380,7 @@ describe('syncing budgets with the account', () => {
     const device = server.client({ user: { id: 'ana' } })
     await open(device.client)
     act(() => hook().setBudget('food', 20000))
-    expect(hook().budgetsReady).toBe(true)
+    expect(hook().planReady).toBe(true)
     await settle()
     await device.signInAs('ben')
     expect(hook().budgets).toEqual([])

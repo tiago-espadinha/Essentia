@@ -233,8 +233,8 @@ export function useTransactions(client: SupabaseClient | null) {
     /** False until the account has been read once, unless this device already had its transactions. */
     ready: fetched || saved.transactions.length > 0,
     budgets: saved.budgets.budgets,
-    /** False until the account has been read once, unless this device already had its budgets. */
-    budgetsReady: fetched || saved.budgets.budgets.length > 0,
+    /** For the Plan view: false until the account has been read once, unless this device already had budgets or recurring items. */
+    planReady: fetched || saved.budgets.budgets.length > 0 || saved.recurring.items.length > 0,
     saveFailed: failed.transactions || failed.stamps || failed.budgets || failed.recurring,
     syncState,
     sync,

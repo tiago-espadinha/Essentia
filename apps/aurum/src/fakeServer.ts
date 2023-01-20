@@ -3,6 +3,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { act } from 'react'
 import { vi } from 'vitest'
+import { occurrence, type Frequency } from './recurring'
 
 export type Row = Record<string, unknown> & { user_id: string }
 
@@ -10,6 +11,7 @@ export type Row = Record<string, unknown> & { user_id: string }
 const TABLES = {
   transactions: { key: 'id', conflict: ['id'] },
   budgets: { key: 'category', conflict: ['user_id', 'category'] },
+  recurring_transactions: { key: 'id', conflict: ['id'] },
 }
 type TableName = keyof typeof TABLES
 type Session = { user: { id: string; email?: string } } | null
@@ -21,8 +23,8 @@ export async function settle(change: () => void = () => {}) {
 }
 
 export function fakeServer() {
-  const tables: Record<TableName, Row[]> = { transactions: [], budgets: [] }
-  const calls = { upserts: 0 }
+  const tables: Record<TableName, Row[]> = { transactions: [], budgets: [], recurring_transactions: [] }
+  const calls = { upserts: 0, posts: 0 }
   let failing = false
   // How long each reply takes; whether it fails is decided when it arrives.
   let delay = 0
@@ -87,6 +89,47 @@ export function fakeServer() {
         }),
       }
     }
+    /** process_due_recurring, as supabase/migration.sql has it: posts each due occurrence once. */
+    const rpc = (_name: string, { p_today }: { p_today: string }) => {
+      if (failing) return result(null)
+      calls.posts += 1
+      let posted = 0
+      for (const item of tables.recurring_transactions) {
+        if (item.user_id !== user() || item.deleted_at) continue
+        const pausedOn = item.paused_on ? String(item.paused_on) : null
+        const resumedOn = String(item.resumed_on ?? pausedOn)
+        let count = Number(item.posted ?? 0)
+        for (
+          let day = occurrence(String(item.start_on), item.frequency as Frequency, count);
+          day <= p_today && !(item.paused && pausedOn && day >= pausedOn);
+        ) {
+          const taken = tables.transactions.some((t) => t.recurring_id === item.id && t.recurring_on === day)
+          if (!taken && (!pausedOn || day < pausedOn || day >= resumedOn)) {
+            const now = new Date().toISOString()
+            const { user_id, description, amount, type, category } = item
+            tables.transactions.push({
+              id: crypto.randomUUID(),
+              user_id,
+              description,
+              amount,
+              type,
+              category,
+              occurred_on: day,
+              created_at: now,
+              updated_at: now,
+              deleted_at: null,
+              recurring_id: item.id,
+              recurring_on: day,
+            })
+            posted += 1
+          }
+          count += 1
+          day = occurrence(String(item.start_on), item.frequency as Frequency, count)
+        }
+        item.posted = count
+      }
+      return result(posted)
+    }
     const auth = {
       onAuthStateChange: (callback: (event: string, session: Session) => void) => {
         listeners.add(callback)
@@ -109,12 +152,13 @@ export function fakeServer() {
       emit(id)
       await settle()
     }
-    return { client: { from, auth } as unknown as SupabaseClient, signInAs, emit }
+    return { client: { from, rpc, auth } as unknown as SupabaseClient, signInAs, emit }
   }
 
   return {
     transactions: tables.transactions,
     budgets: tables.budgets,
+    recurring: tables.recurring_transactions,
     calls,
     client,
     fail: (value: boolean) => (failing = value),

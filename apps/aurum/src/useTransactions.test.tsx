@@ -3,7 +3,8 @@ import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fakeServer, settle } from './fakeServer'
-import { BUDGETS_KEY, SYNC_KEY, TRANSACTIONS_KEY } from './storage'
+import type { RecurringFields } from './recurring'
+import { BUDGETS_KEY, RECURRING_KEY, SYNC_KEY, TRANSACTIONS_KEY } from './storage'
 import './testing'
 import type { TransactionFields } from './transactions'
 import { useTransactions } from './useTransactions'
@@ -379,7 +380,7 @@ describe('syncing budgets with the account', () => {
     const device = server.client({ user: { id: 'ana' } })
     await open(device.client)
     act(() => hook().setBudget('food', 20000))
-    expect(hook().budgetsReady).toBe(true)
+    expect(hook().planReady).toBe(true)
     await settle()
     await device.signInAs('ben')
     expect(hook().budgets).toEqual([])
@@ -395,5 +396,113 @@ describe('syncing budgets with the account', () => {
     await device.signInAs(null)
     expect(hook().budgets).toEqual([])
     expect(localStorage.getItem(BUDGETS_KEY)).toBe(JSON.stringify({ budgets: [], deleted: {} }))
+  })
+})
+
+describe('recurring items', () => {
+  const rent = (changes: Partial<RecurringFields> = {}): RecurringFields => ({
+    description: 'Rent',
+    amount: 90000,
+    type: 'expense',
+    category: 'housing',
+    frequency: 'monthly',
+    startOn: '2022-08-31',
+    ...changes,
+  })
+  const posted = () => hook().transactions.filter((t) => t.description === 'Rent').map((t) => t.date)
+
+  it('catches up every period missed, month ends included, once', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    act(() => hook().addRecurring(rent()))
+    await settle()
+    expect(posted()).toEqual(['2022-10-31', '2022-09-30', '2022-08-31'])
+    expect(hook().transactions[0]).toMatchObject({ amount: 90000, type: 'expense', category: 'housing' })
+    expect(server.recurring).toMatchObject([{ description: 'Rent', amount: 900, start_on: '2022-08-31', user_id: 'ana' }])
+
+    await act(async () => {
+      await hook().sync()
+    })
+    expect(posted()).toHaveLength(3)
+  })
+
+  it('posts a Jan 31 monthly item on Feb 28, using the device’s own day', async () => {
+    vi.setSystemTime(new Date(2023, 2, 1, 0, 30))
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    act(() => hook().addRecurring(rent({ startOn: '2023-01-31' })))
+    await settle()
+    expect(posted()).toEqual(['2023-02-28', '2023-01-31'])
+  })
+
+  it('posts nothing while paused, and resumes from the day it is resumed', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    act(() => hook().addRecurring(rent({ frequency: 'weekly', startOn: '2022-11-10' })))
+    await settle()
+    const id = hook().recurring[0].id
+    act(() => hook().setRecurringPaused(id, true))
+    await settle()
+    expect(hook().recurring[0].paused).toBe(true)
+
+    vi.setSystemTime(new Date('2022-12-01T09:00:00Z'))
+    await act(async () => {
+      await hook().sync()
+    })
+    expect(posted()).toEqual([])
+
+    act(() => hook().setRecurringPaused(id, false))
+    await settle()
+    expect(hook().recurring[0].resumedOn).toBe('2022-12-01')
+    expect(posted()).toEqual(['2022-12-01'])
+  })
+
+  it('still posts what fell due before a pause, even when it had not synced yet', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    server.fail(true)
+    await open(device.client)
+    act(() => hook().addRecurring(rent({ startOn: '2022-11-01' })))
+    act(() => hook().setRecurringPaused(hook().recurring[0].id, true))
+    server.fail(false)
+    await act(async () => {
+      await hook().sync()
+    })
+    expect(posted()).toEqual(['2022-11-01'])
+  })
+
+  it('follows the account to another device, and a deletion stops it there', async () => {
+    const server = fakeServer()
+    const laptop = server.client({ user: { id: 'ana' } })
+    await open(laptop.client)
+    act(() => hook().addRecurring(rent({ startOn: '2022-12-01' })))
+    await settle()
+    close()
+
+    localStorage.clear()
+    const phone = server.client({ user: { id: 'ana' } })
+    await open(phone.client)
+    expect(hook().recurring.map((item) => item.description)).toEqual(['Rent'])
+    vi.advanceTimersByTime(60_000)
+    act(() => hook().removeRecurring(hook().recurring[0].id))
+    await settle()
+    expect(server.recurring[0].deleted_at).not.toBeNull()
+
+    vi.setSystemTime(new Date('2022-12-02T09:00:00Z'))
+    await act(async () => {
+      await hook().sync()
+    })
+    expect(posted()).toEqual([])
+  })
+
+  it('clears the recurring items from the device on sign-out', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    act(() => hook().addRecurring(rent({ startOn: '2022-12-01' })))
+    await settle()
+    await device.signInAs(null)
+    expect(hook().recurring).toEqual([])
+    expect(localStorage.getItem(RECURRING_KEY)).toBe(JSON.stringify({ items: [], deleted: {} }))
   })
 })

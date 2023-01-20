@@ -18,6 +18,13 @@ export const TRANSACTIONS: Table = {
 
 export const BUDGETS: Table = { name: 'budgets', columns: 'category, amount, updated_at, deleted_at', key: 'category' }
 
+export const RECURRING: Table = {
+  name: 'recurring_transactions',
+  // Not `posted`: only the server counts what it has posted.
+  columns: 'id, description, amount, type, category, frequency, start_on, paused, resumed_on, created_at, updated_at, deleted_at',
+  key: 'id',
+}
+
 /** PostgREST's default cap on rows per response; longer tables are read in pages. */
 const PAGE = 1000
 

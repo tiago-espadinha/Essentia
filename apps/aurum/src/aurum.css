@@ -663,6 +663,10 @@
   gap: var(--space-2);
 }
 
+/* The chart's height in MonthBars.tsx. */
+/* The chart's height in MonthBars.tsx. */
+.month-chart__placeholder { height: 160px; }
+
 .month-chart__swatch {
   width: 8px;
   height: 8px;

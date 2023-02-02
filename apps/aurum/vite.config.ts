@@ -5,6 +5,11 @@ export default defineConfig({
   base: '/aurum/',
   plugins: [react()],
   server: { port: 5105, strictPort: true },
+  build: {
+    rolldownOptions: {
+      output: { codeSplitting: { groups: [{ name: 'supabase', test: /node_modules[\\/]@supabase[\\/]/ }] } },
+    },
+  },
   test: {
     environment: 'jsdom',
     // Node 25+ ships its own localStorage global, which hides jsdom's.

@@ -137,6 +137,8 @@ describe('accessibility', () => {
       await import('./MonthBars')
     })
     expect(document.querySelector('.month-chart svg')).not.toBeNull()
+    // jsdom has no layout, so axe cannot see that a hidden chart takes focus.
+    expect(document.querySelectorAll('.month-chart [tabindex]:not([tabindex="-1"])')).toHaveLength(0)
     expect(await violations()).toEqual([])
   })
 

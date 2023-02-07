@@ -99,6 +99,7 @@ function SixMonths({ transactions, last }: { transactions: Transaction[]; last: 
       </div>
       <MonthChart months={months} />
       <table className="months">
+        <caption className="visually-hidden">Income, expenses and net for each of the last six months</caption>
         <thead>
           <tr>
             <th scope="col" className="label">

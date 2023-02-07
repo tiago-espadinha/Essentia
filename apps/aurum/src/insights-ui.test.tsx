@@ -49,6 +49,7 @@ describe('insights', () => {
     expect(spend()).toEqual(['housing€900.0090%', 'food€100.0010%'])
     expect(monthRows()[0]).toBe('November 2022€2,100.00€1,000.00€1,100.00')
     expect(monthRows()).toHaveLength(6)
+    expect($('.months caption').textContent).toBe('Income, expenses and net for each of the last six months')
     expect(monthRows()[5]).toBe('June 2022€0.00€0.00€0.00')
   })
 

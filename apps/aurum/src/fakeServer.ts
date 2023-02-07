@@ -26,6 +26,9 @@ export function fakeServer() {
   const tables: Record<TableName, Row[]> = { transactions: [], budgets: [], recurring_transactions: [] }
   const calls = { upserts: 0, posts: 0 }
   let failing = false
+  // Fails only the recurring rpc, or only one table's upserts.
+  let rpcFailing = false
+  let failingTable: TableName | null = null
   // How long each reply takes; whether it fails is decided when it arrives.
   let delay = 0
 
@@ -64,6 +67,7 @@ export function fakeServer() {
         },
         upsert: (changes: Record<string, unknown>[]) => {
           if (failing) return result(null)
+          if (failingTable === name) return Promise.resolve({ data: null, error: new Error('table unavailable') })
           calls.upserts += 1
           // Row level security: a row for another account than the session's is refused, all or nothing.
           if (changes.some((row) => row.user_id !== user() || rows.some((t) => same(t, row) && t.user_id !== user()))) {
@@ -92,6 +96,7 @@ export function fakeServer() {
     /** process_due_recurring, as supabase/migration.sql has it: posts each due occurrence once. */
     const rpc = (_name: string, { p_today }: { p_today: string }) => {
       if (failing) return result(null)
+      if (rpcFailing) return Promise.resolve({ data: null, error: new Error('rpc unavailable') })
       calls.posts += 1
       let posted = 0
       for (const item of tables.recurring_transactions) {
@@ -162,6 +167,8 @@ export function fakeServer() {
     calls,
     client,
     fail: (value: boolean) => (failing = value),
+    failRpc: (value: boolean) => (rpcFailing = value),
+    failTable: (name: TableName | null) => (failingTable = name),
     slow: (ms: number) => (delay = ms),
   }
 }

@@ -51,6 +51,35 @@ function add(description: string, amount?: number): string {
 
 const descriptions = () => hook().transactions.map((t) => t.description)
 
+const idOf = (n: number) => `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, '0')}`
+
+/** A transaction row as the account holds it, 3.50 euros on the test day. */
+const remoteRow = (n: number, user: string, description: string, changes: Record<string, unknown> = {}) => ({
+  id: idOf(n),
+  user_id: user,
+  description,
+  amount: 3.5,
+  type: 'expense',
+  category: 'food',
+  occurred_on: '2022-11-08',
+  created_at: '2022-11-08T08:00:00Z',
+  updated_at: '2022-11-08T08:00:00Z',
+  deleted_at: null,
+  ...changes,
+})
+
+/** The same transaction as this device saves it. */
+const localCopy = (n: number, description: string, updatedAt = '2022-11-08T08:00:00.000Z') => ({
+  id: idOf(n),
+  description,
+  amount: 350,
+  type: 'expense',
+  category: 'food',
+  date: '2022-11-08',
+  createdAt: '2022-11-08T08:00:00.000Z',
+  updatedAt,
+})
+
 beforeEach(() => {
   localStorage.clear()
   vi.useFakeTimers()
@@ -60,6 +89,7 @@ beforeEach(() => {
 afterEach(() => {
   if (container?.isConnected) close()
   vi.useRealTimers()
+  vi.restoreAllMocks()
 })
 
 describe('syncing transactions with the account', () => {
@@ -244,14 +274,18 @@ describe('syncing transactions with the account', () => {
     close()
 
     localStorage.clear()
-    server.slow(1000)
+    // Slower than the time `open` waits, so the sync is still out when the account signs out.
+    server.slow(5000)
     const phone = server.client({ user: { id: 'ana' } })
     await open(phone.client)
+    expect(hook().syncState).toBe('syncing')
+    const before = JSON.stringify(server.transactions)
     phone.emit(null)
     await settle()
-    await act(() => vi.advanceTimersByTimeAsync(2000))
+    await act(() => vi.advanceTimersByTimeAsync(10_000))
     expect(hook().transactions).toEqual([])
     expect(hook().syncState).toBe('off')
+    expect(JSON.stringify(server.transactions)).toBe(before)
   })
 
   it('runs a sync asked for during an account switch', async () => {
@@ -275,10 +309,11 @@ describe('syncing transactions with the account', () => {
     })
     add('Coffee')
     expect(hook().saveFailed).toBe(true)
-    vi.restoreAllMocks()
   })
+
   it('runs the new account’s sync when the switch lands while a push is out', async () => {
     const server = fakeServer()
+    server.transactions.push(remoteRow(1, 'ben', 'Ben’s rent'))
     const device = server.client({ user: { id: 'ana' } })
     await open(device.client)
     server.slow(1000)
@@ -289,6 +324,7 @@ describe('syncing transactions with the account', () => {
     await act(() => vi.advanceTimersByTimeAsync(10_000))
     expect(hook().syncState).toBe('synced')
     expect(hook().ready).toBe(true)
+    expect(descriptions()).toEqual(['Ben’s rent'])
   })
 
   it('never writes one account’s rows under another’s session', async () => {
@@ -302,6 +338,7 @@ describe('syncing transactions with the account', () => {
     device.emit('ben')
     await act(() => vi.advanceTimersByTimeAsync(10_000))
     expect(server.transactions.filter((row) => row.user_id === 'ben')).toEqual([])
+    expect(server.transactions.filter((row) => row.user_id === 'ana').map((row) => row.description)).toEqual(['Ana’s coffee'])
   })
 
   it('reads an account longer than one page', async () => {
@@ -318,11 +355,138 @@ describe('syncing transactions with the account', () => {
     const server = fakeServer()
     await open(server.client({ user: { id: 'ana' } }).client)
     const id = add('Rent')
+    await settle()
     const removed = hook().transactions[0]
+    // Another device edited it after this device's deletion, so the sync brings it back.
+    server.transactions[0].updated_at = '2022-11-08T12:00:00.000Z'
     act(() => hook().remove(id))
-    act(() => hook().putBack(removed))
+    expect(descriptions()).toEqual([])
+    await act(async () => {
+      expect(await hook().sync()).toBe(true)
+    })
+    expect(descriptions()).toEqual(['Rent'])
     act(() => hook().putBack(removed))
     expect(descriptions()).toEqual(['Rent'])
+  })
+
+  it('keeps everything and retries what is outstanding when the push fails partway', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    server.failTable('transactions')
+    act(() => hook().setBudget('food', 20000))
+    add('Coffee')
+    await settle()
+    expect(hook().syncState).toBe('failed')
+    expect(server.budgets).toHaveLength(1)
+    expect(server.transactions).toEqual([])
+    expect(descriptions()).toEqual(['Coffee'])
+    expect(hook().budgets).toMatchObject([{ category: 'food', amount: 20000 }])
+    expect(JSON.parse(localStorage.getItem(TRANSACTIONS_KEY)!)).toHaveLength(1)
+
+    server.failTable(null)
+    await act(async () => {
+      expect(await hook().sync()).toBe(true)
+    })
+    expect(hook().syncState).toBe('synced')
+    expect(server.transactions.map((row) => row.description)).toEqual(['Coffee'])
+    expect(server.budgets).toHaveLength(1)
+    expect(descriptions()).toEqual(['Coffee'])
+  })
+
+  it('still deletes on the account after a reload, when the device was offline for the deletion', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    const id = add('Rent')
+    await settle()
+    expect(server.transactions[0].deleted_at).toBeNull()
+
+    server.fail(true)
+    vi.setSystemTime(new Date('2022-11-08T10:00:00Z'))
+    act(() => hook().remove(id))
+    await settle()
+    expect(hook().syncState).toBe('failed')
+    expect(JSON.parse(localStorage.getItem(SYNC_KEY)!).deleted).toHaveProperty(id)
+    close()
+
+    // The device is reopened as it was left, with the account reachable again.
+    server.fail(false)
+    await open(server.client({ user: { id: 'ana' } }).client)
+    expect(hook().transactions).toEqual([])
+    expect(server.transactions[0].deleted_at).toBe('2022-11-08T10:00:00.000Z')
+    // The note of the deletion goes once a later sync sees it on the account.
+    await act(async () => {
+      expect(await hook().sync()).toBe(true)
+    })
+    expect(JSON.parse(localStorage.getItem(SYNC_KEY)!).deleted).toEqual({})
+  })
+
+  it('answers every sync asked for at once, and sends an edit made meanwhile', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    server.slow(100)
+    const requests = { upserts: server.calls.upserts, posts: server.calls.posts }
+    let results: boolean[] = []
+    await act(async () => {
+      const first = [hook().sync(), hook().sync()]
+      // The first run has fetched and is posting recurring items when the edit lands.
+      await vi.advanceTimersByTimeAsync(150)
+      hook().add(fields('Coffee'))
+      const later = [hook().sync(), hook().sync(), hook().sync()]
+      await vi.advanceTimersByTimeAsync(1000)
+      results = await Promise.all([...first, ...later])
+    })
+    expect(results).toEqual([true, true, true, true, true])
+    expect(server.transactions.map((row) => row.description)).toEqual(['Coffee'])
+    expect(hook().syncState).toBe('synced')
+    // One run, and one more for the edit: not one per call.
+    expect(server.calls.upserts - requests.upserts).toBe(1)
+    expect(server.calls.posts - requests.posts).toBe(2)
+  })
+
+  it('merges an account that already holds data: the newer side wins, bad rows are skipped', async () => {
+    const server = fakeServer()
+    server.transactions.push(
+      remoteRow(1, 'ana', 'Server version', { updated_at: '2022-11-08T08:30:00Z' }),
+      remoteRow(2, 'ana', 'Old on server'),
+      remoteRow(3, 'ana', 'Bad amount', { amount: 'abc' }),
+      remoteRow(4, 'ana', 'Bad id', { id: 'not-an-id' }),
+      remoteRow(5, 'ana', 'Deleted elsewhere', { deleted_at: '2022-11-08T08:10:00Z', updated_at: '2022-11-08T08:10:00Z' }),
+      remoteRow(6, 'ana', 'Only on the account'),
+    )
+    localStorage.setItem(SYNC_KEY, JSON.stringify({ owner: 'ana', deleted: {} }))
+    localStorage.setItem(
+      TRANSACTIONS_KEY,
+      JSON.stringify([localCopy(1, 'Local version'), localCopy(2, 'Local edit', '2022-11-08T08:30:00.000Z')]),
+    )
+    await open(server.client({ user: { id: 'ana' } }).client)
+    expect(hook().syncState).toBe('synced')
+    expect(descriptions().sort()).toEqual(['Local edit', 'Only on the account', 'Server version'])
+    const stored = (n: number) => server.transactions.find((row) => row.id === idOf(n))
+    expect(stored(1)).toMatchObject({ description: 'Server version' })
+    expect(stored(2)).toMatchObject({ description: 'Local edit', updated_at: '2022-11-08T08:30:00.000Z' })
+    expect(stored(3)).toMatchObject({ amount: 'abc' })
+    expect(server.transactions).toHaveLength(6)
+  })
+
+  it('syncs when the page becomes visible again, not when it is hidden', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    server.fail(true)
+    add('Coffee')
+    await settle()
+    expect(hook().syncState).toBe('failed')
+    server.fail(false)
+
+    const visibility = vi.spyOn(document, 'visibilityState', 'get')
+    visibility.mockReturnValue('hidden')
+    await settle(() => document.dispatchEvent(new Event('visibilitychange')))
+    expect(hook().syncState).toBe('failed')
+    expect(server.transactions).toEqual([])
+
+    visibility.mockReturnValue('visible')
+    await settle(() => document.dispatchEvent(new Event('visibilitychange')))
+    expect(hook().syncState).toBe('synced')
+    expect(server.transactions).toHaveLength(1)
   })
 })
 
@@ -364,7 +528,7 @@ describe('syncing budgets with the account', () => {
     const phone = server.client({ user: { id: 'ana' } })
     localStorage.clear()
     await open(phone.client)
-    vi.advanceTimersByTime(60_000)
+    vi.setSystemTime(new Date('2022-11-08T10:00:00Z'))
     act(() => hook().removeBudget('food'))
     await settle()
     expect(server.budgets[0].deleted_at).not.toBeNull()
@@ -483,7 +647,7 @@ describe('recurring items', () => {
     const phone = server.client({ user: { id: 'ana' } })
     await open(phone.client)
     expect(hook().recurring.map((item) => item.description)).toEqual(['Rent'])
-    vi.advanceTimersByTime(60_000)
+    vi.setSystemTime(new Date('2022-11-08T10:00:00Z'))
     act(() => hook().removeRecurring(hook().recurring[0].id))
     await settle()
     expect(server.recurring[0].deleted_at).not.toBeNull()
@@ -504,5 +668,86 @@ describe('recurring items', () => {
     await device.signInAs(null)
     expect(hook().recurring).toEqual([])
     expect(localStorage.getItem(RECURRING_KEY)).toBe(JSON.stringify({ items: [], deleted: {} }))
+  })
+
+  it('fails the sync when the account cannot post what fell due, and posts it once it can', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    server.failRpc(true)
+    act(() => hook().addRecurring(rent()))
+    add('Coffee')
+    await settle()
+    expect(hook().syncState).toBe('failed')
+    expect(hook().recurring.map((item) => item.description)).toEqual(['Rent'])
+    expect(descriptions()).toEqual(['Coffee'])
+    await act(async () => {
+      expect(await hook().sync()).toBe(false)
+    })
+
+    server.failRpc(false)
+    await act(async () => {
+      expect(await hook().sync()).toBe(true)
+    })
+    expect(hook().syncState).toBe('synced')
+    expect(posted()).toEqual(['2022-10-31', '2022-09-30', '2022-08-31'])
+    expect(server.recurring).toHaveLength(1)
+    expect(server.transactions.filter((row) => row.description === 'Rent')).toHaveLength(3)
+  })
+})
+
+describe('saved data on the device', () => {
+  const signedInAsAna = () => localStorage.setItem(SYNC_KEY, JSON.stringify({ owner: 'ana', deleted: {} }))
+
+  it('skips what is unreadable or repeated when it opens', async () => {
+    signedInAsAna()
+    localStorage.setItem(
+      TRANSACTIONS_KEY,
+      JSON.stringify([null, 'text', { id: 'x' }, localCopy(1, 'Kept'), localCopy(1, 'Repeated'), { ...localCopy(2, 'No amount'), amount: -5 }, localCopy(3, 'Also kept')]),
+    )
+    const stamp = '2022-11-08T08:00:00.000Z'
+    localStorage.setItem(
+      BUDGETS_KEY,
+      JSON.stringify({
+        budgets: [{ category: 'food', amount: 20000, updatedAt: stamp }, null, { category: 5 }, { category: 'food', amount: 999, updatedAt: stamp }, { category: 'fun', amount: 0, updatedAt: stamp }],
+        deleted: {},
+      }),
+    )
+    localStorage.setItem(RECURRING_KEY, '{not json')
+    await open(null)
+    expect(descriptions().sort()).toEqual(['Also kept', 'Kept'])
+    expect(hook().budgets).toMatchObject([{ category: 'food', amount: 20000 }])
+    expect(hook().recurring).toEqual([])
+  })
+
+  it('starts over from data that is not a list at all', async () => {
+    signedInAsAna()
+    localStorage.setItem(TRANSACTIONS_KEY, '{"a":1}')
+    localStorage.setItem(BUDGETS_KEY, '[1,2]')
+    localStorage.setItem(RECURRING_KEY, JSON.stringify({ items: [{ id: 5 }], deleted: { x: 'not a date' } }))
+    await open(null)
+    expect(hook().transactions).toEqual([])
+    expect(hook().budgets).toEqual([])
+    expect(hook().recurring).toEqual([])
+  })
+
+  it('reports a refused write for the budgets alone, until the next one succeeds', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    const setItem = Storage.prototype.setItem
+    const refuse = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key: string, value: string) {
+      if (key === BUDGETS_KEY) throw new DOMException('full', 'QuotaExceededError')
+      setItem.call(this, key, value)
+    })
+    add('Coffee')
+    expect(hook().saveFailed).toBe(false)
+    act(() => hook().setBudget('food', 20000))
+    expect(hook().saveFailed).toBe(true)
+    // Another key saving fine does not clear it.
+    add('Tea')
+    expect(hook().saveFailed).toBe(true)
+
+    refuse.mockRestore()
+    act(() => hook().setBudget('food', 25000))
+    expect(hook().saveFailed).toBe(false)
   })
 })

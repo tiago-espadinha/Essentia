@@ -38,7 +38,9 @@ create index check_ins_user_id_idx on public.check_ins (user_id);
 alter table public.habits enable row level security;
 alter table public.check_ins enable row level security;
 
-revoke all on public.habits, public.check_ins from anon;
+-- Supabase's default privileges grant every right, truncate included, which
+-- ignores row level security; the app needs only these four.
+revoke all on public.habits, public.check_ins from anon, authenticated;
 grant select, insert, update, delete on public.habits, public.check_ins to authenticated;
 
 create policy "Users read their own habits" on public.habits

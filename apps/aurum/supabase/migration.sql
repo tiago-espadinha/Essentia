@@ -97,8 +97,8 @@ create table public.recurring_transactions (
   paused_on date,
   resumed_on date,
   check (not paused or paused_on is not null),
-  -- Occurrences dealt with so far. Only process_due_recurring() moves it; the app
-  -- never sends it, so a device with an old copy of the item cannot set it back.
+  -- Occurrences dealt with so far. Only process_due_recurring() moves it; clients
+  -- cannot write it, so no device can set it back and have old occurrences walked again.
   posted integer not null default 0 check (posted >= 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -136,9 +136,6 @@ alter table public.transactions add column recurring_on date;
 alter table public.transactions add constraint transactions_recurring_fkey
   foreign key (recurring_id, user_id) references public.recurring_transactions (id, user_id);
 alter table public.transactions add constraint transactions_recurring_occurrence_key unique (recurring_id, recurring_on);
--- process_due_recurring() runs as the caller, so the caller needs these on their own rows.
-grant insert (recurring_id, recurring_on) on public.transactions to authenticated;
-grant update (posted) on public.recurring_transactions to authenticated;
 
 -- The count-th occurrence after start (0 is start itself). Months and years are
 -- counted from the start, so Jan 31 monthly gives Feb 28 (29 in a leap year),
@@ -158,17 +155,19 @@ $$;
 
 -- Posts every occurrence of the signed-in user's items that has fallen due by
 -- p_today, the device's own calendar day, and returns how many it posted. The
--- app calls it each time it syncs; there is no scheduled job. It runs as the
--- caller, so row level security keeps it to the caller's items. Each item is
+-- app calls it each time it syncs; there is no scheduled job. It runs as its
+-- owner, since clients may not write posted or the recurring columns, and keeps
+-- itself to the caller's items. Each item is
 -- locked while it is posted, so two devices opening at once post it once (the
 -- second skips it). Deleted items post nothing. Occurrences from paused_on up
 -- to resumed_on are skipped; while paused, the item stops at paused_on and the
--- resume decides. Each call posts at most 1,000 occurrences per item; the next
--- call goes on from there.
+-- resume decides. Each call steps through at most 1,000 occurrences per item,
+-- posted or skipped, so an old start or a long pause cannot make one call run
+-- long; the next call goes on from there.
 create function public.process_due_recurring(p_today date)
 returns integer
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 declare
@@ -176,6 +175,7 @@ declare
   due date;
   next_count integer;
   item_posted integer;
+  me uuid := (select auth.uid());
   posted_now integer := 0;
 begin
   -- The day differs by time zone, never by more than a day either side of the server's.
@@ -185,7 +185,8 @@ begin
 
   for item in
     select * from public.recurring_transactions r
-    where r.deleted_at is null
+    where r.user_id = me
+      and r.deleted_at is null
       and public.recurring_occurrence(r.start_on, r.frequency, r.posted) <= p_today
       and (not r.paused or public.recurring_occurrence(r.start_on, r.frequency, r.posted) < r.paused_on)
     for update skip locked
@@ -194,7 +195,7 @@ begin
     item_posted := 0;
     loop
       due := public.recurring_occurrence(item.start_on, item.frequency, next_count);
-      exit when due > p_today or (item.paused and due >= item.paused_on) or item_posted >= 1000;
+      exit when due > p_today or (item.paused and due >= item.paused_on) or next_count - item.posted >= 1000;
       if item.paused_on is null or due < item.paused_on or due >= coalesce(item.resumed_on, item.paused_on) then
         insert into public.transactions (user_id, description, amount, type, category, occurred_on, recurring_id, recurring_on)
         values (item.user_id, item.description, item.amount, item.type, item.category, due, item.id, due)

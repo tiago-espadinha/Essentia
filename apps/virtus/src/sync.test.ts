@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Habit } from './habits'
-import { merge, NO_STAMPS, readRemote, stampChanges, type CheckInRow, type HabitRow, type Push, type Remote, type Stamps } from './sync'
+import { LIMITS, merge, NO_STAMPS, readRemote, stampChanges, type CheckInRow, type HabitRow, type Push, type Remote, type Stamps } from './sync'
 
 const ID = '0b5c1f6e-4b7a-4c1d-9e2f-1a2b3c4d5e6f'
 const OTHER = '7d9e8f00-1111-4222-8333-444455556666'
@@ -159,6 +159,18 @@ describe('merge', () => {
     const result = merge(local, NO_STAMPS, remote(), NOW)
     expect(result.habits).toEqual(local)
     expect(result.push).toEqual({ habits: [], deletions: [], checkIns: [] })
+  })
+
+  it('keeps a habit past the tables’ length checks on this device only', () => {
+    const local = [habit({ name: 'x'.repeat(LIMITS.name + 1), log: { '2022-09-20': 1 } })]
+    const result = merge(local, NO_STAMPS, remote(), NOW)
+    expect(result.habits).toEqual(local)
+    expect(result.push).toEqual({ habits: [], deletions: [], checkIns: [] })
+  })
+
+  it('counts an emoji in a name as one character, as the table does', () => {
+    const result = merge([habit({ name: '🌱'.repeat(LIMITS.name) })], NO_STAMPS, remote(), NOW)
+    expect(result.push.habits).toHaveLength(1)
   })
 })
 

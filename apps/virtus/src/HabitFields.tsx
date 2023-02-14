@@ -1,5 +1,6 @@
 import { WEEK, WEEKDAY_NAMES, type Weekday } from './habits'
 import type { FormErrors, HabitForm } from './habitForm'
+import { LIMITS } from './sync'
 
 interface HabitFieldsProps {
   /** Prefixes the field ids, so the add form and the edit dialog can coexist. */
@@ -30,6 +31,7 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
           className="input"
           list={id('categories')}
           value={form.category}
+          maxLength={LIMITS.category}
           onChange={(event) => set({ category: event.target.value })}
           placeholder="General"
           autoComplete="off"
@@ -104,6 +106,7 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
             label="Unit"
             value={form.unit}
             placeholder="pages, minutes…"
+            maxLength={LIMITS.unit}
             error={errors.unit}
             onChange={(unit) => set({ unit })}
           />
@@ -128,11 +131,12 @@ interface TextFieldProps {
   value: string
   placeholder: string
   inputMode?: 'decimal'
+  maxLength?: number
   error?: string
   onChange: (value: string) => void
 }
 
-function TextField({ id, label, value, placeholder, inputMode, error, onChange }: TextFieldProps) {
+function TextField({ id, label, value, placeholder, inputMode, maxLength, error, onChange }: TextFieldProps) {
   return (
     <div className="field">
       <label className="label" htmlFor={id}>
@@ -144,6 +148,7 @@ function TextField({ id, label, value, placeholder, inputMode, error, onChange }
         value={value}
         placeholder={placeholder}
         inputMode={inputMode}
+        maxLength={maxLength}
         autoComplete="off"
         aria-invalid={error !== undefined}
         aria-describedby={error ? `${id}-error` : undefined}

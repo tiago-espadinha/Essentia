@@ -9,12 +9,12 @@
 create table public.habits (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  name text not null check (name <> ''),
-  category text not null check (category <> ''),
+  name text not null check (char_length(name) between 1 and 100),
+  category text not null check (char_length(category) between 1 and 50),
   -- 0 = Sunday ... 6 = Saturday; empty means every day.
   days smallint[] not null default '{}' check (days <@ '{0,1,2,3,4,5,6}'::smallint[]),
   -- '' for a yes/no habit, else the unit a numeric habit is logged in.
-  unit text not null default '',
+  unit text not null default '' check (char_length(unit) <= 30),
   target numeric check (target > 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -26,7 +26,8 @@ create index habits_user_id_idx on public.habits (user_id);
 create table public.check_ins (
   habit_id uuid not null references public.habits (id) on delete cascade,
   user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
-  day date not null,
+  -- The app keeps no day before 2000 (FIRST_DAY in src/storage.ts).
+  day date not null check (day >= '2000-01-01'),
   value numeric not null check (value >= 0),
   updated_at timestamptz not null default now(),
   primary key (habit_id, day)

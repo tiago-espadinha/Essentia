@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { HabitFields } from './HabitFields'
 import { formOf, readForm, type FormErrors } from './habitForm'
 import { editId, type Habit, type HabitDraft } from './habits'
+import { LIMITS } from './sync'
 
 interface EditDialogProps {
   habit: Habit
@@ -37,6 +38,7 @@ export function EditDialog({ habit, categories, onSave, onClose }: EditDialogPro
             id="edit-name"
             className="input"
             value={form.name}
+            maxLength={LIMITS.name}
             autoComplete="off"
             aria-invalid={errors.name !== undefined}
             aria-describedby={errors.name ? 'edit-name-error' : undefined}

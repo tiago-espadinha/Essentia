@@ -20,27 +20,36 @@ function fakeServer() {
 
   function client(session: Session) {
     let listener: (event: string, session: Session) => void = () => {}
+    let swapTo: string | null = null
     const user = () => session?.user.id
     const result = (data: unknown) => Promise.resolve(failing ? { data: null, error: new Error('offline') } : { data, error: null })
     const from = (table: string) => ({
       select: () => {
         const query = {
           order: () => query,
-          range: (start: number, end: number) =>
-            result(
-              tables[table]
-                .filter((row) => row.user_id === user())
-                .slice(start, end + 1)
-                .map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== 'user_id'))),
-            ),
+          range: (start: number, end: number) => {
+            const rows = tables[table]
+              .filter((row) => row.user_id === user())
+              .slice(start, end + 1)
+              .map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== 'user_id')))
+            if (swapTo) session = { user: { id: swapTo } }
+            return result(rows)
+          },
         }
         return query
       },
-      upsert: (rows: Row[]) => {
+      upsert: (sent: Row[]) => {
         if (failing) return result(null)
+        // user_id defaults to the session's user, as in the tables.
+        const rows = sent.map((row) => ({ user_id: user(), ...row }))
+        // Row level security: a row for another account than the session's is refused, all or nothing.
+        const others = (row: Row) => tables[table].some((t) => keyOf(table, t) === keyOf(table, row) && t.user_id !== user())
+        if (rows.some((row) => row.user_id !== user() || others(row))) {
+          return Promise.resolve({ data: null, error: new Error('new row violates row-level security policy') })
+        }
         for (const row of rows) {
           const index = tables[table].findIndex((existing) => keyOf(table, existing) === keyOf(table, row))
-          const stored = { ...row, user_id: user()! }
+          const stored = { ...row, user_id: String(row.user_id) }
           if (index === -1) tables[table].push(stored)
           else tables[table][index] = stored
         }
@@ -66,7 +75,11 @@ function fakeServer() {
       session = id ? { user: { id } } : null
       await settle(() => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session))
     }
-    return { client: { from, auth } as unknown as SupabaseClient, signInAs }
+    /** Another tab's sign-in replaces the stored session while this tab's next read is out; this tab hears of it later. */
+    const swapTokenOnRead = (id: string) => {
+      swapTo = id
+    }
+    return { client: { from, auth } as unknown as SupabaseClient, signInAs, swapTokenOnRead }
   }
 
   return { tables, client, fail: (value: boolean) => (failing = value) }
@@ -148,6 +161,17 @@ describe('syncing habits with the account', () => {
 
     await device.signInAs('ana')
     expect(names()).toEqual(['Read'])
+  })
+
+  it('never writes one account’s habits under another’s session', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    device.swapTokenOnRead('ben')
+    await settle(() => hook().add(draft('Ana’s habit')))
+    expect(server.tables.habits.filter((row) => row.user_id === 'ben')).toEqual([])
+    expect(hook().syncState).toBe('failed')
+    expect(names()).toEqual(['Ana’s habit'])
   })
 
   it('never shows one account’s habits to the next account on the same device', async () => {

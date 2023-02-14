@@ -21,9 +21,13 @@ export async function fetchRemote(client: SupabaseClient): Promise<unknown[]> {
   }
 }
 
-export async function pushChanges(client: SupabaseClient, push: Push) {
+/**
+ * Sends a merge's changes for `user`. Each row names its owner, so if the
+ * session has switched to another account meanwhile, the table refuses it.
+ */
+export async function pushChanges(client: SupabaseClient, push: Push, user: string) {
   if (push.docs.length > 0) {
-    const { error } = await client.from('documents').upsert(push.docs)
+    const { error } = await client.from('documents').upsert(push.docs.map((doc) => ({ ...doc, user_id: user })))
     if (error) throw error
   }
   // A deletion only stamps the row; deletions are rare enough per sync that one request each is fine.

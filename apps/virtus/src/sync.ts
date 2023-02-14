@@ -47,9 +47,20 @@ export interface Push {
   checkIns: CheckInRow[]
 }
 
+/** The tables' length checks (supabase/migration.sql); the forms keep to them too. */
+export const LIMITS = { name: 100, category: 50, unit: 30 }
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 /** Ids from before sync, or tampered ones, cannot be stored as uuids; those habits stay on this device. */
 const syncable = (id: string) => UUID.test(id)
+/** Counts as the tables' char_length does: an emoji is one, not two. */
+const chars = (text: string) => [...text].length
+/** The tables also refuse oversized habits, which a device kept from before the limits may hold. */
+const fits = (habit: Habit) =>
+  syncable(habit.id) &&
+  chars(habit.name) <= LIMITS.name &&
+  chars(habit.category) <= LIMITS.category &&
+  chars(habit.unit) <= LIMITS.unit
 
 const time = (stamp: string) => Date.parse(stamp)
 const isStamp = (value: unknown): value is string => typeof value === 'string' && !Number.isNaN(time(value))
@@ -167,7 +178,7 @@ export function merge(local: Habit[], stamps: Stamps, remote: Remote, now: strin
   for (const habit of local) {
     const row = rows.get(habit.id)
     rows.delete(habit.id)
-    if (!syncable(habit.id)) {
+    if (!fits(habit)) {
       kept.push(habit)
       continue
     }

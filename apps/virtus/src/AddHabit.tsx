@@ -2,6 +2,7 @@ import { useState, type FormEvent, type RefObject } from 'react'
 import { HabitFields } from './HabitFields'
 import { EMPTY_FORM, readForm, type FormErrors } from './habitForm'
 import type { HabitDraft } from './habits'
+import { LIMITS } from './sync'
 
 interface AddHabitProps {
   inputRef: RefObject<HTMLInputElement | null>
@@ -44,6 +45,7 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
           id="add-habit"
           className="input add__input"
           value={form.name}
+          maxLength={LIMITS.name}
           onChange={(event) => {
             setForm({ ...form, name: event.target.value })
             setErrors({ ...errors, name: undefined })

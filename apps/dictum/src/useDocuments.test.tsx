@@ -200,6 +200,21 @@ describe('syncing documents with the account', () => {
     expect(hook().syncState).toBe('synced')
   })
 
+  it('never writes one account’s documents under another’s session', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    server.slow(1000)
+    write('Ana’s draft')
+    // Ben signs in from another tab while Ana's sync is out; this tab has not heard yet.
+    await act(() => vi.advanceTimersByTimeAsync(2100))
+    device.swapToken('ben')
+    await act(() => vi.advanceTimersByTimeAsync(5000))
+    expect(server.documents.filter((row) => row.user_id === 'ben')).toEqual([])
+    expect(hook().syncState).toBe('failed')
+    expect(titles()).toEqual(['Ana’s draft'])
+  })
+
   it('shows no sync failure for a request cut off by signing out', async () => {
     const server = fakeServer()
     const device = server.client({ user: { id: 'ana' } })

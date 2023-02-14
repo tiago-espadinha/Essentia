@@ -46,12 +46,18 @@ export function fakeServer() {
         }
         return query
       },
-      upsert: (rows: Record<string, unknown>[]) => {
+      upsert: (sent: Record<string, unknown>[]) => {
         if (failing) return result(null)
         calls.upserts += 1
+        // user_id defaults to the session's user, as in the table.
+        const rows: Record<string, unknown>[] = sent.map((row) => ({ user_id: user(), ...row }))
+        // Row level security: a row for another account than the session's is refused, all or nothing.
+        if (rows.some((row) => row.user_id !== user() || documents.some((t) => t.id === row.id && t.user_id !== user()))) {
+          return Promise.resolve({ data: null, error: new Error('new row violates row-level security policy') })
+        }
         for (const row of rows) {
           const index = documents.findIndex((existing) => existing.id === row.id)
-          const stored = { ...documents[index], ...row, user_id: user()! } as Row
+          const stored = { ...documents[index], ...row } as Row
           if (index === -1) documents.push(stored)
           else documents[index] = stored
         }
@@ -99,7 +105,11 @@ export function fakeServer() {
       emit(id)
       await settle()
     }
-    return { client: { from, rpc, auth } as unknown as SupabaseClient, signInAs, emit }
+    /** Another tab's sign-in replaced the stored session; this tab hears of it later. */
+    const swapToken = (id: string) => {
+      session = { user: { id } }
+    }
+    return { client: { from, rpc, auth } as unknown as SupabaseClient, signInAs, emit, swapToken }
   }
 
   return {

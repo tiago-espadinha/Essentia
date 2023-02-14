@@ -75,7 +75,7 @@ export function useHabits(client: SupabaseClient | null = null) {
         const remote = readRemote(fetched.habits, fetched.checkIns, FIRST_DAY, todayKey())
         const result = merge(latest.current.habits, latest.current.stamps, remote, new Date().toISOString())
         store({ habits: result.habits, stamps: result.stamps })
-        await pushChanges(client, result.push)
+        await pushChanges(client, result.push, user)
       } while (queued.current)
       setSyncState('synced')
       return true

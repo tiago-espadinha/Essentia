@@ -27,10 +27,14 @@ export async function fetchRemote(client: SupabaseClient) {
   return { habits, checkIns }
 }
 
-/** Habits go first, since a check-in must point at one of the user's habits. */
-export async function pushChanges(client: SupabaseClient, push: Push) {
+/**
+ * Sends a merge's changes for `user`. Each row names its owner, so if the
+ * session has switched to another account meanwhile, the tables refuse it.
+ * Habits go first, since a check-in must point at one of the user's habits.
+ */
+export async function pushChanges(client: SupabaseClient, push: Push, user: string) {
   if (push.habits.length > 0) {
-    const { error } = await client.from('habits').upsert(push.habits)
+    const { error } = await client.from('habits').upsert(push.habits.map((habit) => ({ ...habit, user_id: user })))
     if (error) throw error
   }
   // A deletion only stamps the row, so it needs no settings; deletions are rare
@@ -40,7 +44,8 @@ export async function pushChanges(client: SupabaseClient, push: Push) {
     if (error) throw error
   }
   if (push.checkIns.length > 0) {
-    const { error } = await client.from('check_ins').upsert(push.checkIns, { onConflict: 'habit_id,day' })
+    const rows = push.checkIns.map((checkIn) => ({ ...checkIn, user_id: user }))
+    const { error } = await client.from('check_ins').upsert(rows, { onConflict: 'habit_id,day' })
     if (error) throw error
   }
 }

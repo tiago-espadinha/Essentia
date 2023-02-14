@@ -29,11 +29,13 @@ alter table public.documents enable row level security;
 
 revoke all on public.documents from anon, authenticated;
 grant select on public.documents to authenticated;
--- Column grants: user_id comes from the session and share_id from the functions
--- below, so a client can set neither. (An upsert also writes id on a conflict.)
-grant insert (id, title, content, folder, tags, created_at, updated_at, deleted_at)
+-- Column grants: share_id comes from the functions below, so a client cannot set
+-- it. The app sends user_id with every row, so a write made while the session has
+-- switched to another account fails the checks below instead of landing there.
+-- (An upsert also writes id and user_id on a conflict.)
+grant insert (id, user_id, title, content, folder, tags, created_at, updated_at, deleted_at)
   on public.documents to authenticated;
-grant update (id, title, content, folder, tags, created_at, updated_at, deleted_at)
+grant update (id, user_id, title, content, folder, tags, created_at, updated_at, deleted_at)
   on public.documents to authenticated;
 
 create policy "Users read their own documents" on public.documents
@@ -42,7 +44,7 @@ create policy "Users read their own documents" on public.documents
 create policy "Users add their own documents" on public.documents
   for insert to authenticated with check ((select auth.uid()) = user_id);
 
--- with check stops a row from being handed to another user.
+-- with check stops a row from being handed to another user, user_id included.
 create policy "Users change their own documents" on public.documents
   for update to authenticated
   using ((select auth.uid()) = user_id)

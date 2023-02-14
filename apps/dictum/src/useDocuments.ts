@@ -103,7 +103,7 @@ export function useDocuments(client: SupabaseClient | null = null) {
           versions: latest.current.versions.filter((version) => kept.has(version.docId)),
           stamps: result.stamps,
         })
-        await pushChanges(client, result.push)
+        await pushChanges(client, result.push, user)
       } while (queued.current)
       setSyncState('synced')
       return true

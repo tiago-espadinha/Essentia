@@ -46,7 +46,9 @@ export function fakeServer() {
       const keyOf = (row: Record<string, unknown>) => String(row[key])
       const same = (a: Record<string, unknown>, b: Record<string, unknown>) => conflict.every((column) => a[column] === b[column])
       return {
-        select: () => {
+        // Answers only the columns asked for, as PostgREST does, so a missing one shows.
+        select: (columns: string) => {
+          const picked = columns.split(',').map((column) => column.trim())
           let after = ''
           const query = {
             order: () => query,
@@ -60,7 +62,7 @@ export function fakeServer() {
                   .filter((row) => keyOf(row) > after)
                   .sort((a, b) => keyOf(a).localeCompare(keyOf(b)))
                   .slice(0, count)
-                  .map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== 'user_id'))),
+                  .map((row) => Object.fromEntries(picked.filter((column) => column in row).map((column) => [column, row[column]]))),
               ),
           }
           return query

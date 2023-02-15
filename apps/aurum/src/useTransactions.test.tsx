@@ -659,6 +659,22 @@ describe('recurring items', () => {
     expect(posted()).toEqual([])
   })
 
+  it('brings paused and running items to another device, with the day each was paused', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    act(() => hook().addRecurring(rent({ startOn: '2022-12-01' })))
+    act(() => hook().addRecurring(rent({ description: 'Gym', amount: 3000, startOn: '2022-12-05' })))
+    act(() => hook().setRecurringPaused(hook().recurring.find((item) => item.description === 'Gym')!.id, true))
+    await settle()
+    close()
+
+    localStorage.clear()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    const byName = Object.fromEntries(hook().recurring.map((item) => [item.description, item]))
+    expect(byName.Rent).toMatchObject({ paused: false, pausedOn: null })
+    expect(byName.Gym).toMatchObject({ paused: true, pausedOn: '2022-11-08' })
+  })
+
   it('clears the recurring items from the device on sign-out', async () => {
     const server = fakeServer()
     const device = server.client({ user: { id: 'ana' } })

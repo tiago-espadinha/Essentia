@@ -21,7 +21,7 @@ export const BUDGETS: Table = { name: 'budgets', columns: 'category, amount, upd
 export const RECURRING: Table = {
   name: 'recurring_transactions',
   // Not `posted`: only the server counts what it has posted.
-  columns: 'id, description, amount, type, category, frequency, start_on, paused, resumed_on, created_at, updated_at, deleted_at',
+  columns: 'id, description, amount, type, category, frequency, start_on, paused, paused_on, resumed_on, created_at, updated_at, deleted_at',
   key: 'id',
 }
 

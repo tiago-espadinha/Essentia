@@ -1,7 +1,21 @@
 import { isAuthRetryableFetchError, type AuthError, type SupabaseClient } from '@supabase/supabase-js'
 
+/** Fixed wording for the refusals people can act on; Supabase's own messages never reach the page. */
+const MESSAGES = new Map([
+  ['invalid_credentials', 'That email and password don’t match an account.'],
+  ['email_not_confirmed', 'Confirm your email first: open the link we sent you.'],
+  ['user_already_exists', 'An account with this email already exists. Sign in instead.'],
+  ['email_exists', 'An account with this email already exists. Sign in instead.'],
+  ['weak_password', 'Choose a stronger password.'],
+  ['email_address_invalid', 'This email address can’t be used. Try another one.'],
+  ['over_request_rate_limit', 'Too many attempts. Wait a minute and try again.'],
+  ['over_email_send_rate_limit', 'Too many emails sent. Wait a few minutes and try again.'],
+  ['signup_disabled', 'New accounts can’t be created right now.'],
+])
+
 function describe(error: AuthError): string {
-  return isAuthRetryableFetchError(error) ? 'Couldn’t reach the server. Check your connection and try again.' : error.message
+  if (isAuthRetryableFetchError(error)) return 'Couldn’t reach the server. Check your connection and try again.'
+  return MESSAGES.get(error.code ?? '') ?? 'Something went wrong. Try again.'
 }
 
 /** Returns an error to show, or null once signed in. */

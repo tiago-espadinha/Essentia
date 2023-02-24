@@ -83,12 +83,12 @@ function AccountDialog({ email, client, syncState, onSync, text, onClose }: Acco
   const [failure, setFailure] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
 
-  // Signing out clears this device, so the latest changes go up first.
+  // Signing out clears this device, so the latest changes go up first. Offline they can't, so it says so at once.
   async function leave() {
     if (pending) return
     setPending(true)
     setFailure(null)
-    if (!unsynced && !(await onSync())) {
+    if (!unsynced && !(navigator.onLine && (await onSync()))) {
       setUnsynced(true)
       setPending(false)
       return

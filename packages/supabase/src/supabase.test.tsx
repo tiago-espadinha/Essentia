@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { signOut } from './auth'
 import { AuthForm } from './AuthForm'
-import { storedUserId } from './client'
+import { fetchWithTimeout, REQUEST_TIMEOUT_MS, storedUserId } from './client'
 import { useAuth, type Auth } from './useAuth'
 
 declare global {
@@ -264,5 +264,47 @@ describe('signOut', () => {
     const { client, auth } = fakeClient()
     auth.signOut.mockResolvedValueOnce({ error: new AuthRetryableFetchError('Failed to fetch', 0) })
     expect(await signOut(client)).toBe('Couldn’t reach the server. Check your connection and try again.')
+  })
+})
+
+describe('fetchWithTimeout', () => {
+  /** A connection that never answers: the request only ends when its signal aborts. */
+  function stall() {
+    return vi.fn((_input: RequestInfo | URL, init?: RequestInit) => new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(init.signal!.reason))
+    }))
+  }
+
+  beforeEach(() => vi.useFakeTimers())
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('gives up on a stalled request after the time limit, with an error Supabase does not retry', async () => {
+    vi.stubGlobal('fetch', stall())
+    let outcome: string | undefined
+    void fetchWithTimeout('https://abcd.supabase.co/rest/v1/habits').then(
+      () => (outcome = 'answered'),
+      (error: DOMException) => (outcome = error.name),
+    )
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS - 1)
+    expect(outcome).toBeUndefined()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(outcome).toBe('AbortError')
+    expect(REQUEST_TIMEOUT_MS).toBe(10_000)
+  })
+
+  it('passes an answer through and still lets the caller cancel', async () => {
+    const answer = new Response('[]')
+    vi.stubGlobal('fetch', vi.fn(async () => answer))
+    expect(await fetchWithTimeout('https://abcd.supabase.co/rest/v1/habits', { method: 'GET' })).toBe(answer)
+    expect(vi.getTimerCount()).toBe(0)
+
+    vi.stubGlobal('fetch', stall())
+    const caller = new AbortController()
+    const request = fetchWithTimeout('https://abcd.supabase.co/rest/v1/habits', { signal: caller.signal })
+    caller.abort(new DOMException('Cancelled.', 'AbortError'))
+    await expect(request).rejects.toMatchObject({ name: 'AbortError' })
   })
 })

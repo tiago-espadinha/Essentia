@@ -1,4 +1,5 @@
 import { isAuthRetryableFetchError, type AuthError, type SupabaseClient } from '@supabase/supabase-js'
+import { storedUserId } from './client'
 
 /** Fixed wording for the refusals people can act on; Supabase's own messages never reach the page. */
 const MESSAGES = new Map([
@@ -49,7 +50,7 @@ export async function signUp(
  */
 export async function signOut(client: SupabaseClient): Promise<string | null> {
   const { error } = await client.auth.signOut({ scope: 'local' })
-  // Offline, supabase-js has already removed the session here: the device is signed out.
-  if (!error || isAuthRetryableFetchError(error)) return null
-  return describe(error)
+  // The device is signed out once the session has left it, whatever the server said. Offline with
+  // an expired token, supabase-js keeps the session and the error is the one to show.
+  return error && storedUserId() !== null ? describe(error) : null
 }

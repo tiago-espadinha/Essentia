@@ -13,4 +13,10 @@ export default defineConfig({
       suiteApps.map((app) => [app.path, { target: `http://localhost:${app.port}`, ws: true }]),
     ),
   },
+  // 404.html lands at the root of dist/, where Vercel serves it for unknown paths.
+  build: {
+    rolldownOptions: {
+      input: { main: 'index.html', notFound: '404.html' },
+    },
+  },
 })

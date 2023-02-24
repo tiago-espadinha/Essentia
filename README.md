@@ -1,7 +1,8 @@
 # Essentia
 
 Five small productivity apps that share one design language, served from one
-site with a hub at `/`. Live at https://essentia-beta.vercel.app/
+site with a hub at `/`. Built for its author's everyday use and as a portfolio
+piece. Live at https://essentia-beta.vercel.app/
 
 ![The Essentia hub](docs/screenshots/hub.png)
 
@@ -109,3 +110,5 @@ command, the security headers and the rewrite for Dictum share links.
 
 - Folio and Acta keep data in the browser only; clearing site data removes it.
 - Dictum's saved versions stay on the device that saved them; only documents sync.
+- On a phone, Dictum's formatting toolbar scrolls sideways with no visual hint that more buttons follow.
+- Keyboard use and automated accessibility checks are covered; screen readers (NVDA, VoiceOver) have not been tested.

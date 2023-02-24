@@ -20,10 +20,16 @@ function Probe({ client }: { client: SupabaseClient | null }) {
   return null
 }
 
-async function open(client: SupabaseClient | null) {
+/** Renders without letting the auth event in: what the first paint shows. */
+function paint(client: SupabaseClient | null) {
   container = document.body.appendChild(document.createElement('div'))
   root = createRoot(container)
-  await settle(() => root.render(<Probe client={client} />))
+  act(() => root.render(<Probe client={client} />))
+}
+
+async function open(client: SupabaseClient | null) {
+  paint(client)
+  await settle()
 }
 
 function close() {
@@ -246,5 +252,48 @@ describe('syncing documents with the account', () => {
     })
     expect(hook().syncState).toBe('synced')
     expect(server.documents.map((row) => row.title)).toEqual(['Offline draft'])
+  })
+})
+
+describe('the first paint after opening', () => {
+  beforeEach(() => vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co'))
+  afterEach(() => vi.unstubAllEnvs())
+
+  async function leaveAnasCopy(server: ReturnType<typeof fakeServer>) {
+    await open(server.client({ user: { id: 'ana' } }).client)
+    write('Ana’s draft')
+    await settle()
+    close()
+  }
+
+  it('holds back an account’s documents when this device has no session for it', async () => {
+    const server = fakeServer()
+    await leaveAnasCopy(server)
+
+    // Ana's session ended while no app was open.
+    paint(server.client(null).client)
+    expect(titles()).toEqual([])
+    await settle()
+    expect(titles()).toEqual([])
+    expect(JSON.parse(localStorage.getItem(DOCS_KEY)!)).toEqual([])
+  })
+
+  it('keeps the account’s copy offline with an expired token, when Supabase reports no session but keeps it', async () => {
+    const server = fakeServer()
+    await leaveAnasCopy(server)
+    localStorage.setItem('sb-test-auth-token', JSON.stringify({ user: { id: 'ana' } }))
+
+    await open(server.client(null).client)
+    expect(titles()).toEqual(['Ana’s draft'])
+    expect(hook().syncState).toBe('off')
+  })
+
+  it('paints the signed-in account’s own documents at once', async () => {
+    const server = fakeServer()
+    await leaveAnasCopy(server)
+    localStorage.setItem('sb-test-auth-token', JSON.stringify({ user: { id: 'ana' } }))
+
+    paint(server.client({ user: { id: 'ana' } }).client)
+    expect(titles()).toEqual(['Ana’s draft'])
   })
 })

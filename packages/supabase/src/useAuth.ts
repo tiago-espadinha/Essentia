@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import { clearAccountData } from './accountData'
+import { storedUserId } from './client'
 
 export type Auth =
   | { status: 'disabled' }
@@ -16,6 +18,8 @@ export function useAuth(client: SupabaseClient | null): Auth {
     // Fires once with the stored session, then on every sign-in, sign-out and
     // refresh, including those made in another app or tab.
     const { data } = client.auth.onAuthStateChange((_event, session) => {
+      // Offline with an expired token there is no session, but it is still stored: that is no sign-out.
+      if (!session && storedUserId() === null) clearAccountData()
       setAuth(
         session
           ? { status: 'signed-in', userId: session.user.id, email: session.user.email ?? '' }

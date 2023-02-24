@@ -1,4 +1,4 @@
-import type { SyncState } from '@essentia/supabase'
+import { storedUserId, type SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { applyChanges, createDoc, type Doc, type DocChanges } from './documents'
@@ -22,8 +22,12 @@ const EMPTY: Saved = { docs: [], versions: [], stamps: NO_STAMPS }
 const SYNC_DELAY = 2000
 
 function load(): Saved {
+  const stamps = loadStamps()
+  // Another account's documents, or ones whose session has gone, never paint; the auth event then clears them.
+  // New arrays, not EMPTY's: clearing then writes them over the stored copy.
+  if (stamps.owner !== null && stamps.owner !== storedUserId()) return { docs: [], versions: [], stamps }
   const docs = loadDocs()
-  return { docs, versions: loadVersions(docs.map((doc) => doc.id)), stamps: loadStamps() }
+  return { docs, versions: loadVersions(docs.map((doc) => doc.id)), stamps }
 }
 
 /**
@@ -122,7 +126,8 @@ export function useDocuments(client: SupabaseClient | null = null) {
   const claim = useEffectEvent((user: string | null) => {
     userId.current = user
     const { owner } = latest.current.stamps
-    if (owner !== null && owner !== user) store(EMPTY)
+    // Offline with an expired token, Supabase reports no session yet keeps it: the copy stays until the session goes.
+    if (owner !== null && owner !== (user ?? storedUserId())) store(EMPTY)
     if (!user) {
       setSyncState('off')
       return

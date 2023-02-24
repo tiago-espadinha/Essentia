@@ -108,4 +108,23 @@ describe('Dialog', () => {
     render(null)
     expect(document.activeElement).toBe(opener)
   })
+
+  it('without onClose, must be answered: no close button, and Esc is refused', () => {
+    render(
+      <Dialog title="Keep these?" titleId="keep-title" returnFocusId="opener">
+        <button type="button">Keep</button>
+      </Dialog>,
+    )
+    const dialog = container.querySelector('dialog')!
+    expect([...dialog.querySelectorAll('button')].map((b) => b.textContent)).toEqual(['Keep'])
+    const esc = new Event('cancel', { cancelable: true })
+    act(() => dialog.dispatchEvent(esc))
+    expect(esc.defaultPrevented).toBe(true)
+    act(() => dialog.click())
+    expect(dialog.open).toBe(true)
+    // Closed anyway, as Chrome allows on a repeated Esc: it opens again.
+    dialog.open = false
+    act(() => dialog.dispatchEvent(new Event('close')))
+    expect(dialog.open).toBe(true)
+  })
 })

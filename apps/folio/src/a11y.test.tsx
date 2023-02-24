@@ -43,4 +43,13 @@ describe('accessibility', () => {
     click(buttonNamed('#baking'))
     expect(await seriousViolations(container)).toEqual([])
   })
+
+  it('has no serious violations with the undo notice shown', async () => {
+    const container = renderApp()
+    newNote('Sourdough')
+    newNote('Plan')
+    click(buttonNamed('Delete'))
+    expect($('.undo').textContent).toBe('Deleted “Plan”.Undo')
+    expect(await seriousViolations(container)).toEqual([])
+  })
 })

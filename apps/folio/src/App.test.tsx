@@ -116,6 +116,121 @@ describe('deleting notes', () => {
   })
 })
 
+describe('undoing a delete', () => {
+  const announced = () => $('[role="status"]').textContent
+  const strip = () => document.querySelector('.undo')?.textContent ?? ''
+
+  it('names the deleted note in a status region that was already there', () => {
+    renderApp()
+    newNote('Groceries')
+    const region = $('[role="status"]')
+    expect(region.textContent).toBe('')
+    click(buttonNamed('Delete'))
+    expect($('[role="status"]')).toBe(region)
+    expect(announced()).toBe('Deleted “Groceries”.')
+    expect(strip()).toBe('Deleted “Groceries”.Undo')
+  })
+
+  it('calls an untitled note Untitled', () => {
+    renderApp()
+    newNote()
+    click(buttonNamed('Delete'))
+    expect(announced()).toBe('Deleted “Untitled”.')
+  })
+
+  it('brings the note back unchanged, reopened, and keeps it after a reload', () => {
+    renderApp()
+    newNote('Other')
+    newNote('Sourdough')
+    writeBody('<p>Feed it daily.</p>')
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    type(tags, 'baking, home')
+    blur(tags)
+    click(buttonNamed('Pin'))
+    const before = savedNotes().find((note: { title: string }) => note.title === 'Sourdough')
+    expect(before).toMatchObject({ body: '<p>Feed it daily.</p>', tags: ['baking', 'home'], pinned: true })
+
+    click(buttonNamed('Delete'))
+    expect(rowTitles()).toEqual(['Other'])
+    click(buttonNamed('Undo'))
+
+    expect(savedNotes()).toContainEqual(before)
+    expect($<HTMLTextAreaElement>('#note-title').value).toBe('Sourdough')
+    expect(document.activeElement).toBe($('#note-title'))
+    expect(announced()).toBe('')
+    expect(strip()).toBe('')
+
+    unmount()
+    renderApp()
+    expect(rowTitles()).toEqual(['Sourdough', 'Other'])
+    expect(savedNotes()).toContainEqual(before)
+  })
+
+  it('puts the note back in its place in the list', () => {
+    const day = (d: number) => `2022-07-0${d}T10:00:00.000Z`
+    const note = (id: string, d: number) => ({
+      id, title: id, body: '', tags: [], pinned: false, createdAt: day(d), updatedAt: day(d),
+    })
+    localStorage.setItem('essentia-folio-notes', JSON.stringify([note('Newest', 3), note('Oldest', 1), note('Middle', 2)]))
+    renderApp()
+    click(buttonNamed(/^Middle/))
+    click(buttonNamed('Delete'))
+    click(buttonNamed('Undo'))
+    expect(rowTitles()).toEqual(['Newest', 'Middle', 'Oldest'])
+  })
+
+  it('clears a search that would hide the restored note', () => {
+    renderApp()
+    newNote('Apple')
+    newNote('Banana')
+    click(buttonNamed('Delete'))
+    type($<HTMLInputElement>('#search'), 'apple')
+    click(buttonNamed('Undo'))
+    expect($<HTMLInputElement>('#search').value).toBe('')
+    expect(rowTitles()).toEqual(['Banana', 'Apple'])
+    expect(buttonNamed(/^Banana/).getAttribute('aria-current')).toBe('true')
+  })
+
+  it('brings back the tag of a note whose tag filter lapsed', () => {
+    renderApp()
+    newNote('Other')
+    newNote('Chores')
+    const tags = $<HTMLInputElement>('.tags-field__input')
+    type(tags, 'home')
+    blur(tags)
+    click(buttonNamed('Filter'))
+    click(buttonNamed('#home'))
+    click(buttonNamed('Delete'))
+    expect(() => buttonNamed('#home')).toThrow()
+
+    click(buttonNamed('Undo'))
+    expect(rowTitles()).toEqual(['Chores', 'Other'])
+    expect(buttonNamed('#home').getAttribute('aria-pressed')).toBe('false')
+  })
+
+  it('offers undo only for the latest delete', () => {
+    renderApp()
+    newNote('One')
+    newNote('Two')
+    click(buttonNamed('Delete'))
+    click(buttonNamed('Delete'))
+    expect(announced()).toBe('Deleted “One”.')
+    click(buttonNamed('Undo'))
+    expect(rowTitles()).toEqual(['One'])
+  })
+
+  it('does not keep the undo after a reload', () => {
+    renderApp()
+    newNote('Gone')
+    click(buttonNamed('Delete'))
+    unmount()
+    renderApp()
+    expect(announced()).toBe('')
+    expect(strip()).toBe('')
+    expect(savedNotes()).toEqual([])
+  })
+})
+
 describe('saving', () => {
   it('says so when the device refuses to save', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {

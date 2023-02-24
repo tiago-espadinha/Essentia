@@ -1,4 +1,5 @@
 import { formatDate, plainText, type Note } from './notes'
+import { UndoNotice } from './UndoNotice'
 
 interface NoteListProps {
   /** The notes that pass the filters, pinned first. */
@@ -8,10 +9,13 @@ interface NoteListProps {
   selectedId: string | null
   /** Whether the Filter bar (the Library, below 1024 px) is open. */
   filtersOpen: boolean
+  /** The latest deleted note, offered for undo. */
+  deleted: Note | null
   onSelect: (id: string) => void
   onToggleFilters: () => void
   onNew: () => void
   onClearFilters: () => void
+  onUndo: () => void
 }
 
 export function NoteList({
@@ -19,10 +23,12 @@ export function NoteList({
   total,
   selectedId,
   filtersOpen,
+  deleted,
   onSelect,
   onToggleFilters,
   onNew,
   onClearFilters,
+  onUndo,
 }: NoteListProps) {
   const pinned = notes.filter((note) => note.pinned)
   const others = notes.filter((note) => !note.pinned)
@@ -60,6 +66,8 @@ export function NoteList({
           </div>
         )}
       </div>
+
+      <UndoNotice deleted={deleted} onUndo={onUndo} />
 
       <div className="pane__body">
         {total === 0 ? (

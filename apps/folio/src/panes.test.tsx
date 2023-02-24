@@ -97,6 +97,14 @@ describe('one pane at a time on a phone', () => {
     expect(view()).toBe('list')
     expect(document.activeElement).toBe(buttonNamed(/^A/))
   })
+  it('reopens a restored note in the editor with its title focused', () => {
+    renderApp()
+    newNote('A')
+    click(buttonNamed('Delete'))
+    click(buttonNamed('Undo'))
+    expect(view()).toBe('editor')
+    expect(document.activeElement).toBe($('#note-title'))
+  })
 })
 
 describe('opening a note on a wider screen', () => {

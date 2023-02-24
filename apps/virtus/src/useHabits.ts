@@ -1,4 +1,4 @@
-import type { SyncState } from '@essentia/supabase'
+import { storedUserId, type SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { applyDraft, createHabit, logValue, todayKey, toggleDay, type Habit, type HabitDraft } from './habits'
@@ -19,6 +19,13 @@ interface Saved {
 /** A burst of check-ins goes up in one sync. */
 const SYNC_DELAY = 1500
 
+function load(): Saved {
+  const stamps = loadStamps()
+  // Another account's habits, or ones whose session has gone, never paint; the auth event then clears them.
+  if (stamps.owner !== null && stamps.owner !== storedUserId()) return { habits: [], stamps }
+  return { habits: loadHabits(), stamps }
+}
+
 /**
  * The habit list, saved to this device on every change and, when signed in,
  * merged with the account: on sign-in, after local changes, and when the page
@@ -26,7 +33,7 @@ const SYNC_DELAY = 1500
  * a time; signing out (here or in another app) removes it.
  */
 export function useHabits(client: SupabaseClient | null = null) {
-  const [saved, setSaved] = useState<Saved>(() => ({ habits: loadHabits(), stamps: loadStamps() }))
+  const [saved, setSaved] = useState<Saved>(load)
   // Syncs finish after renders; they merge into the newest list, not the one they started from.
   const latest = useRef(saved)
   const [saveFailed, setSaveFailed] = useState(false)
@@ -92,7 +99,8 @@ export function useHabits(client: SupabaseClient | null = null) {
   const claim = useEffectEvent((user: string | null) => {
     userId.current = user
     const { owner } = latest.current.stamps
-    if (owner !== null && owner !== user) store({ habits: [], stamps: NO_STAMPS })
+    // Offline with an expired token, Supabase reports no session yet keeps it: the copy stays until the session goes.
+    if (owner !== null && owner !== (user ?? storedUserId())) store({ habits: [], stamps: NO_STAMPS })
     if (!user) {
       setSyncState('off')
       return

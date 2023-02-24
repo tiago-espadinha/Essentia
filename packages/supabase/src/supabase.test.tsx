@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { signOut } from './auth'
 import { AuthForm } from './AuthForm'
+import { storedUserId } from './client'
 import { useAuth, type Auth } from './useAuth'
 
 declare global {
@@ -85,6 +86,74 @@ describe('useAuth', () => {
 
     emit('SIGNED_OUT', null)
     expect(seen).toEqual({ status: 'signed-out' })
+  })
+
+  it('clears every app’s account data on sign-out, even apps not open, and keeps data with no account', () => {
+    localStorage.clear()
+    const saved = {
+      'essentia-virtus-sync': { owner: 'u1', habits: {}, days: {} },
+      'essentia-virtus-habits': [{ id: 'h1' }],
+      'essentia-dictum-sync': { owner: 'u1', docs: {} },
+      'essentia-dictum-documents': [{ id: 'd1' }],
+      'essentia-dictum-versions': [{ id: 'v1' }],
+      'essentia-aurum-sync': { owner: 'u1', deleted: {} },
+      'essentia-aurum-transactions': [{ id: 't1' }],
+      'essentia-aurum-budgets': { budgets: [], deleted: {} },
+      'essentia-aurum-recurring': { items: [], deleted: {} },
+      'essentia-folio-notes': [{ id: 'n1' }],
+      'essentia-acta-tasks': [{ id: 'a1' }],
+      'essentia-theme': 'dark',
+    }
+    for (const [key, value] of Object.entries(saved)) localStorage.setItem(key, JSON.stringify(value))
+    // Made while signed out in Dictum: not an account's, so it stays.
+    localStorage.setItem('essentia-dictum-sync', JSON.stringify({ owner: null, docs: {} }))
+    const { client, emit } = fakeClient()
+    render(<Probe client={client} />)
+
+    emit('SIGNED_OUT', null)
+    expect(Object.keys(localStorage).sort()).toEqual([
+      'essentia-acta-tasks',
+      'essentia-dictum-documents',
+      'essentia-dictum-sync',
+      'essentia-dictum-versions',
+      'essentia-folio-notes',
+      'essentia-theme',
+    ])
+  })
+})
+
+describe('offline with an expired token', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('keeps the account’s data: Supabase reports no session but still stores it', () => {
+    localStorage.clear()
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://abcd.supabase.co')
+    localStorage.setItem('sb-abcd-auth-token', JSON.stringify({ user: { id: 'u1' } }))
+    localStorage.setItem('essentia-virtus-sync', JSON.stringify({ owner: 'u1' }))
+    const { client, emit } = fakeClient()
+    function Probe() {
+      useAuth(client)
+      return null
+    }
+    render(<Probe />)
+
+    emit('INITIAL_SESSION', null)
+    expect(localStorage.getItem('essentia-virtus-sync')).not.toBeNull()
+  })
+})
+
+describe('storedUserId', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  it('reads the account of the session stored on this device', () => {
+    localStorage.clear()
+    expect(storedUserId()).toBeNull()
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://abcd.supabase.co')
+    expect(storedUserId()).toBeNull()
+    localStorage.setItem('sb-abcd-auth-token', JSON.stringify({ access_token: 'x', user: { id: 'u1' } }))
+    expect(storedUserId()).toBe('u1')
+    localStorage.setItem('sb-abcd-auth-token', '{broken')
+    expect(storedUserId()).toBeNull()
   })
 })
 

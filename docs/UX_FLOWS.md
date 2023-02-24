@@ -44,7 +44,7 @@
 ## Empty, error, and no-permission content
 - Empty: a serif one-liner ("Nothing on the list."), one muted sentence, and the primary action.
 - Error: what happened and what to do ("Couldn’t sync with your account. Your changes are kept on this device.", with Try again beside it).
-- No permission / not found: Dictum shared links that are revoked show "This document isn’t shared any more." with a link to the hub.
+- No permission / not found: Dictum shared links that are revoked show "This document isn’t shared any more." with a link to the hub. Any other unknown path outside Dictum shows the suite's 404 page, "Nothing lives at this address.", with a link to the hub.
 
 ## UX checks for every UI change
 - [ ] The primary journey can be completed without guessing.

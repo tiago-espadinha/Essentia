@@ -239,21 +239,30 @@ describe('AuthForm', () => {
 })
 
 describe('signOut', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
   it('signs out this device only, so other devices keep their unsynced changes', async () => {
     const { client, auth } = fakeClient()
     expect(await signOut(client)).toBeNull()
     expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' })
   })
 
-  it('counts an unreachable server as signed out, since the session is already gone here', async () => {
+  it('counts any failure as signed out once the session has left this device', async () => {
+    localStorage.clear()
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://abcd.supabase.co')
     const { client, auth } = fakeClient()
     auth.signOut.mockResolvedValueOnce({ error: new AuthRetryableFetchError('Failed to fetch', 0) })
     expect(await signOut(client)).toBeNull()
+    auth.signOut.mockResolvedValueOnce({ error: new AuthApiError('Internal error', 500, undefined) })
+    expect(await signOut(client)).toBeNull()
   })
 
-  it('reports any other failure', async () => {
+  it('reports the failure while the session is still on this device, as offline with an expired token', async () => {
+    localStorage.clear()
+    vi.stubEnv('VITE_SUPABASE_URL', 'https://abcd.supabase.co')
+    localStorage.setItem('sb-abcd-auth-token', JSON.stringify({ user: { id: 'u1' } }))
     const { client, auth } = fakeClient()
-    auth.signOut.mockResolvedValueOnce({ error: new AuthApiError('Internal error', 500, undefined) })
-    expect(await signOut(client)).not.toBeNull()
+    auth.signOut.mockResolvedValueOnce({ error: new AuthRetryableFetchError('Failed to fetch', 0) })
+    expect(await signOut(client)).toBe('Couldn’t reach the server. Check your connection and try again.')
   })
 })

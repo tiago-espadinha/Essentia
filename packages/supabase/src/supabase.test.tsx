@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { AuthApiError, AuthRetryableFetchError, type SupabaseClient } from '@supabase/supabase-js'
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -104,9 +104,9 @@ describe('AuthForm', () => {
     expect(auth.signInWithPassword).not.toHaveBeenCalled()
   })
 
-  it('signs in with the trimmed address and shows the server’s refusal', async () => {
+  it('signs in with the trimmed address and explains the refusal in its own words', async () => {
     const { client, auth } = fakeClient()
-    auth.signInWithPassword.mockResolvedValueOnce({ error: { name: 'AuthApiError', message: 'Invalid login credentials' } })
+    auth.signInWithPassword.mockResolvedValueOnce({ error: new AuthApiError('Invalid login credentials', 400, 'invalid_credentials') })
     render(<AuthForm client={client} intro="Sign in to sync." />)
 
     type($('#auth-email'), '  ana@example.com ')
@@ -114,7 +114,42 @@ describe('AuthForm', () => {
     await submit()
 
     expect(auth.signInWithPassword).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'wrong' })
-    expect($('[role="alert"]').textContent).toBe('Invalid login credentials')
+    expect($('[role="alert"]').textContent).toBe('That email and password don’t match an account.')
+  })
+
+  it.each([
+    ['email_not_confirmed', 'Confirm your email first: open the link we sent you.'],
+    ['user_already_exists', 'An account with this email already exists. Sign in instead.'],
+    ['email_exists', 'An account with this email already exists. Sign in instead.'],
+    ['weak_password', 'Choose a stronger password.'],
+    ['email_address_invalid', 'This email address can’t be used. Try another one.'],
+    ['over_request_rate_limit', 'Too many attempts. Wait a minute and try again.'],
+    ['over_email_send_rate_limit', 'Too many emails sent. Wait a few minutes and try again.'],
+    ['signup_disabled', 'New accounts can’t be created right now.'],
+    ['some_new_code', 'Something went wrong. Try again.'],
+    ['constructor', 'Something went wrong. Try again.'],
+  ])('shows fixed wording for %s, never the server’s message', async (code, wording) => {
+    const { client, auth } = fakeClient()
+    auth.signInWithPassword.mockResolvedValueOnce({ error: new AuthApiError('Raw server text', 400, code) })
+    render(<AuthForm client={client} intro="Sign in to sync." />)
+
+    type($('#auth-email'), 'ana@example.com')
+    type($('#auth-password'), 'secret1')
+    await submit()
+
+    expect($('[role="alert"]').textContent).toBe(wording)
+  })
+
+  it('says when the server can’t be reached', async () => {
+    const { client, auth } = fakeClient()
+    auth.signInWithPassword.mockResolvedValueOnce({ error: new AuthRetryableFetchError('Failed to fetch', 0) })
+    render(<AuthForm client={client} intro="Sign in to sync." />)
+
+    type($('#auth-email'), 'ana@example.com')
+    type($('#auth-password'), 'secret1')
+    await submit()
+
+    expect($('[role="alert"]').textContent).toBe('Couldn’t reach the server. Check your connection and try again.')
   })
 
   it('creates an account and asks for the emailed confirmation', async () => {

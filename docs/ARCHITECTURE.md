@@ -9,7 +9,7 @@
 ## Boundaries
 ```text
 apps/
-  hub/       /          lists the apps; in dev it proxies every app onto port 5100
+  hub/       /          lists the apps and builds 404.html; in dev it proxies every app onto port 5100
   acta/      /acta/     tasks, on the device only
   folio/     /folio/    rich-text notes, on the device only
   virtus/    /virtus/   habits; installable PWA; optional sync

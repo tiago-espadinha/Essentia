@@ -29,8 +29,13 @@ export async function signUp(
   return { error: null, confirm: data.session === null }
 }
 
-/** Returns an error to show, or null once signed out. */
+/**
+ * Signs this device out; other devices stay signed in and keep their unsynced
+ * changes. Returns an error to show, or null once signed out.
+ */
 export async function signOut(client: SupabaseClient): Promise<string | null> {
-  const { error } = await client.auth.signOut()
-  return error ? describe(error) : null
+  const { error } = await client.auth.signOut({ scope: 'local' })
+  // Offline, supabase-js has already removed the session here: the device is signed out.
+  if (!error || isAuthRetryableFetchError(error)) return null
+  return describe(error)
 }

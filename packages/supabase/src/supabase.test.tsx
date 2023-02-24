@@ -1,7 +1,8 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import { AuthApiError, AuthRetryableFetchError, type SupabaseClient } from '@supabase/supabase-js'
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { signOut } from './auth'
 import { AuthForm } from './AuthForm'
 import { useAuth, type Auth } from './useAuth'
 
@@ -22,6 +23,7 @@ function fakeClient() {
     }),
     signInWithPassword: vi.fn(async () => ({ error: null as unknown })),
     signUp: vi.fn(async () => ({ data: { session: null as unknown }, error: null as unknown })),
+    signOut: vi.fn(async () => ({ error: null as unknown })),
   }
   const emit: Listener = (event, session) => act(() => listener(event, session))
   return { client: { auth } as unknown as SupabaseClient, auth, emit }
@@ -129,5 +131,25 @@ describe('AuthForm', () => {
 
     expect(auth.signUp).toHaveBeenCalledWith(expect.objectContaining({ email: 'ana@example.com', password: 'secret1' }))
     expect($('[role="status"]').textContent).toContain('Check your inbox at ana@example.com')
+  })
+})
+
+describe('signOut', () => {
+  it('signs out this device only, so other devices keep their unsynced changes', async () => {
+    const { client, auth } = fakeClient()
+    expect(await signOut(client)).toBeNull()
+    expect(auth.signOut).toHaveBeenCalledWith({ scope: 'local' })
+  })
+
+  it('counts an unreachable server as signed out, since the session is already gone here', async () => {
+    const { client, auth } = fakeClient()
+    auth.signOut.mockResolvedValueOnce({ error: new AuthRetryableFetchError('Failed to fetch', 0) })
+    expect(await signOut(client)).toBeNull()
+  })
+
+  it('reports any other failure', async () => {
+    const { client, auth } = fakeClient()
+    auth.signOut.mockResolvedValueOnce({ error: new AuthApiError('Internal error', 500, undefined) })
+    expect(await signOut(client)).not.toBeNull()
   })
 })

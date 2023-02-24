@@ -108,7 +108,6 @@ command, the security headers and the rewrite for Dictum share links.
 ## Known limitations
 
 - Folio and Acta keep data in the browser only; clearing site data removes it.
-- Deleting a note in Folio has no undo; the other apps offer one.
 - Dictum's saved versions stay on the device that saved them; only documents sync.
 - `pnpm preview` has no rewrite for Dictum share links, so `/dictum/shared/<id>` shows the hub there; use `pnpm dev` or the deployed site.
 - On Vercel, an unknown path shows Vercel's 404 page without its styles, since the Content-Security-Policy blocks its inline CSS.

@@ -35,7 +35,7 @@
 | Interaction | Expected behavior | Keyboard / a11y | Failure and recovery |
 |---|---|---|---|
 | Add item (any app) | Appears at once, input clears and keeps focus | Enter submits; labelled input | Inline validation; nothing lost |
-| Delete item | Removed at once with an Undo notice (Acta, Virtus, Dictum, Aurum); Folio deletes the open note without undo | Undo notice is a status region, so the deletion is announced | Save failure shown as an alert; the change lasts until the page closes |
+| Delete item | Removed at once with an Undo notice (Acta, Folio, Virtus, Dictum, Aurum); in Folio, Undo reopens the note | Undo notice is a status region, so the deletion is announced | Save failure shown as an alert; the change lasts until the page closes |
 | Theme toggle | Switches all apps | Button with pressed state | Falls back to system preference |
 | Sign in | One form, session shared across apps | Labelled fields, errors announced | Plain error, retry; local mode still usable (except Aurum) |
 | Sync | Background; status in the account dialog | Status text, not only colour | Notice with Try again on the page; local copy kept |

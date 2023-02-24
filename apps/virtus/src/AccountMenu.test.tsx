@@ -79,4 +79,18 @@ describe('AccountMenu', () => {
     expect(onSync).toHaveBeenCalledOnce()
     expect(signOut).toHaveBeenCalledOnce()
   })
+
+  it('offline, warns at once instead of waiting on a sync that cannot finish', async () => {
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const onSync = render(ANA)
+    await click('Account')
+
+    await click('Sign out')
+    expect(onSync).not.toHaveBeenCalled()
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain('sign out anyway and lose them.')
+
+    await click('Sign out anyway')
+    expect(signOut).toHaveBeenCalledOnce()
+    online.mockRestore()
+  })
 })

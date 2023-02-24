@@ -102,7 +102,7 @@ command, the security headers and the rewrite for Dictum share links.
 
 1. Import the repository into Vercel. The build settings come from `vercel.json`.
 2. Add the environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the build.
-3. In `vercel.json`, set the `connect-src` of the Content-Security-Policy to your project's origin (`https://<ref>.supabase.co` and `wss://<ref>.supabase.co`), or the apps cannot reach Supabase.
+3. In `vercel.json`, set the `connect-src` of the Content-Security-Policy to your project's origin (`https://<ref>.supabase.co`), or the apps cannot reach Supabase.
 4. Add the deployed URL to the Supabase redirect URLs (step 3 above).
 
 ## Known limitations

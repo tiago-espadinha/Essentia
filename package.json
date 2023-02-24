@@ -12,7 +12,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "preview": "pnpm build && vite preview --outDir dist --port 4173"
+    "preview": "pnpm build && vite preview --config vite.preview.config.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.0",

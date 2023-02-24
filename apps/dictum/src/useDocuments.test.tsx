@@ -69,7 +69,7 @@ describe('syncing documents with the account', () => {
     expect(JSON.parse(localStorage.getItem(DOCS_KEY)!).map((doc: { title: string }) => doc.title)).toEqual(['Local only'])
   })
 
-  it('uploads documents written before signing in, and they open on another device without their versions', async () => {
+  it('uploads documents written before signing in once asked to, and they open on another device without their versions', async () => {
     const server = fakeServer()
     const laptop = server.client(null)
     await open(laptop.client)
@@ -78,6 +78,10 @@ describe('syncing documents with the account', () => {
     expect(hook().syncState).toBe('off')
 
     await laptop.signInAs('ana')
+    expect(hook().unclaimed).toBe(1)
+    expect(server.documents).toEqual([])
+    await settle(() => hook().answer(true))
+    expect(hook().unclaimed).toBe(0)
     expect(hook().syncState).toBe('synced')
     expect(server.documents.map((row) => [row.title, row.user_id])).toEqual([['Essay', 'ana']])
     close()
@@ -88,6 +92,27 @@ describe('syncing documents with the account', () => {
     expect(titles()).toEqual(['Essay'])
     expect(hook().docs[0].content).toBe('# Essay')
     expect(hook().versions).toEqual([])
+  })
+
+  it('removes documents written before signing in when told to, versions included, and shows the account’s own', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    write('Ana’s essay')
+    await settle()
+    close()
+
+    localStorage.clear()
+    const shared = server.client(null)
+    await open(shared.client)
+    const id = write('Someone else’s note')
+    act(() => hook().saveVersion(id))
+    await shared.signInAs('ana')
+    expect(titles()).toEqual(['Someone else’s note'])
+
+    await settle(() => hook().answer(false))
+    expect(titles()).toEqual(['Ana’s essay'])
+    expect(hook().versions).toEqual([])
+    expect(server.documents.map((row) => row.title)).toEqual(['Ana’s essay'])
   })
 
   it('sends an edit after a pause in typing, and nothing more once both sides match', async () => {

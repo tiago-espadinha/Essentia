@@ -9,7 +9,7 @@ import './account.css'
 export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
 
 /** One id for both header buttons, so a dialog closed by signing in or out hands focus back. */
-const BUTTON_ID = 'account-button'
+export const BUTTON_ID = 'account-button'
 
 /** What this app's data does on sign-in, while syncing and on sign-out. */
 export interface AccountText {

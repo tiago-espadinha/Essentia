@@ -1,4 +1,4 @@
-import { getSupabase, useAuth } from '@essentia/supabase'
+import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './AccountMenu'
 import { AddHabit } from './AddHabit'
@@ -24,7 +24,7 @@ const client = getSupabase()
 
 export default function App() {
   const auth = useAuth(client)
-  const { habits, saveFailed, syncState, sync, add, update, toggle, log, remove, restore } = useHabits(client)
+  const { habits, unclaimed, answer, saveFailed, syncState, sync, add, update, toggle, log, remove, restore } = useHabits(client)
   const [editing, setEditing] = useState<Habit | null>(null)
   const [statsFor, setStatsFor] = useState<Habit | null>(null)
   const [view, setView] = useState<View>('today')
@@ -172,6 +172,10 @@ export default function App() {
 
         {list()}
       </main>
+
+      {unclaimed > 0 && auth.status === 'signed-in' && (
+        <ClaimDialog count={unclaimed} noun={['habit', 'habits']} email={auth.email} onAnswer={answer} />
+      )}
 
       {statsFor && <HabitStatsDialog habit={statsFor} today={today} onClose={() => setStatsFor(null)} />}
 

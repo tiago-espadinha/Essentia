@@ -1,4 +1,4 @@
-import { getSupabase, useAuth } from '@essentia/supabase'
+import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { AccountMenu } from './AccountMenu'
 import { AppHeader } from './AppHeader'
@@ -26,7 +26,7 @@ const client = getSupabase()
 
 export default function App() {
   const auth = useAuth(client)
-  const { docs, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
+  const { docs, unclaimed, answer, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // What in which document takes focus when its editor mounts or shows.
   const [focusRequest, setFocusRequest] = useState<{ docId: string; target: FocusTarget } | null>(null)
@@ -202,6 +202,9 @@ export default function App() {
           )}
         </section>
       </main>
+      {unclaimed > 0 && auth.status === 'signed-in' && (
+        <ClaimDialog count={unclaimed} noun={['document', 'documents']} email={auth.email} onAnswer={answer} />
+      )}
       {dialog?.kind === 'share' && dialogDoc && client && (
         <ShareDialog doc={dialogDoc} auth={auth} client={client} onSync={sync} onClose={() => setDialog(null)} />
       )}

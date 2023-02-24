@@ -32,6 +32,8 @@ export function useHabits(client: SupabaseClient | null = null) {
   const [saveFailed, setSaveFailed] = useState(false)
   const [syncState, setSyncState] = useState<SyncState>('off')
   const [edits, setEdits] = useState(0)
+  // Signed in with habits made while signed out: they wait for the person to keep or remove them.
+  const [asking, setAsking] = useState(false)
   const inFlight = useRef<Promise<boolean> | null>(null)
   const queued = useRef(false)
   // Set by Supabase's auth events, which can come from another app or tab.
@@ -53,7 +55,7 @@ export function useHabits(client: SupabaseClient | null = null) {
 
   /** Resolves to whether everything on this device reached the account. */
   function sync(): Promise<boolean> {
-    if (!client || !userId.current) return Promise.resolve(false)
+    if (!client || !userId.current || latest.current.stamps.owner !== userId.current) return Promise.resolve(false)
     if (inFlight.current) {
       queued.current = true
       return inFlight.current
@@ -88,19 +90,34 @@ export function useHabits(client: SupabaseClient | null = null) {
 
   const syncNow = useEffectEvent(() => void sync())
 
-  /** Hands the device's list to the account now signed in, or clears another account's. */
+  /**
+   * Gives the device's list to the account now signed in, clearing another
+   * account's. Habits made while signed out may be someone else's on a shared
+   * device, so those wait for `answer`.
+   */
   const claim = useEffectEvent((user: string | null) => {
     userId.current = user
+    setAsking(false)
     const { owner } = latest.current.stamps
     if (owner !== null && owner !== user) store({ habits: [], stamps: NO_STAMPS })
     if (!user) {
       setSyncState('off')
       return
     }
-    if (latest.current.stamps.owner !== user) store({ ...latest.current, stamps: { ...latest.current.stamps, owner: user } })
+    if (latest.current.stamps.owner === null && latest.current.habits.length > 0) {
+      setAsking(true)
+      return
+    }
+    take(user, true)
     // Supabase asks not to call it from inside its own auth callback.
     setTimeout(syncNow, 0)
   })
+
+  /** Makes the device's list the account's, or starts it empty, before the first sync. */
+  function take(user: string, keep: boolean) {
+    if (latest.current.stamps.owner === user) return
+    store(keep ? { ...latest.current, stamps: { ...latest.current.stamps, owner: user } } : { habits: [], stamps: { ...NO_STAMPS, owner: user } })
+  }
 
   useEffect(() => {
     if (!client) return
@@ -132,6 +149,15 @@ export function useHabits(client: SupabaseClient | null = null) {
 
   return {
     habits,
+    /** How many habits made while signed out wait for `answer`; 0 when there is no question. */
+    unclaimed: asking ? habits.length : 0,
+    /** Adds the waiting habits to the account, or removes them from this device. */
+    answer: (add: boolean) => {
+      if (!asking || !userId.current) return
+      setAsking(false)
+      take(userId.current, add)
+      void sync()
+    },
     saveFailed,
     syncState,
     sync,

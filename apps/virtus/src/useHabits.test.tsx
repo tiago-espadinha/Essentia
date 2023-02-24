@@ -130,7 +130,7 @@ afterEach(() => {
 })
 
 describe('syncing habits with the account', () => {
-  it('uploads habits made before signing in, and they appear on another device', async () => {
+  it('uploads habits made before signing in once asked to, and they appear on another device', async () => {
     const server = fakeServer()
     const laptop = server.client(null)
     await open(laptop.client)
@@ -138,6 +138,10 @@ describe('syncing habits with the account', () => {
     expect(hook().syncState).toBe('off')
 
     await laptop.signInAs('ana')
+    expect(hook().unclaimed).toBe(1)
+    expect(server.tables.habits).toEqual([])
+    await settle(() => hook().answer(true))
+    expect(hook().unclaimed).toBe(0)
     expect(hook().syncState).toBe('synced')
     await settle(() => hook().toggle(hook().habits[0].id, '2022-08-15'))
     close()
@@ -147,6 +151,43 @@ describe('syncing habits with the account', () => {
     await open(phone.client)
     expect(names()).toEqual(['Read'])
     expect(hook().habits[0].log).toEqual({ '2022-08-15': 1 })
+  })
+
+  it('removes habits made before signing in when told to, and shows the account’s own', async () => {
+    const server = fakeServer()
+    const phone = server.client({ user: { id: 'ana' } })
+    await open(phone.client)
+    await settle(() => hook().add(draft('Ana’s habit')))
+    close()
+
+    localStorage.clear()
+    const shared = server.client(null)
+    await open(shared.client)
+    await settle(() => hook().add(draft('Someone else’s habit')))
+    await shared.signInAs('ana')
+    expect(names()).toEqual(['Someone else’s habit'])
+    expect(hook().syncState).toBe('off')
+
+    await settle(() => hook().answer(false))
+    expect(names()).toEqual(['Ana’s habit'])
+    expect(server.tables.habits.map((row) => row.name)).toEqual(['Ana’s habit'])
+  })
+
+  it('asks nothing when the device has no habits of its own, and drops the question on sign-out', async () => {
+    const server = fakeServer()
+    const device = server.client(null)
+    await open(device.client)
+    await device.signInAs('ana')
+    expect(hook().unclaimed).toBe(0)
+    expect(hook().syncState).toBe('synced')
+    await device.signInAs(null)
+
+    await settle(() => hook().add(draft('Read')))
+    await device.signInAs('ben')
+    expect(hook().unclaimed).toBe(1)
+    await device.signInAs(null)
+    expect(hook().unclaimed).toBe(0)
+    expect(names()).toEqual(['Read'])
   })
 
   it('clears the device on sign-out, and the habits come back on signing in again', async () => {

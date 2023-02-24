@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { SYNC_FAILED } from './useHabits'
 
 const TEXT: AccountText = {
-  intro: 'Keep your habits on every device. Habits already on this device are added to your account.',
+  intro: 'Keep your habits on every device. If this device already has habits, you choose whether they join your account.',
   sync: {
     off: 'Not synced yet.',
     syncing: 'Syncing…',

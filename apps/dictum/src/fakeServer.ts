@@ -21,7 +21,8 @@ export function fakeServer() {
   let delay = 0
 
   function client(session: Session) {
-    let listener: (event: string, session: Session) => void = () => {}
+    // Every subscriber hears each event, as with Supabase: the app's auth state and its documents.
+    const listeners = new Set<(event: string, session: Session) => void>()
     const user = () => session?.user.id
     const reply = (data: unknown) => (failing ? { data: null, error: new Error('offline') } : { data, error: null })
     const result = (data: unknown) =>
@@ -90,16 +91,16 @@ export function fakeServer() {
       return result(null)
     }
     const auth = {
-      onAuthStateChange: (callback: typeof listener) => {
-        listener = callback
+      onAuthStateChange: (callback: (event: string, session: Session) => void) => {
+        listeners.add(callback)
         queueMicrotask(() => callback('INITIAL_SESSION', session))
-        return { data: { subscription: { unsubscribe: () => {} } } }
+        return { data: { subscription: { unsubscribe: () => listeners.delete(callback) } } }
       },
     }
     /** Switches the session (as another tab would) without letting time pass. */
     const emit = (id: string | null) => {
       session = id ? { user: { id } } : null
-      act(() => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session))
+      act(() => listeners.forEach((listener) => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session)))
     }
     const signInAs = async (id: string | null) => {
       emit(id)

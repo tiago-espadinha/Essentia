@@ -90,3 +90,8 @@
 
 /* Still readable while a request is out; the label says what is happening. */
 .account__sign-out[aria-disabled='true'] { opacity: 0.7; cursor: default; }
+
+/* Two long answers: stacked on a phone, the suggested one first. */
+@media (max-width: 480px) {
+  .account__actions--answer { flex-direction: column-reverse; }
+}

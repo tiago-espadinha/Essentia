@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { SYNC_FAILED } from './useDocuments'
 
 const TEXT: AccountText = {
-  intro: 'Keep your documents on every device and share them by link. Documents already on this device are added to your account.',
+  intro: 'Keep your documents on every device and share them by link. If this device already has documents, you choose whether they join your account.',
   sync: {
     off: 'Not synced yet.',
     syncing: 'Syncing…',

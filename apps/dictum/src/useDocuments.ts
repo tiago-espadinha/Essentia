@@ -42,6 +42,8 @@ export function useDocuments(client: SupabaseClient | null = null) {
   const latest = useRef(saved)
   const [syncState, setSyncState] = useState<SyncState>('off')
   const [edits, setEdits] = useState(0)
+  // Signed in with documents made while signed out: they wait for the person to keep or remove them.
+  const [asking, setAsking] = useState(false)
   const inFlight = useRef<Promise<boolean> | null>(null)
   const queued = useRef(false)
   // Set by Supabase's auth events, which can come from another app or tab.
@@ -75,7 +77,7 @@ export function useDocuments(client: SupabaseClient | null = null) {
 
   /** Resolves to whether everything on this device reached the account. */
   function sync(): Promise<boolean> {
-    if (!client || !userId.current) return Promise.resolve(false)
+    if (!client || !userId.current || latest.current.stamps.owner !== userId.current) return Promise.resolve(false)
     if (inFlight.current) {
       queued.current = true
       return inFlight.current
@@ -118,19 +120,34 @@ export function useDocuments(client: SupabaseClient | null = null) {
 
   const syncNow = useEffectEvent(() => void sync())
 
-  /** Hands the device's documents to the account now signed in, or clears another account's. */
+  /**
+   * Gives the device's documents to the account now signed in, clearing another
+   * account's. Documents made while signed out may be someone else's on a
+   * shared device, so those wait for `answer`.
+   */
   const claim = useEffectEvent((user: string | null) => {
     userId.current = user
+    setAsking(false)
     const { owner } = latest.current.stamps
     if (owner !== null && owner !== user) store(EMPTY)
     if (!user) {
       setSyncState('off')
       return
     }
-    if (latest.current.stamps.owner !== user) store({ ...latest.current, stamps: { ...latest.current.stamps, owner: user } })
+    if (latest.current.stamps.owner === null && latest.current.docs.length > 0) {
+      setAsking(true)
+      return
+    }
+    take(user, true)
     // Supabase asks not to call it from inside its own auth callback.
     setTimeout(syncNow, 0)
   })
+
+  /** Makes the device's documents the account's, or starts it empty, before the first sync. */
+  function take(user: string, keep: boolean) {
+    if (latest.current.stamps.owner === user) return
+    store(keep ? { ...latest.current, stamps: { ...latest.current.stamps, owner: user } } : { ...EMPTY, stamps: { ...NO_STAMPS, owner: user } })
+  }
 
   useEffect(() => {
     if (!client) return
@@ -170,6 +187,15 @@ export function useDocuments(client: SupabaseClient | null = null) {
 
   return {
     docs: saved.docs,
+    /** How many documents made while signed out wait for `answer`; 0 when there is no question. */
+    unclaimed: asking ? saved.docs.length : 0,
+    /** Adds the waiting documents to the account, or removes them (and their versions) from this device. */
+    answer: (add: boolean) => {
+      if (!asking || !userId.current) return
+      setAsking(false)
+      take(userId.current, add)
+      void sync()
+    },
     versions: saved.versions,
     saveFailed: failed.docs || failed.versions || failed.stamps,
     syncState,

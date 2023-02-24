@@ -112,6 +112,39 @@
   color: var(--color-danger);
 }
 
+/* Undo notice: a hairline strip under the list head while a deleted note can come back. */
+.undo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-faint);
+  background: var(--color-paper);
+  color: var(--color-mid);
+}
+
+.undo__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.undo__button {
+  flex: none;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--color-accent-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.undo__button:hover { color: var(--color-ink); }
+
 /* Note list */
 .notes { list-style: none; }
 

@@ -29,5 +29,7 @@ export function useNotes() {
     update: (id: string, changes: NoteChanges) =>
       commit((current) => current.map((note) => (note.id === id ? applyChanges(note, changes) : note))),
     remove: (id: string) => commit((current) => current.filter((note) => note.id !== id)),
+    /** Puts a deleted note back as it was; the list orders it by its own dates. */
+    restore: (note: Note) => commit((current) => [note, ...current]),
   }
 }

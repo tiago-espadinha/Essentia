@@ -3,15 +3,18 @@ import { AppHeader } from './AppHeader'
 import { Editor } from './Editor'
 import { Library } from './Library'
 import { NoteList } from './NoteList'
-import { filterNotes, tagsOf } from './notes'
+import { filterNotes, tagsOf, type Note } from './notes'
+import { DeleteAnnouncer } from './UndoNotice'
 import { useNotes } from './useNotes'
 
 /** Matches folio.css: one pane at a time below 768 px. */
 const PHONE = '(width < 768px)'
 
 export default function App() {
-  const { notes, saveFailed, add, update, remove } = useNotes()
+  const { notes, saveFailed, add, update, remove, restore } = useNotes()
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  // The latest deleted note, until it is restored or another one is deleted.
+  const [deleted, setDeleted] = useState<Note | null>(null)
   // The note whose title takes focus when its editor mounts or shows.
   const [titleFocusId, setTitleFocusId] = useState<string | null>(null)
   // Below 768 px one pane shows at a time: the list, or the open note's editor.
@@ -81,10 +84,23 @@ export default function App() {
   function deleteNote(id: string) {
     const position = visible.findIndex((note) => note.id === id)
     const next = (visible[position + 1] ?? visible[position - 1])?.id ?? null
+    setDeleted(notes.find((note) => note.id === id)!)
     remove(id)
     setSelectedId(next)
     setView('list')
     rowToFocus.current = { id: next }
+  }
+
+  // The note comes back as it was and reopens, with focus on its title. As for
+  // a new note, filters that would hide it are cleared.
+  function undoDelete() {
+    if (!deleted) return
+    if (filterNotes([deleted], query, activeTag).length === 0) clearFilters()
+    restore(deleted)
+    setDeleted(null)
+    setSelectedId(deleted.id)
+    setTitleFocusId(deleted.id)
+    setView('editor')
   }
 
   return (
@@ -92,6 +108,7 @@ export default function App() {
       <AppHeader />
       <main className="folio" ref={mainRef} data-view={selected && view === 'editor' ? 'editor' : 'list'}>
         <h1 className="visually-hidden">Folio notes</h1>
+        <DeleteAnnouncer deleted={deleted} />
         <Library
           query={query}
           tags={tags}
@@ -105,10 +122,12 @@ export default function App() {
           total={notes.length}
           selectedId={selected?.id ?? null}
           filtersOpen={libraryOpen}
+          deleted={deleted}
           onSelect={openNote}
           onToggleFilters={toggleFilters}
           onNew={newNote}
           onClearFilters={clearFilters}
+          onUndo={undoDelete}
         />
         <section className="pane editor-pane" aria-label="Editor">
           {saveFailed && (

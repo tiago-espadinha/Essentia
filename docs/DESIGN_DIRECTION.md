@@ -86,7 +86,7 @@ Loading / Empty / Error and retry / Success / Disabled / Validation / Permission
 ## Visual acceptance criteria
 - [ ] The primary task is obvious on every screen.
 - [ ] The UI shows the thesis and signature element, not generic defaults.
-- [ ] No hardcoded colors or fonts outside the tokens file (`scripts/check-design-drift.sh` is clean).
-- [ ] Layout works at 375, 768, and 1280px (screenshots in `design/shots/`).
+- [x] No hardcoded colors or fonts outside the tokens file (`scripts/check-design-drift.sh` is clean).
+- [x] Layout works at 375, 768, and 1280px (screenshots in `design/shots/`).
 - [ ] Focus, contrast, labels, and keyboard behavior checked.
 - [ ] Loading, empty, error, and success states exist.

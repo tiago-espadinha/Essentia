@@ -238,8 +238,18 @@
 
 .editor__title::placeholder { color: var(--color-mid); }
 
-.editor__title:focus-visible,
-.editor__body:focus-visible { outline: none; }
+/* An underline on the title, as in Dictum; its transparent outline shows in
+   forced-colors mode, which drops box-shadow. The body's ring stands off the text
+   like Dictum's pane padding does; the editor's side padding (16 px or more) keeps it unclipped. */
+.editor__title:focus-visible {
+  outline: 2px solid transparent;
+  box-shadow: 0 2px 0 var(--color-focus);
+}
+
+.editor__body:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: var(--space-2);
+}
 
 .editor__meta {
   display: flex;

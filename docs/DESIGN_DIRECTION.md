@@ -88,5 +88,5 @@ Loading / Empty / Error and retry / Success / Disabled / Validation / Permission
 - [ ] The UI shows the thesis and signature element, not generic defaults.
 - [x] No hardcoded colors or fonts outside the tokens file (`scripts/check-design-drift.sh` is clean).
 - [x] Layout works at 375, 768, and 1280px (screenshots in `design/shots/`).
-- [ ] Focus, contrast, labels, and keyboard behavior checked.
+- [x] Focus, contrast, labels, and keyboard behavior checked. (Tab walk at 768, light and dark, on every app; Aurum signed out only. Its signed-in screens passed axe but have had no Tab walk.)
 - [ ] Loading, empty, error, and success states exist.

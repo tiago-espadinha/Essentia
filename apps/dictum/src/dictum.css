@@ -453,8 +453,13 @@
 .write-pane__text::placeholder { color: var(--color-mid); }
 .write-pane__text:focus-visible { outline: none; }
 
-/* The focus ring sits on the pane, since the text area fills it edge to edge. */
-.write-pane:focus-within { box-shadow: inset 0 0 0 2px var(--color-focus); }
+/* The focus ring sits on the pane, since the text area fills it edge to edge.
+   The transparent outline shows in forced-colors mode, which drops box-shadow. */
+.write-pane:focus-within {
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 2px var(--color-focus);
+}
 
 /* Focused by the Write/Preview key; inset, like the writing side, so the ring isn't clipped.
    The transparent outline shows in forced-colors mode, which drops box-shadow. */

@@ -3,21 +3,23 @@
 Status: Approved
 Tokens file: packages/tokens/tokens.css
 Approved by: tiago-espadinha
+Revised destination approved: 2026-11-06; explicit TBD choices below remain unresolved.
+Implementation status: current tokens and screenshots predate this revision.
 
 ## Design thesis
-Warm paper, quiet ink: five tools that feel like good stationery. The interface steps back so the content (tasks, notes, habits, writing, money) is what you see.
+Warm paper, quiet ink: four tools that feel like good stationery. The interface steps back so the content (tasks, notes, habits, writing, money) is what you see.
 
 ## Fit
-The suite is for daily personal use, so it has to be calm enough to open many times a day, and it is shown to portfolio reviewers, so it has to look deliberate rather than templated. One editorial language across five apps makes the suite read as one product, while each app keeps the layout its content needs.
+The suite is for daily personal use, so it has to be calm enough to open many times a day, and it is shown to portfolio reviewers, so it has to look deliberate rather than templated. One editorial language across the destination apps makes the suite read as one product, while each app keeps the layout its content needs.
 
 ## Choice and alternatives
-- Chosen: codify the existing look (mode `codify`). All six UIs already share this thesis; the work is normalization.
+- Chosen: retain the existing editorial language while revising the hub, readability and wide layouts for Folio, Acta, Virtus and Merces. Dictum folds into Folio; Aurum becomes Merces through separately reviewed compatibility work.
 - Alternatives considered: a redesign (`create` mode); per-app accent colours.
-- Why this one won: the existing UI is strong and consistent in intent; one terracotta accent gives the strongest suite identity.
+- Revised accent direction: terracotta remains the default; offer a curated set of suite-wide palettes after light/dark contrast verification. Exact palette choices and preference storage/sync remain TBD. Arbitrary color selection is not included.
 - Trade-offs: apps are told apart by name, serif title and icon, not colour.
 
 ## References
-`design/refs/` is empty. The references are the existing apps and the original mockups in `docs/specs/` (`todo-design-6.html`, `design-1-editorial.html`, `habit_tracker_ui.html`, `markdown_editor_ui.html`, `personal_finance_ui.html`): borrow the serif display titles, mono metadata labels, hairline rules and generous whitespace.
+`design/refs/` is empty. The references are the existing apps and the original mockups in `docs/specs/` (`todo-design-6.html`, `design-1-editorial.html`, `habit_tracker_ui.html`, `markdown_editor_ui.html`, `personal_finance_ui.html`): borrow the serif display titles, hairline rules and generous whitespace; revise essential labels for readability.
 
 ## Principles
 1. Content first: chrome is quiet, flat, and uses hairlines rather than boxes and shadows.
@@ -29,7 +31,7 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
 - Typography:
   - Instrument Serif: display and headings (app titles, section titles, large numbers).
   - Instrument Sans: UI and body text (`--text-sm` 14 px for UI, `--text-md` 16 px for reading).
-  - JetBrains Mono: metadata labels (dates, counts, categories), uppercase with `--tracking-label`, `--text-2xs` 11 px.
+  - JetBrains Mono: short technical metadata only; existing 11 px metadata tokens are not the default for interactive labels. Essential controls use Instrument Sans, sentence case and at least 14 px; avoid light-weight, widely tracked uppercase controls. Any font-family replacement remains TBD.
   - Lora: Folio's editor body only.
   - Scale: 11 / 12 / 14 / 16 / 18 / 22 / 28 / 36 / 48 px. Nothing below 11 px.
   - Playfair Display is retired.
@@ -44,7 +46,7 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
 - Spacing scale: 4 px base: 2, 4, 8, 12, 16, 24, 32, 48, 64, 96 (`--space-*`).
 - Borders, radius, elevation: 1 px hairlines in `--color-faint`; radius 6 / 10 / 14 / full; flat by default, `--shadow-overlay` only for popovers, menus and dialogs.
 - Iconography: simple line icons, 1.5 px stroke, `currentColor`, 16 and 20 px; always paired with a text label or an `aria-label`.
-- Motion: `--duration-fast` 150 ms for hover and press, `--duration-normal` 250 ms for panels and dialogs; no decorative animation; zero under `prefers-reduced-motion`.
+- Motion: use existing `--duration-fast` 150 ms and `--duration-normal` 250 ms for brief theme and app-entry transitions. Item-create/delete transitions are proposed pending clarification of the app-management request. Do not delay navigation, focus, feedback or undo; zero nonessential motion under `prefers-reduced-motion`. Custom app-management motion and decorative chart motion need separate decisions.
 - Imagery: none; data visualizations (heatmap, charts) use the accent, ink and mid tokens.
 - Content voice: short, plain, lowercase-friendly labels; no exclamation marks; errors say what happened and what to do.
 
@@ -52,27 +54,39 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
 A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacity` 0.04, `pointer-events: none`), off in dark mode. It makes the suite feel like paper without costing legibility.
 
 ## Rules
-- **Do:** use serif titles and mono labels to create hierarchy; separate with hairlines and whitespace; keep one primary (terracotta) action per view; use `--color-accent-text` for accent-coloured text; share the theme toggle and back-to-hub link.
+- **Do:** use serif titles, readable sentence-case controls and restrained technical metadata to create hierarchy; separate with hairlines and whitespace; keep one primary action per view using the selected suite accent; use `--color-accent-text` for accent-coloured text; share the theme toggle and back-to-hub link.
 - **Avoid:** per-app colour schemes or new hex values in app CSS; drop shadows on cards; text below 11 px; muted text in `--color-faint`; `--color-faint` as an input border; Playfair Display; component-library default looks.
 
 ## Components and patterns
 | Component | Purpose | Rules and states |
 |---|---|---|
 | App header | Serif app title, back-to-hub link, theme toggle (`@essentia/ui`: toggle button, moon icon, pressed = dark) | Same in every app; sticky in column apps |
-| Primary button | The one main action | Terracotta fill, `--color-on-accent` text, radius-sm; hover, active, focus ring, disabled, loading |
+| Primary button | The one main action | Selected suite accent (terracotta by default), `--color-on-accent` text, radius-sm; hover, active, focus ring, disabled, loading |
 | Secondary / ghost button | Other actions | Transparent, ink text, `--color-line-strong` border on focus/hover |
 | Text input, select, textarea | Data entry | `--color-line-strong` border, radius-sm, label above, inline validation in danger colour |
-| Mono label | Metadata, categories, dates | `--font-mono`, 11 px, uppercase, `--color-mid` |
+| Metadata label | Short technical metadata | Mono may be used at 11 px minimum; interactive labels use sentence-case Sans at 14 px minimum; `--color-mid` with verified contrast |
 | List row | Tasks, transactions, habits, notes | Hairline separators, no cards; hover tint `--color-paper`; selected state with accent bar |
 | Dialog / popover | Confirm, share, forms | `--color-paper`, radius-lg, `--shadow-overlay`, focus trapped, Esc closes |
 | Empty state | First use | Serif one-liner, one sentence in muted text, primary action (exceptions, user decisions 2026-10-16: the hub before any app exists has no action; when the view's own add field sits directly above the empty state, that field is the action and no button repeats it, as in Acta) |
 | Toast / inline error | Feedback | Plain text, status colour, retry action where it applies |
 
 ## Responsive behavior
-- 375px: column apps full width with 16 px gutters; Folio and Dictum collapse to one pane at a time with a back control; touch targets at least 44 px.
-- 768px: column apps centred at `--width-column`; Folio shows list + editor; Dictum shows editor with toggleable preview.
-- 1280px: Folio three panes; Dictum editor + preview side by side; the hub centred at `--width-hub`.
-- Navigation changes: the back-to-hub link stays in the header at every width; pane navigation replaces side panes below 768 px.
+- 375px: full-width working views with 16 px gutters, no horizontal page overflow,
+  and touch targets at least 44 px. Folio uses one pane at a time with a back control.
+- 768px: preserve clear task priority and readable text. Folio can show list/editor;
+  exact pane breakpoints for the unified workspace remain TBD.
+- 1280px and wider: Acta, Virtus and Merces use available desktop width with
+  24–32 px outer gutters and meaningful list/detail or summary regions. Constrain
+  reading/editing line lengths rather than forcing a single narrow page column.
+- Hub: two-by-two destination grid on wide screens, one column on mobile. Show
+  icon, name, catchphrase and one open action per entry; keep shared account,
+  appearance and search controls in the header.
+- Folio: Dictum-inspired writing/preview workspace and collapsible library aside;
+  rich-text/markdown mode control. Default mode, conversion and folder/tag mapping
+  need review before implementation. Keep separate Dictum discoverable until safe.
+- Navigation: retain the header’s back-to-hub link at every width. Validate exact
+  breakpoints, density, reading order and pane controls in the implementation’s
+  rendered review; the historical centred-column screenshots do not prove this target.
 
 ## Accessibility
 - Keyboard and focus: every action reachable by keyboard; visible 2 px focus ring in `--color-focus` with 2 px offset; dialogs trap focus and restore it.
@@ -81,9 +95,23 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
 - Reduced motion: durations drop to 0 under `prefers-reduced-motion`.
 
 ## UI states
-Loading / Empty / Error and retry / Success / Disabled / Validation / Permission denied: every data view has loading (quiet skeleton lines, no spinners over 300 ms waits), empty (see component), error with retry, and success feedback; disabled controls keep 3:1 borders; validation is inline under the field; signed-out states in Aurum and synced views explain sign-in with one action.
+Loading / Empty / Error and retry / Success / Disabled / Validation / Permission denied: every data view has loading (quiet skeleton lines, no spinners over 300 ms waits), empty (see component), error with retry, and success feedback; disabled controls keep 3:1 borders; validation is inline under the field; signed-out states in current Aurum (destination Merces) and synced views explain sign-in with one action.
 
-## Visual acceptance criteria
+## Deferred design choices
+
+The specific dark-mode SVG target is TBD; do not assume this means the toggle icon
+or paper grain. The font complaint is treated as a readability concern pending
+confirmation. Item create/delete motion is recommended; creating/deleting custom
+apps is unconfirmed. Track/Schedule copy, category color assignment/scope and the
+exact Streaks destination remain TBD. Category markers need text equivalents and
+must remain distinct from success/danger and the selected accent. New palettes
+require verified text (4.5:1), control and focus (3:1) contrast in both themes.
+
+## Historical visual acceptance evidence
+
+These checks describe the previous implementation, not acceptance of the revised
+hub, typography, palettes or layouts. Subsequent UI work needs fresh evidence.
+
 - [ ] The primary task is obvious on every screen.
 - [ ] The UI shows the thesis and signature element, not generic defaults.
 - [x] No hardcoded colors or fonts outside the tokens file (`scripts/check-design-drift.sh` is clean).

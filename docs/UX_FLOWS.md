@@ -1,6 +1,9 @@
 # UX Flows and Screen Inventory
 
-## Primary journey
+The inventory below describes the current five-app implementation. The revised
+four-app destination is specified separately below; it is not yet delivered.
+
+## Current primary journey
 **User goal:** do one everyday thing (a task, a note, a habit check-in, some writing, a transaction) quickly, in a calm interface.
 
 1. Entry point: the hub at `/`, or an app URL directly (`/acta/`, `/folio/`, `/virtus/`, `/dictum/`, `/aurum/`).
@@ -17,7 +20,7 @@
 - Aurum: recurring items post when the app syncs, catching up any missed periods.
 - Virtus: install as a PWA and check in offline.
 
-## Screen inventory
+## Current screen inventory
 | Screen / route | User goal | Primary action | Key states | Responsive notes |
 |---|---|---|---|---|
 | Hub `/` | Pick an app | Open an app | Default | 640 px column; single column of app entries at 375 px |
@@ -52,3 +55,59 @@
 - [ ] Errors explain how to recover.
 - [ ] Focus order and keyboard behavior are coherent.
 - [ ] Layouts keep task priority across widths.
+
+
+## Revised destination journeys
+
+1. Open the hub and choose Folio · Your Notes, Acta · Your Tasks, Virtus · Your
+   Habits or Merces · Your Money. Use a two-by-two grid on wide screens and a
+   single column on mobile; keep each entry’s open action clear.
+2. Open the primary working view: unified Folio writing with an explicit mode
+   control, tasks, habit check-ins or finance. Current account/local-use boundaries
+   continue until separately reviewed sync work is delivered.
+3. Use the shared header for account access, appearance and search. Ctrl+K/Cmd+K
+   is recommended for navigation/actions and active-app records. The visible
+   search control must offer the same entry; results must respect account access.
+   Cross-app private-content search is deferred.
+4. Reload or follow a legacy app/share URL. Existing content, access restrictions,
+   revocation and available version history must survive the reviewed transition.
+   A failed migration must leave recoverable originals and offer retry/recovery.
+
+### Target screen and interaction changes
+
+| Surface | Agreed direction | Remaining decision |
+| --- | --- | --- |
+| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Exact controls and interim handling of separate Dictum; custom app creation is not approved |
+| Folio | Dictum writing/preview patterns; collapsible library aside; explicit rich-text/markdown control | Default mode, lossless conversion, folder/tag model, nesting and pane breakpoints |
+| Acta, Virtus, Merces | Use wide desktop space with comfortable reading regions, 24–32 px outer gutters and meaningful list/detail or summary areas; collapse on mobile | Exact density, pane arrangement and breakpoints require rendered review |
+| Virtus Track/Schedule | Track is recommended for check-ins; Schedule for recurrence | Exact copy, target screen and disclosure behavior are TBD |
+| Virtus categories | Recommend a color marker accompanied by readable category text | Assignment, affected views and interaction with accent preference are TBD |
+| Virtus Streaks | Recommend removing only the dedicated navigation destination; retain history and useful statistics in habit details | Exact destination and whether mechanics change require confirmation |
+| Acta/Virtus input | Recommend `#name` grouping suggestions plus equivalent form controls | Grammar, cardinality and literal/escaped/conflicting tokens remain TBD |
+| Locale selection | Shared preference and consistent formatting | Initial supported languages, defaults/fallback and parser rules remain TBD |
+
+### Migration acceptance before retiring entry points
+
+- Inventory both note stores, legacy keys, stable IDs, timestamps, local versions,
+  tags/folders, ownership and deletion records. Do not conflate matching titles.
+- Preserve `/dictum/shared/<id>` while signed out, including read-only rendering,
+  revoked/not-found/error states, retry behavior and `noindex`. New share path TBD.
+- Keep `/dictum/` and `/aurum/` entry compatibility. `/merces/` remains proposed;
+  route rewrites and internal renames need review before changing built assets.
+- Preserve available Dictum versions and restore behavior; current versions are
+  device-local, not synced, and cleared on sign-out. Already-cleared versions cannot
+  be recovered by migration. Changing history retention/sync needs separate review.
+- Test local-only and signed-in content, account isolation, repeat/interrupted
+  imports, collisions, share revocation, history restore and rollback before
+  removing source storage or the separate Dictum hub entry.
+- Keep rich text and markdown originals recoverable; review conversion and
+  identity mappings before switching editor modes or merging stores.
+
+### States and accessibility for subsequent delivery
+
+Each new surface needs loading, empty, error/retry, success, disabled and validation
+states, or a documented reason a state does not apply. Search needs empty-query,
+no-results and unavailable-source states. Mode changes must explain any conversion
+and preserve content on cancellation/failure. Mobile pane changes must retain a
+clear back action; dialogs restore focus, Escape closes them, and color is never
+the only indication. Theme and item transitions must not delay navigation or undo.

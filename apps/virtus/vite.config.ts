@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
-import { MANIFEST_TOKEN, precacheFiles } from './src/offline.ts'
+import { MANIFEST_TOKEN, precacheFiles } from './src/domain/offline.ts'
 
 export default defineConfig({
   base: '/virtus/',
@@ -44,7 +44,7 @@ function offline(): Plugin {
     generateBundle(_, bundle) {
       const worker = bundle['sw.js']
       if (worker?.type !== 'chunk' || !worker.code.includes(MANIFEST_TOKEN)) this.error('sw.js was not built with its manifest placeholder')
-      // A classic worker cannot import; this fails if app code starts sharing src/offline.ts.
+      // A classic worker cannot import; this fails if app code starts sharing src/domain/offline.ts.
       if (worker.imports.length > 0) this.error('sw.js must be a single file')
 
       const contents = new Map<string, string | Uint8Array>()

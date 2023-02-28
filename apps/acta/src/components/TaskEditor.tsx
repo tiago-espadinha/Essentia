@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
-import type { Task, TaskDraft } from './tasks'
+import type { Task, TaskDraft } from '../domain/tasks'
 
 interface TaskEditorProps {
   task: Task

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { loadTasks, saveTasks } from './storage'
-import { applyDraft, createTask, type Task, type TaskDraft } from './tasks'
+import { loadTasks, saveTasks } from '../data/storage'
+import { applyDraft, createTask, type Task, type TaskDraft } from '../domain/tasks'
 
 /** The task list, saved to this device on every change. */
 export function useTasks() {

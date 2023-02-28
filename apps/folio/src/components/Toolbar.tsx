@@ -1,5 +1,5 @@
 import { useEffect, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
-import { activeFormats, applyFormat, type Format } from './editing'
+import { activeFormats, applyFormat, type Format } from '../domain/editing'
 
 const svg = (path: ReactNode) => (
   <svg

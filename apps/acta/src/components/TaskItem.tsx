@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { TaskEditor } from './TaskEditor'
-import { formatDue, isOverdue, type Task, type TaskDraft } from './tasks'
+import { formatDue, isOverdue, type Task, type TaskDraft } from '../domain/tasks'
 
 /** Asks a row to focus one of its controls; a new object asks again. */
 export interface FocusRequest {

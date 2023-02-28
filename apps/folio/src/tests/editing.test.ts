@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import { activeFormats, applyFormat, insertTransfer } from './editing'
+import { activeFormats, applyFormat, insertTransfer } from '../domain/editing'
 
 let root: HTMLElement
 const execCommand = vi.fn()

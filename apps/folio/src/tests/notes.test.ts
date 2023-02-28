@@ -10,7 +10,7 @@ import {
   plainText,
   tagsOf,
   type Note,
-} from './notes'
+} from '../domain/notes'
 
 const note = (id: string, fields: Partial<Note> = {}): Note => ({
   ...createNote(new Date(`2022-06-${id.padStart(2, '0')}T10:00:00Z`), id),

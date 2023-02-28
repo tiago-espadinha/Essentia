@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import type { Task } from './tasks'
+import type { Task } from '../domain/tasks'
 
 interface UndoNoticeProps {
   deleted: Task | null

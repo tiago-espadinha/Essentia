@@ -1,4 +1,4 @@
-import { STATUS_LABELS, type StatusFilter } from './tasks'
+import { STATUS_LABELS, type StatusFilter } from '../domain/tasks'
 
 interface FiltersProps {
   status: StatusFilter

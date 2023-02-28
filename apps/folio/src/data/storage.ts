@@ -1,5 +1,5 @@
-import { parseTags, type Note } from './notes'
-import { sanitizeHtml } from './sanitize'
+import { parseTags, type Note } from '../domain/notes'
+import { sanitizeHtml } from '../domain/sanitize'
 
 export const STORAGE_KEY = 'essentia-folio-notes'
 

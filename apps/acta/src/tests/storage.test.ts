@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { loadTasks, saveTasks, STORAGE_KEY } from './storage'
-import type { Task } from './tasks'
+import { loadTasks, saveTasks, STORAGE_KEY } from '../data/storage'
+import type { Task } from '../domain/tasks'
 
 const valid: Task = { id: 'a', text: 'Write', completed: false, category: 'Work', due: '2022-05-28' }
 

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createNote, type Note } from './notes'
-import { loadNotes, saveNotes, STORAGE_KEY } from './storage'
+import { createNote, type Note } from '../domain/notes'
+import { loadNotes, saveNotes, STORAGE_KEY } from '../data/storage'
 
 const valid: Note = {
   ...createNote(new Date('2022-06-20T10:00:00Z'), 'a'),

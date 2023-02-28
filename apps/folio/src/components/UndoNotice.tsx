@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import type { Note } from './notes'
+import type { Note } from '../domain/notes'
 
 const message = (note: Note) => `Deleted “${note.title.trim() || 'Untitled'}”.`
 

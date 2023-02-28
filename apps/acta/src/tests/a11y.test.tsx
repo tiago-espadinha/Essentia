@@ -1,6 +1,6 @@
 import axe from 'axe-core'
 import { describe, expect, it } from 'vitest'
-import { STORAGE_KEY } from './storage'
+import { STORAGE_KEY } from '../data/storage'
 import { $, addTask, buttonNamed, click, renderApp, setupApp, submit } from './testing'
 
 setupApp()

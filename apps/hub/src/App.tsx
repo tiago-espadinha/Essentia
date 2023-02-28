@@ -1,5 +1,5 @@
 import { ThemeToggle } from '@essentia/ui'
-import { suiteApps } from './apps'
+import { suiteApps } from './domain/apps'
 
 export default function App() {
   return (

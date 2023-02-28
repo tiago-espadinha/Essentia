@@ -1,4 +1,4 @@
-import { formatDate, plainText, type Note } from './notes'
+import { formatDate, plainText, type Note } from '../domain/notes'
 import { UndoNotice } from './UndoNotice'
 
 interface NoteListProps {

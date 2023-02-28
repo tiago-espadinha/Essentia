@@ -1,6 +1,6 @@
 import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { STORAGE_KEY } from './storage'
+import { STORAGE_KEY } from '../data/storage'
 import { $, addTask, buttonNamed, click, renderApp, setupApp, submit, taskTexts, type, unmount } from './testing'
 
 setupApp()

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { applyChanges, createNote, type Note, type NoteChanges } from './notes'
-import { loadNotes, saveNotes } from './storage'
+import { applyChanges, createNote, type Note, type NoteChanges } from '../domain/notes'
+import { loadNotes, saveNotes } from '../data/storage'
 
 /** The notes, saved to this device on every change. */
 export function useNotes() {

@@ -1,10 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
-import { AddTask } from './AddTask'
-import { AppHeader } from './AppHeader'
-import { Filters } from './Filters'
-import { Hero } from './Hero'
-import { TaskItem, type FocusRequest } from './TaskItem'
-import { UndoNotice } from './UndoNotice'
+import { AddTask } from './components/AddTask'
+import { AppHeader } from './components/AppHeader'
+import { Filters } from './components/Filters'
+import { Hero } from './components/Hero'
+import { TaskItem, type FocusRequest } from './components/TaskItem'
+import { UndoNotice } from './components/UndoNotice'
 import {
   applyDraft,
   categoriesOf,
@@ -15,8 +15,8 @@ import {
   type StatusFilter,
   type Task,
   type TaskDraft,
-} from './tasks'
-import { useTasks } from './useTasks'
+} from './domain/tasks'
+import { useTasks } from './hooks/useTasks'
 
 export default function App() {
   const { tasks, saveFailed, add, toggle, remove, restore, update } = useTasks()

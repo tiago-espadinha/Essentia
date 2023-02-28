@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
-import { insertTransfer, placeCaretAt } from './editing'
-import { countWords, formatDate, parseTags, plainText, type Note, type NoteChanges } from './notes'
-import { sanitizeHtml } from './sanitize'
+import { insertTransfer, placeCaretAt } from '../domain/editing'
+import { countWords, formatDate, parseTags, plainText, type Note, type NoteChanges } from '../domain/notes'
+import { sanitizeHtml } from '../domain/sanitize'
 import { Toolbar } from './Toolbar'
 
 interface EditorProps {

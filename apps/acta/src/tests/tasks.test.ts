@@ -12,7 +12,7 @@ import {
   progressOf,
   todayIso,
   type Task,
-} from './tasks'
+} from '../domain/tasks'
 
 function task(overrides: Partial<Task>): Task {
   return { id: 'x', text: 'Task', completed: false, category: DEFAULT_CATEGORY, due: '', ...overrides }

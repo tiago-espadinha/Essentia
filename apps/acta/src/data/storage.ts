@@ -1,4 +1,4 @@
-import { DEFAULT_CATEGORY, isIsoDay, type Task } from './tasks'
+import { DEFAULT_CATEGORY, isIsoDay, type Task } from '../domain/tasks'
 
 export const STORAGE_KEY = 'essentia-acta-tasks'
 

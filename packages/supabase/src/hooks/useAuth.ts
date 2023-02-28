@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
-import { clearAccountData } from './accountData'
-import { storedUserId } from './client'
+import { clearAccountData } from '../data/accountData'
+import { storedUserId } from '../data/client'
 
 export type Auth =
   | { status: 'disabled' }

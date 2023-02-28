@@ -1,4 +1,4 @@
-import './ui.css'
+import '../ui.css'
 
 /** Back to the hub at the site root; every app shows it in its header. */
 export function HubLink() {

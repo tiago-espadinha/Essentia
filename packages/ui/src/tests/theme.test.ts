@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { THEME_KEY, applyStoredTheme, currentTheme, setTheme, subscribeTheme } from './theme'
+import { THEME_KEY, applyStoredTheme, currentTheme, setTheme, subscribeTheme } from '../domain/theme'
 
 function mockSystemDark(matches: boolean) {
   vi.stubGlobal('matchMedia', (query: string) => ({

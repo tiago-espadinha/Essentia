@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
-import './ui.css'
+import '../ui.css'
 
 interface DialogProps {
   title: string

@@ -1,10 +1,10 @@
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import { Dialog } from './Dialog'
-import { HubLink } from './HubLink'
-import { ThemeToggle } from './ThemeToggle'
-import { THEME_KEY } from './theme'
+import { Dialog } from '../components/Dialog'
+import { HubLink } from '../components/HubLink'
+import { ThemeToggle } from '../components/ThemeToggle'
+import { THEME_KEY } from '../domain/theme'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean

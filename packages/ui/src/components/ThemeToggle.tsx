@@ -1,5 +1,5 @@
-import { useTheme } from './useTheme'
-import './ui.css'
+import { useTheme } from '../hooks/useTheme'
+import '../ui.css'
 
 /** A toggle button: the moon is always shown, and its pressed state means dark. */
 export function ThemeToggle() {

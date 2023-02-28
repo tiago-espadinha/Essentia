@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState, type FormEvent } from 'react'
-import { signIn, signUp } from './auth'
-import './auth.css'
+import { signIn, signUp } from '../data/auth'
+import '../auth.css'
 
 type Mode = 'sign-in' | 'sign-up'
 type FieldErrors = { email?: string; password?: string }

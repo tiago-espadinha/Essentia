@@ -1,10 +1,10 @@
 import { Dialog } from '@essentia/ui'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState } from 'react'
-import { signOut } from './auth'
+import { signOut } from '../data/auth'
 import { AuthForm } from './AuthForm'
-import type { Auth } from './useAuth'
-import './account.css'
+import type { Auth } from '../hooks/useAuth'
+import '../account.css'
 
 export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
 

@@ -28,6 +28,26 @@ scripts/
 - All apps share one origin, so they share the theme choice (`essentia-theme` in localStorage) and the Supabase session.
 - Apps do not import each other; anything shared lives in `packages/`.
 
+## Source folders
+
+Apps and shared TypeScript packages use the same folders inside `src/`, creating
+only the folders they need:
+
+| Folder | Contents |
+|---|---|
+| `components/` | React rendering components and their view-specific types |
+| `hooks/` | React hooks that connect state, domain functions and persistence |
+| `domain/` | Non-React rules, calculations, formatting and app metadata |
+| `data/` | Storage, sync, remote clients and authentication integrations |
+| `tests/` | Existing unit/integration tests and their rendering or fake-server helpers |
+
+Keep `App.tsx`, browser entry points (`main.tsx` and the hub's `notFound.ts`),
+package public `index.ts` files, declarations and app/package styles at the source
+root. Components import these root styles by relative path. Import app internals
+directly from their folder; shared package consumers continue using the package's
+public exports. Build configuration and the Virtus worker also import domain
+helpers directly. Config-only and CSS-only packages keep their existing layout.
+
 ## Data
 - Stores: each app keeps its data in localStorage (`essentia-<app>-*` keys). Virtus, Dictum and Aurum also keep a copy in Supabase Postgres for the signed-in user.
 - Key entities:

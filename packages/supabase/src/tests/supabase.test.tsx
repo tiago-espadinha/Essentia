@@ -2,10 +2,10 @@ import { AuthApiError, AuthRetryableFetchError, type SupabaseClient } from '@sup
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { signOut } from './auth'
-import { AuthForm } from './AuthForm'
-import { fetchWithTimeout, REQUEST_TIMEOUT_MS, storedUserId } from './client'
-import { useAuth, type Auth } from './useAuth'
+import { signOut } from '../data/auth'
+import { AuthForm } from '../components/AuthForm'
+import { fetchWithTimeout, REQUEST_TIMEOUT_MS, storedUserId } from '../data/client'
+import { useAuth, type Auth } from '../hooks/useAuth'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean

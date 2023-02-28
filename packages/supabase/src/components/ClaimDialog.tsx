@@ -1,6 +1,6 @@
 import { Dialog } from '@essentia/ui'
 import { BUTTON_ID } from './AccountMenu'
-import './account.css'
+import '../account.css'
 
 interface ClaimDialogProps {
   count: number

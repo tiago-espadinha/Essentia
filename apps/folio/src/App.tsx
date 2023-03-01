@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { AppHeader } from './AppHeader'
-import { Editor } from './Editor'
-import { Library } from './Library'
-import { NoteList } from './NoteList'
-import { filterNotes, tagsOf, type Note } from './notes'
-import { DeleteAnnouncer } from './UndoNotice'
-import { useNotes } from './useNotes'
+import { AppHeader } from './components/AppHeader'
+import { Editor } from './components/Editor'
+import { Library } from './components/Library'
+import { NoteList } from './components/NoteList'
+import { filterNotes, tagsOf, type Note } from './domain/notes'
+import { DeleteAnnouncer } from './components/UndoNotice'
+import { useNotes } from './hooks/useNotes'
 
 /** Matches folio.css: one pane at a time below 768 px. */
 const PHONE = '(width < 768px)'

@@ -1,19 +1,19 @@
 import { useAuth } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
-import { AccountMenu } from './AccountMenu'
-import { AppHeader } from './AppHeader'
-import { Budgets } from './Budgets'
-import { DataTools } from './DataTools'
-import { EditDialog } from './EditDialog'
-import { Filters } from './Filters'
-import { Gate } from './Gate'
-import { Hero } from './Hero'
-import { InsightsView } from './InsightsView'
-import { QuickAdd } from './QuickAdd'
-import { Recurring } from './Recurring'
-import { TransactionRow } from './TransactionRow'
-import { formatMoney } from './money'
+import { AccountMenu } from './components/AccountMenu'
+import { AppHeader } from './components/AppHeader'
+import { Budgets } from './components/Budgets'
+import { DataTools } from './components/DataTools'
+import { EditDialog } from './components/EditDialog'
+import { Filters } from './components/Filters'
+import { Gate } from './components/Gate'
+import { Hero } from './components/Hero'
+import { InsightsView } from './components/InsightsView'
+import { QuickAdd } from './components/QuickAdd'
+import { Recurring } from './components/Recurring'
+import { TransactionRow } from './components/TransactionRow'
+import { formatMoney } from './domain/money'
 import {
   categoriesOf,
   editId,
@@ -24,10 +24,10 @@ import {
   totals,
   type Transaction,
   type TransactionFilter,
-} from './transactions'
-import { UndoNotice } from './UndoNotice'
-import { SYNC_FAILED, useTransactions } from './useTransactions'
-import { Views, type View } from './Views'
+} from './domain/transactions'
+import { UndoNotice } from './components/UndoNotice'
+import { SYNC_FAILED, useTransactions } from './hooks/useTransactions'
+import { Views, type View } from './components/Views'
 
 export default function App({ client }: { client: SupabaseClient | null }) {
   const auth = useAuth(client)

@@ -1,6 +1,6 @@
 // Virtus's service worker, built to /virtus/sw.js. The build swaps the manifest
 // token for the hashed file list, so each deploy installs as a new version.
-import { cacheName, handles, staleCaches, type Precache } from '../src/offline'
+import { cacheName, handles, staleCaches, type Precache } from '../src/domain/offline'
 
 declare const self: ServiceWorkerGlobalScope
 // A free global, so the minifier keeps its name for the build to replace.

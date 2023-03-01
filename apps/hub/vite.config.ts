@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { suiteApps } from './src/apps.ts'
+import { suiteApps } from './src/domain/apps.ts'
 
 // In dev the hub fronts every app on one origin, mirroring production,
 // so the shared theme and links between apps behave the same in both.

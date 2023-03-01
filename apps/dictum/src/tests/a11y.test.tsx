@@ -3,7 +3,7 @@ import { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { account, fakeServer, settle } from './fakeServer'
-import { SharedView } from './SharedView'
+import { SharedView } from '../components/SharedView'
 import { $, buttonNamed, click, newDoc, previewLoaded, renderApp, setupApp, type } from './testing'
 
 vi.mock('@essentia/supabase', async (original) => {

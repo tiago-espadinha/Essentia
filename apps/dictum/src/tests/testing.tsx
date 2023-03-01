@@ -2,7 +2,7 @@
 import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, vi } from 'vitest'
-import App from './App'
+import App from '../App'
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean
@@ -106,7 +106,7 @@ export function savedDocs() {
 
 /** Waits for the lazily loaded preview to render. */
 export async function previewLoaded() {
-  await act(() => import('./Preview'))
+  await act(() => import('../components/Preview'))
 }
 
 export function choose(select: HTMLSelectElement, value: string) {

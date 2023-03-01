@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { AppHeader } from './AppHeader'
-import { displayTitle, formatDate } from './documents'
-import { fetchShared } from './remote'
+import { displayTitle, formatDate } from '../domain/documents'
+import { fetchShared } from '../data/remote'
 
 const Preview = lazy(() => import('./Preview'))
 

@@ -1,4 +1,4 @@
-import type { DocFilter } from './documents'
+import type { DocFilter } from '../domain/documents'
 
 interface FiltersProps {
   filter: DocFilter

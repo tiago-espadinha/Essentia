@@ -1,11 +1,11 @@
 import { storedUserId, type SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
-import { applyChanges, createDoc, type Doc, type DocChanges } from './documents'
-import { fetchRemote, pushChanges } from './remote'
-import { DOCS_KEY, loadDocs, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from './storage'
-import { merge, NO_STAMPS, readRemote, stampDeletions, type Stamps } from './sync'
-import { addVersion, type Version } from './versions'
+import { applyChanges, createDoc, type Doc, type DocChanges } from '../domain/documents'
+import { fetchRemote, pushChanges } from '../data/remote'
+import { DOCS_KEY, loadDocs, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from '../data/storage'
+import { merge, NO_STAMPS, readRemote, stampDeletions, type Stamps } from '../data/sync'
+import { addVersion, type Version } from '../domain/versions'
 
 /** One wording for a failed sync, on the page and in the account dialog. */
 export const SYNC_FAILED = 'Couldn’t sync with your account. Your documents are kept on this device.'

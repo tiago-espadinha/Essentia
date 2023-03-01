@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { displayTitle, formatDate, type Doc } from './documents'
-import { VIEW_KEYS } from './keys'
+import { displayTitle, formatDate, type Doc } from '../domain/documents'
+import { VIEW_KEYS } from '../domain/keys'
 
 interface DocListProps {
   /** The documents that pass the filters. */

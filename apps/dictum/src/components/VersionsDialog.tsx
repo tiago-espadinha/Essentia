@@ -1,6 +1,6 @@
 import { Dialog } from '@essentia/ui'
-import { displayTitle, type Doc } from './documents'
-import { excerpt, MAX_VERSIONS, type Version } from './versions'
+import { displayTitle, type Doc } from '../domain/documents'
+import { excerpt, MAX_VERSIONS, type Version } from '../domain/versions'
 
 interface VersionsDialogProps {
   doc: Doc

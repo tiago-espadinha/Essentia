@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readSharePath, shareUrl } from './share'
+import { readSharePath, shareUrl } from '../domain/share'
 
 const ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 

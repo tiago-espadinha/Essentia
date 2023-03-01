@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createDoc, type Doc } from './documents'
-import { addVersion, excerpt, MAX_VERSIONS, versionsOf, type Version } from './versions'
+import { createDoc, type Doc } from '../domain/documents'
+import { addVersion, excerpt, MAX_VERSIONS, versionsOf, type Version } from '../domain/versions'
 
 const doc = (id: string, content: string, title = 'Essay'): Doc => ({ ...createDoc('', new Date(0), id), title, content })
 const at = (minute: number) => new Date(Date.UTC(2022, 9, 10, 9, minute))

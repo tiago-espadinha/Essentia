@@ -2,7 +2,7 @@ import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fakeServer, type Row } from './fakeServer'
-import { SharedView } from './SharedView'
+import { SharedView } from '../components/SharedView'
 import './testing'
 
 const LINK = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -15,7 +15,7 @@ async function open(element: ReactNode) {
   root = createRoot(container)
   await act(async () => root.render(element))
   // The rendered markdown is loaded on its own.
-  await act(() => import('./Preview'))
+  await act(() => import('../components/Preview'))
 }
 
 function serverWith(changes: Partial<Row> = {}) {

@@ -3,9 +3,9 @@ import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fakeServer, settle } from './fakeServer'
-import { DOCS_KEY, VERSIONS_KEY } from './storage'
+import { DOCS_KEY, VERSIONS_KEY } from '../data/storage'
 import './testing'
-import { useDocuments } from './useDocuments'
+import { useDocuments } from '../hooks/useDocuments'
 
 const rendered: { current: ReturnType<typeof useDocuments> | null } = { current: null }
 const hook = () => rendered.current!

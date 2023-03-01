@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createDoc, type Doc } from './documents'
-import { DOCS_KEY, loadDocs, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from './storage'
-import { NO_STAMPS } from './sync'
-import type { Version } from './versions'
+import { createDoc, type Doc } from '../domain/documents'
+import { DOCS_KEY, loadDocs, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from '../data/storage'
+import { NO_STAMPS } from '../data/sync'
+import type { Version } from '../domain/versions'
 
 const doc: Doc = {
   ...createDoc('Work', new Date('2022-10-04T10:00:00Z'), 'a'),

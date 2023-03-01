@@ -1,6 +1,6 @@
-import { cleanFolder, parseTags, type Doc } from './documents'
+import { cleanFolder, parseTags, type Doc } from '../domain/documents'
 import { NO_STAMPS, type Stamps } from './sync'
-import type { Version } from './versions'
+import type { Version } from '../domain/versions'
 
 export const DOCS_KEY = 'essentia-dictum-documents'
 export const VERSIONS_KEY = 'essentia-dictum-versions'

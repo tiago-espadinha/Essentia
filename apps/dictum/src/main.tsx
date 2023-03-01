@@ -5,8 +5,8 @@ import { getSupabase } from '@essentia/supabase'
 import { applyStoredTheme } from '@essentia/ui'
 import './dictum.css'
 import App from './App'
-import { readSharePath } from './share'
-import { SharedView } from './SharedView'
+import { readSharePath } from './domain/share'
+import { SharedView } from './components/SharedView'
 
 applyStoredTheme()
 

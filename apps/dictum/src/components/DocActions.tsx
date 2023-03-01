@@ -1,4 +1,4 @@
-import { fileName, type Doc } from './documents'
+import { fileName, type Doc } from '../domain/documents'
 import { SHARE_BUTTON_ID } from './ShareDialog'
 
 interface DocActionsProps {

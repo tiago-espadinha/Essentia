@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { cleanFolder, parseTags, type DocChanges } from './documents'
-import { LIMITS } from './sync'
+import { cleanFolder, parseTags, type DocChanges } from '../domain/documents'
+import { LIMITS } from '../data/sync'
 
 interface DocFieldsProps {
   folder: string

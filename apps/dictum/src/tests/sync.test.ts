@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { createDoc, type Doc } from './documents'
-import { LIMITS, merge, NO_STAMPS, readRemote, stampDeletions, type DocRow, type Stamps } from './sync'
+import { createDoc, type Doc } from '../domain/documents'
+import { LIMITS, merge, NO_STAMPS, readRemote, stampDeletions, type DocRow, type Stamps } from '../data/sync'
 
 const ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const OTHER = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'

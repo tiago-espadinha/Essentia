@@ -1,6 +1,6 @@
 import { AccountMenu as SuiteAccountMenu, type AccountText, type Auth, type SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { SYNC_FAILED } from './useDocuments'
+import { SYNC_FAILED } from '../hooks/useDocuments'
 
 const TEXT: AccountText = {
   intro: 'Keep your documents on every device and share them by link. If this device already has documents, you choose whether they join your account.',

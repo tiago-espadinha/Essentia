@@ -1,9 +1,9 @@
 import { lazy, Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { DocFields } from './DocFields'
-import { countWords, readingMinutes, type Doc, type DocChanges } from './documents'
-import { formatEdit, SHORTCUTS, type Format } from './formatting'
-import { VIEW_KEYS } from './keys'
-import { LIMITS } from './sync'
+import { countWords, readingMinutes, type Doc, type DocChanges } from '../domain/documents'
+import { formatEdit, SHORTCUTS, type Format } from '../domain/formatting'
+import { VIEW_KEYS } from '../domain/keys'
+import { LIMITS } from '../data/sync'
 import { Toolbar } from './Toolbar'
 
 const Preview = lazy(() => import('./Preview'))

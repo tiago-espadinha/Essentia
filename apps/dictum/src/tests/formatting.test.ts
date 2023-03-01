@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatEdit, type Format } from './formatting'
+import { formatEdit, type Format } from '../domain/formatting'
 
 /** Applies the edit; `[` and `]` in the input mark the selection, and in the output the new one. */
 function format(marked: string, kind: Format): string {

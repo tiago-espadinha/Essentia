@@ -15,7 +15,7 @@ import {
   tagsOf,
   type Doc,
   type DocFilter,
-} from './documents'
+} from '../domain/documents'
 
 const doc = (id: string, fields: Partial<Doc> = {}): Doc => ({
   ...createDoc('', new Date(`2022-10-${id.padStart(2, '0')}T10:00:00Z`), id),

@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react'
-import { SHORTCUTS, type Format } from './formatting'
-import { shortcut } from './keys'
+import { SHORTCUTS, type Format } from '../domain/formatting'
+import { shortcut } from '../domain/keys'
 
 const svg = (path: ReactNode) => (
   <svg

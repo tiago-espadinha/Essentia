@@ -1,7 +1,7 @@
 // Merging this device's documents with the account's copy in Supabase. Each
 // document carries the time it last changed; the newer side wins, and the merge
 // lists what the server is missing or has older. Versions stay on the device.
-import { cleanFolder, parseTags, type Doc } from './documents'
+import { cleanFolder, parseTags, type Doc } from '../domain/documents'
 
 /** What this device has to remember between syncs. */
 export interface Stamps {

@@ -60,7 +60,7 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
 ## Components and patterns
 | Component | Purpose | Rules and states |
 |---|---|---|
-| App header | Serif app title, back-to-hub link, theme toggle (`@essentia/ui`: toggle button, moon icon, pressed = dark) | Same in every app; sticky in column apps |
+| App header | Serif app title, back-to-hub link, theme toggle (`@essentia/ui`: toggle button, moon in light mode and sun in dark mode, pressed = dark) | Same in every app; sticky in column apps |
 | Primary button | The one main action | Selected suite accent (terracotta by default), `--color-on-accent` text, radius-sm; hover, active, focus ring, disabled, loading |
 | Secondary / ghost button | Other actions | Transparent, ink text, `--color-line-strong` border on focus/hover |
 | Text input, select, textarea | Data entry | `--color-line-strong` border, radius-sm, label above, inline validation in danger colour |
@@ -99,10 +99,14 @@ Loading / Empty / Error and retry / Success / Disabled / Validation / Permission
 
 ## Deferred design choices
 
-The specific dark-mode SVG target is TBD; do not assume this means the toggle icon
-or paper grain. The font complaint is treated as a readability concern pending
-confirmation. Item create/delete motion is recommended; creating/deleting custom
-apps is unconfirmed. Track/Schedule copy, category color assignment/scope and the
+The theme-toggle SVG target is confirmed: show a moon in light mode and a sun in
+dark mode, offering the other theme. Keep the stable Dark theme accessible name
+and pressed state (pressed means dark); decorative SVGs use currentColor and
+are hidden from assistive technology. The owner accepted the existing typography;
+no typography changes are required for this correction.
+
+Item create/delete motion is recommended; creating/deleting custom apps is
+unconfirmed. Track/Schedule copy, category color assignment/scope and the
 exact Streaks destination remain TBD. Category markers need text equivalents and
 must remain distinct from success/danger and the selected accent. New palettes
 require verified text (4.5:1), control and focus (3:1) contrast in both themes.

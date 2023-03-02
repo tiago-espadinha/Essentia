@@ -92,9 +92,10 @@ See [design direction](DESIGN_DIRECTION.md) and [flows](UX_FLOWS.md) for boundar
   need bounded follow-on designs. This direction does not authorize security,
   retention, migration or deployment changes.
 
-The six ambiguous source requests remain explicit decisions: the font complaint
-is interpreted as a readability concern (confirmation pending); the exact dark-mode
-SVG is TBD; item create/delete motion is recommended but app-management intent is
+The font complaint is resolved: the owner accepts the existing typography. The
+confirmed SVG target is the shared theme toggle: moon in light mode and sun in dark
+mode, with its accessible toggle behavior retained. The remaining ambiguous requests
+stay explicit: item create/delete motion is recommended but app-management intent is
 unconfirmed; Track/Schedule labels and their exact screen are TBD; category marker
 color is recommended but assignment/scope are TBD; removing only the dedicated
 Streaks destination is recommended but its identity and retained mechanics need

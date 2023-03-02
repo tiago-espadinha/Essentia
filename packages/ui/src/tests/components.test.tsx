@@ -47,21 +47,41 @@ describe('ThemeToggle', () => {
     const button = container.querySelector('button')!
     expect(button.textContent).toBe('Dark theme')
     expect(button.getAttribute('aria-pressed')).toBe('false')
+    const moon = button.querySelector('svg')!.innerHTML
+    expect(button.querySelector('circle')).toBeNull()
+    expect(button.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true')
 
     act(() => button.click())
     expect(button.getAttribute('aria-pressed')).toBe('true')
     expect(localStorage.getItem(THEME_KEY)).toBe('dark')
     expect(document.documentElement.dataset.theme).toBe('dark')
+    expect(button.querySelector('circle')).not.toBeNull()
+    expect(button.querySelector('svg')!.innerHTML).not.toBe(moon)
+    expect(button.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true')
+    expect(button.textContent).toBe('Dark theme')
 
     act(() => button.click())
     expect(button.getAttribute('aria-pressed')).toBe('false')
     expect(localStorage.getItem(THEME_KEY)).toBe('light')
+    expect(button.querySelector('svg')!.innerHTML).toBe(moon)
   })
 
   it('starts from the stored choice', () => {
     localStorage.setItem(THEME_KEY, 'dark')
     render(<ThemeToggle />)
     expect(container.querySelector('button')!.getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('svg circle')).not.toBeNull()
+  })
+
+  it('shows the sun when the system prefers dark and there is no stored choice', () => {
+    vi.stubGlobal('matchMedia', () => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }))
+    render(<ThemeToggle />)
+    expect(container.querySelector('button')!.getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('svg circle')).not.toBeNull()
   })
 })
 

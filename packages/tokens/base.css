@@ -21,10 +21,24 @@ body::before {
   z-index: 1000;
   pointer-events: none;
   opacity: var(--grain-opacity);
+  transition: opacity var(--duration-fast) var(--ease);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 a { color: var(--color-accent-text); }
+
+/* Entrance starts after the destination renders; links and focus never wait for it. */
+main { animation: suite-enter var(--duration-fast) var(--ease); }
+
+@keyframes suite-enter {
+  from { translate: 0 var(--space-1); }
+  to { translate: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Changing duration tokens alone does not cancel a transition already running. */
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
 
 button, input, select, textarea { font: inherit; color: inherit; }
 

@@ -1,3 +1,4 @@
+import { useRecordMotion } from '@essentia/ui'
 import { useCallback, useRef, useState } from 'react'
 import { AddTask } from './components/AddTask'
 import { AppHeader } from './components/AppHeader'
@@ -26,6 +27,8 @@ export default function App() {
   const [focusRequest, setFocusRequest] = useState<FocusRequest>()
   const [deleted, setDeleted] = useState<{ task: Task; beforeId: string | null } | null>(null)
   const addInput = useRef<HTMLInputElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
+  const motion = useRecordMotion(mainRef)
   const clearFocusRequest = useCallback(() => setFocusRequest(undefined), [])
 
   const today = todayIso()
@@ -63,7 +66,7 @@ export default function App() {
     const position = visible.findIndex((task) => task.id === id)
     const neighbour = visible[position + 1] ?? visible[position - 1]
     const task = visible[position]
-    remove(id)
+    motion(() => remove(id))
     setDeleted({ task, beforeId: tasks[tasks.indexOf(task) + 1]?.id ?? null })
     if (neighbour) setFocusRequest({ id: neighbour.id, target: 'check' })
     else addInput.current?.focus()
@@ -71,7 +74,7 @@ export default function App() {
 
   function undoDelete() {
     if (!deleted) return
-    restore(deleted.task, deleted.beforeId)
+    motion(() => restore(deleted.task, deleted.beforeId))
     setDeleted(null)
     const shown = filterTasks([deleted.task], status, category).length > 0
     if (shown) setFocusRequest({ id: deleted.task.id, target: 'check' })
@@ -86,9 +89,9 @@ export default function App() {
   return (
     <>
       <AppHeader />
-      <main className="acta">
+      <main className="acta" ref={mainRef}>
         <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
-        <AddTask inputRef={addInput} onAdd={add} />
+        <AddTask inputRef={addInput} onAdd={(value) => motion(() => add(value))} />
         <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
 
         {saveFailed && (

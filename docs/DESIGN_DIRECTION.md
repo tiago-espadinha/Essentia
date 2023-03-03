@@ -46,7 +46,7 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
 - Spacing scale: 4 px base: 2, 4, 8, 12, 16, 24, 32, 48, 64, 96 (`--space-*`).
 - Borders, radius, elevation: 1 px hairlines in `--color-faint`; radius 6 / 10 / 14 / full; flat by default, `--shadow-overlay` only for popovers, menus and dialogs.
 - Iconography: simple line icons, 1.5 px stroke, `currentColor`, 16 and 20 px; always paired with a text label or an `aria-label`.
-- Motion: use existing `--duration-fast` 150 ms and `--duration-normal` 250 ms for brief theme and app-entry transitions. Item-create/delete transitions are proposed pending clarification of the app-management request. Do not delay navigation, focus, feedback or undo; zero nonessential motion under `prefers-reduced-motion`. Custom app-management motion and decorative chart motion need separate decisions.
+- Motion: use existing `--duration-fast` 150 ms and `--duration-normal` 250 ms for brief theme and app-entry transitions. Theme palettes switch immediately to preserve contrast; the theme icon and paper grain provide continuity rather than interpolating text and background colors. Record-create/delete transitions are approved for tasks, notes, habits, documents and transactions: animate entering records and the resulting row reflow or empty/Undo feedback, with immediate state updates. Do not delay navigation, focus, feedback or undo; zero nonessential motion under `prefers-reduced-motion`. Custom app-management motion and decorative chart motion need separate decisions.
 - Imagery: none; data visualizations (heatmap, charts) use the accent, ink and mid tokens.
 - Content voice: short, plain, lowercase-friendly labels; no exclamation marks; errors say what happened and what to do.
 
@@ -105,8 +105,10 @@ and pressed state (pressed means dark); decorative SVGs use currentColor and
 are hidden from assistive technology. The owner accepted the existing typography;
 no typography changes are required for this correction.
 
-Item create/delete motion is recommended; creating/deleting custom apps is
-unconfirmed. Track/Schedule copy, category color assignment/scope and the
+Item create/delete means records inside each app (owner clarification): tasks, notes,
+habits, documents and transactions. Brief motion is approved; it must preserve
+existing storage, sync, deletion, Undo and focus behavior. Custom app creation or
+hub-entry management is excluded. Track/Schedule copy, category color assignment/scope and the
 exact Streaks destination remain TBD. Category markers need text equivalents and
 must remain distinct from success/danger and the selected accent. New palettes
 require verified text (4.5:1), control and focus (3:1) contrast in both themes.

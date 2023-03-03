@@ -1,3 +1,4 @@
+import { useRecordMotion } from '@essentia/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
@@ -27,6 +28,7 @@ export default function App() {
   // A row to focus once the list has rendered; `id: null` means New note.
   const rowToFocus = useRef<{ id: string | null } | null>(null)
   const mainRef = useRef<HTMLElement>(null)
+  const motion = useRecordMotion(mainRef)
 
   useEffect(() => {
     const target = rowToFocus.current
@@ -62,7 +64,7 @@ export default function App() {
   // A new note is blank, so the filters are cleared to show it in the list.
   function newNote() {
     clearFilters()
-    const note = add()
+    const note = motion(() => add())
     setSelectedId(note.id)
     setTitleFocusId(note.id)
     setView('editor')
@@ -85,7 +87,7 @@ export default function App() {
     const position = visible.findIndex((note) => note.id === id)
     const next = (visible[position + 1] ?? visible[position - 1])?.id ?? null
     setDeleted(notes.find((note) => note.id === id)!)
-    remove(id)
+    motion(() => remove(id))
     setSelectedId(next)
     setView('list')
     rowToFocus.current = { id: next }
@@ -96,7 +98,7 @@ export default function App() {
   function undoDelete() {
     if (!deleted) return
     if (filterNotes([deleted], query, activeTag).length === 0) clearFilters()
-    restore(deleted)
+    motion(() => restore(deleted))
     setDeleted(null)
     setSelectedId(deleted.id)
     setTitleFocusId(deleted.id)
@@ -129,7 +131,7 @@ export default function App() {
           onClearFilters={clearFilters}
           onUndo={undoDelete}
         />
-        <section className="pane editor-pane" aria-label="Editor">
+        <section data-motion-detail className="pane editor-pane" aria-label="Editor">
           {saveFailed && (
             <p className="notice" role="alert">
               Couldn’t save on this device. Your changes last until you close the page.

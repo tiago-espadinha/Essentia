@@ -1,3 +1,4 @@
+import { useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
@@ -34,6 +35,8 @@ export default function App() {
   // change section, and a delete or an undo moves focus to another row.
   const focusNext = useRef<string | null>(null)
   const addInput = useRef<HTMLInputElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
+  const motion = useRecordMotion(mainRef)
 
   useEffect(() => {
     if (focusNext.current === null) return
@@ -63,7 +66,7 @@ export default function App() {
     const position = shown.findIndex((habit) => habit.id === id)
     const neighbour = shown[position + 1] ?? shown[position - 1]
     const habit = shown[position]
-    remove(id)
+    motion(() => remove(id))
     setDeleted({ habit, beforeId: habits[habits.indexOf(habit) + 1]?.id ?? null })
     if (neighbour) setFocusId(controlId(neighbour))
     else fallbackFocus()
@@ -73,7 +76,7 @@ export default function App() {
 
   function undoDelete() {
     if (!deleted) return
-    restore(deleted.habit, deleted.beforeId)
+    motion(() => restore(deleted.habit, deleted.beforeId))
     setDeleted(null)
     if (queryHabits([deleted.habit], query, today).length > 0) setFocusId(controlId(deleted.habit))
     else fallbackFocus()
@@ -149,10 +152,10 @@ export default function App() {
   return (
     <>
       <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
-      <main className="virtus">
+      <main className="virtus" ref={mainRef}>
         <Hero habits={habits} today={today} />
         <Views view={view} onChange={setView} />
-        {view === 'today' && <AddHabit inputRef={addInput} categories={categories} onAdd={add} />}
+        {view === 'today' && <AddHabit inputRef={addInput} categories={categories} onAdd={(value) => motion(() => add(value))} />}
         <UndoNotice deleted={deleted?.habit ?? null} onUndo={undoDelete} />
 
         {syncState === 'failed' && (

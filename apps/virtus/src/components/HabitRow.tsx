@@ -18,7 +18,7 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, o
   const { current, longest } = streaks(habit, today)
 
   return (
-    <li className={`habit${done ? ' habit--done' : ''}`}>
+    <li className={`habit${done ? ' habit--done' : ''}`} data-motion-item={habit.id}>
       {isNumeric(habit) ? (
         <span className="habit__mark" aria-hidden="true" />
       ) : (

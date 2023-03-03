@@ -1,3 +1,4 @@
+import { useRecordMotion } from '@essentia/ui'
 import { useAuth } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
@@ -57,6 +58,8 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   const [filter, setFilter] = useState<TransactionFilter>(NO_FILTER)
   const [view, setView] = useState<View>('transactions')
   const addRef = useRef<HTMLInputElement>(null)
+  const mainRef = useRef<HTMLElement>(null)
+  const motion = useRecordMotion(mainRef)
   // A row whose Edit button takes focus once the list has rendered; '' or a gone row means the add field.
   const focusAfter = useRef<string | null>(null)
   const signedIn = auth.status === 'signed-in'
@@ -93,13 +96,13 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   function deleteTransaction(t: Transaction) {
     const position = visible.findIndex((item) => item.id === t.id)
     focusAfter.current = (visible[position + 1] ?? visible[position - 1])?.id ?? ''
-    remove(t.id)
+    motion(() => remove(t.id))
     setDeleted(t)
   }
 
   function undoDelete() {
     if (!deleted) return
-    putBack(deleted)
+    motion(() => putBack(deleted))
     focusAfter.current = deleted.id
     setDeleted(null)
   }
@@ -107,7 +110,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   return (
     <>
       <AppHeader account={signedIn && <AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
-      <main className="aurum">
+      <main className="aurum" ref={mainRef}>
         {!signedIn ? (
           <Gate auth={auth} client={client} />
         ) : (
@@ -171,7 +174,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                     <QuickAdd
                       inputRef={addRef}
                       onAdd={(fields) => {
-                        add(fields)
+                        motion(() => add(fields))
                         setDeleted(null)
                         setFilter(NO_FILTER)
                       }}

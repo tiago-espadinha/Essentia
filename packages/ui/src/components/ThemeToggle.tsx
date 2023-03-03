@@ -8,7 +8,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="ui-icon-button"
+      className="ui-icon-button ui-theme-toggle"
       aria-pressed={theme === 'dark'}
       title="Dark theme"
       onClick={toggle}

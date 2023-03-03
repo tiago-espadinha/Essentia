@@ -15,6 +15,10 @@
 
 .ui-icon-button[aria-pressed='true'] { color: var(--color-accent-text); }
 
+/* Keep palette changes immediate: interpolated foreground/background pairs lose contrast. */
+.ui-theme-toggle svg { transition: transform var(--duration-fast) var(--ease); }
+.ui-theme-toggle[aria-pressed='true'] svg { transform: rotate(45deg); }
+
 .ui-hub-link {
   display: inline-flex;
   align-items: center;

@@ -121,6 +121,7 @@ function NoteRow({ note, selected, onSelect }: { note: Note; selected: boolean; 
       type="button"
       className="note-row"
       data-note-id={note.id}
+      data-motion-item={note.id}
       aria-current={selected ? 'true' : undefined}
       onClick={() => onSelect(note.id)}
     >

@@ -95,8 +95,9 @@ See [design direction](DESIGN_DIRECTION.md) and [flows](UX_FLOWS.md) for boundar
 The font complaint is resolved: the owner accepts the existing typography. The
 confirmed SVG target is the shared theme toggle: moon in light mode and sun in dark
 mode, with its accessible toggle behavior retained. The remaining ambiguous requests
-stay explicit: item create/delete motion is recommended but app-management intent is
-unconfirmed; Track/Schedule labels and their exact screen are TBD; category marker
+stay explicit: item create/delete refers to records within each app (tasks, notes,
+habits, documents and transactions), with brief motion approved and current data/Undo
+behavior preserved; custom app management is excluded; Track/Schedule labels and their exact screen are TBD; category marker
 color is recommended but assignment/scope are TBD; removing only the dedicated
 Streaks destination is recommended but its identity and retained mechanics need
 confirmation. None of these deferrals authorizes destructive behavior.

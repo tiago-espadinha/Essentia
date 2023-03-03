@@ -110,4 +110,7 @@ states, or a documented reason a state does not apply. Search needs empty-query,
 no-results and unavailable-source states. Mode changes must explain any conversion
 and preserve content on cancellation/failure. Mobile pane changes must retain a
 clear back action; dialogs restore focus, Escape closes them, and color is never
-the only indication. Theme and item transitions must not delay navigation or undo.
+the only indication. Theme and item transitions must not delay navigation or undo. Record-create/delete
+motion covers tasks, notes, habits, documents and transactions; state and focus
+update immediately while entering rows, remaining row positions and empty/Undo
+feedback provide visual continuity. Hub-entry management is outside this change.

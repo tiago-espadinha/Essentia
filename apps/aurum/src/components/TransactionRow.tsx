@@ -9,7 +9,7 @@ interface TransactionRowProps {
 
 export function TransactionRow({ transaction: t, onEdit, onDelete }: TransactionRowProps) {
   return (
-    <li className="row" data-id={t.id}>
+    <li className="row" data-id={t.id} data-motion-item={t.id}>
       <div className="row__body">
         <p className="row__description">{t.description}</p>
         <p className="row__meta">

@@ -50,7 +50,7 @@ export function TaskItem({
 
   if (editing) {
     return (
-      <li className="task task--editing">
+      <li className="task task--editing" data-motion-item={task.id}>
         <TaskEditor
           task={task}
           categories={categories}
@@ -62,7 +62,7 @@ export function TaskItem({
   }
 
   return (
-    <li className="task">
+    <li className="task" data-motion-item={task.id}>
       <input
         ref={checkRef}
         type="checkbox"

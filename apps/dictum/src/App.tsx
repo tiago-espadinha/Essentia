@@ -1,3 +1,4 @@
+import { useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
@@ -44,6 +45,7 @@ export default function App() {
   // A row to focus once the list has rendered; an id no row has falls back to New document.
   const rowToFocus = useRef<string | null>(null)
   const mainRef = useRef<HTMLElement>(null)
+  const motion = useRecordMotion(mainRef)
 
   useEffect(() => {
     const id = rowToFocus.current
@@ -72,7 +74,7 @@ export default function App() {
 
   // A new document is blank, so the search and tag are cleared to show it; it joins the folder in view.
   function newDoc() {
-    const doc = add(activeFilter.folder ?? '')
+    const doc = motion(() => add(activeFilter.folder ?? ''))
     setFilter({ ...NO_FILTER, folder: activeFilter.folder })
     setSelectedId(doc.id)
     setFocusRequest({ docId: doc.id, target: 'title' })
@@ -122,7 +124,7 @@ export default function App() {
     autoVersion.cancel(doc.id)
     const position = visible.findIndex((d) => d.id === doc.id)
     const next = (visible[position + 1] ?? visible[position - 1])?.id ?? null
-    setDeleted({ doc, removed: remove(doc.id) })
+    setDeleted({ doc, removed: motion(() => remove(doc.id)) })
     setSelectedId(next)
     setView('list')
     rowToFocus.current = next ?? ''
@@ -130,7 +132,7 @@ export default function App() {
 
   function undoDelete() {
     if (!deleted) return
-    putBack(deleted.removed)
+    motion(() => putBack(deleted.removed))
     setDeleted(null)
     setSelectedId(deleted.doc.id)
     rowToFocus.current = deleted.doc.id
@@ -166,7 +168,7 @@ export default function App() {
           onSelect={openDoc}
           onNew={newDoc}
         />
-        <section className="pane doc-pane" aria-label="Document">
+        <section data-motion-detail className="pane doc-pane" aria-label="Document">
           {saveFailed && (
             <p className="notice" role="alert">
               Couldn’t save on this device. Your changes last until you close the page.

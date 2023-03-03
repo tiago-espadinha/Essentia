@@ -52,6 +52,7 @@ export function DocList({ docs, total, selectedId, filters, onClearFilters, noti
                   type="button"
                   className="doc-row"
                   data-doc-id={doc.id}
+                  data-motion-item={doc.id}
                   aria-current={doc.id === selectedId ? 'true' : undefined}
                   onClick={() => onSelect(doc.id)}
                 >

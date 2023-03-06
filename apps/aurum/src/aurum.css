@@ -1,4 +1,4 @@
-/* Aurum: a single 520 px column on the shared tokens. */
+/* Aurum: responsive working space on the shared tokens. */
 
 .aurum-header {
   position: sticky;
@@ -12,8 +12,6 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  max-width: var(--width-column);
-  margin: 0 auto;
   padding: 0 var(--space-4);
 }
 
@@ -31,8 +29,6 @@
 }
 
 .aurum {
-  max-width: var(--width-column);
-  margin: 0 auto;
   padding: var(--space-12) var(--space-4) var(--space-16);
 }
 
@@ -40,6 +36,8 @@
 .gate {
   display: grid;
   gap: var(--space-6);
+  max-width: var(--width-column);
+  margin-inline: auto;
 }
 
 .gate__title {
@@ -481,6 +479,7 @@
 
 .filters__types {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   border-bottom: 1px solid var(--color-faint);
 }
@@ -538,6 +537,7 @@
 /* Views */
 .views {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-2);
   margin-top: var(--space-8);
@@ -792,4 +792,58 @@
 .recurring-form .button-ghost {
   justify-self: start;
   border-color: var(--color-line-strong);
+}
+
+/* Align the header and working canvas at each viewport size. */
+@media (min-width: 640px) {
+  .aurum-header__inner,
+  .aurum { padding-inline: var(--space-6); }
+}
+
+@media (min-width: 1024px) {
+  .aurum-header__inner,
+  .aurum { padding-inline: var(--space-8); }
+}
+
+.workspace { container-type: inline-size; }
+.add,
+.filters,
+.budget-form,
+.recurring-form { max-width: var(--width-column); }
+.add__row .input { min-width: 0; }
+.row__description { max-width: 65ch; }
+.row__meta { overflow-wrap: anywhere; }
+.empty__text,
+.insight__none { max-width: 65ch; margin-inline: auto; }
+.insight__none { margin-inline: 0; }
+.plan-layout > *,
+.insights-layout > * { min-width: 0; }
+.months-scroll { position: relative; overflow-x: auto; }
+.months { min-width: 28rem; }
+.hero__amount { overflow-wrap: anywhere; }
+.hero__stats { display: flex; flex-wrap: wrap; }
+.hero__stats > div { flex: 1; min-width: max-content; }
+.hero__stats > div + div { border-left: 0; }
+
+@media (min-width: 1024px) {
+  .views { justify-content: flex-start; }
+
+  .aurum-workspace > .hero .hero__stats { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .aurum-workspace > .hero .hero__stats > div { padding-inline: 0; }
+  .aurum-workspace > .hero .hero__stats > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--color-faint);
+  }
+}
+
+@container (min-width: 56rem) {
+  .plan-layout,
+  .insights-layout {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 0 var(--space-8);
+  }
+
+  .insights-layout > :last-child { grid-column: 1 / -1; }
 }

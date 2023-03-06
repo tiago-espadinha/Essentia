@@ -98,35 +98,37 @@ function SixMonths({ transactions, last }: { transactions: Transaction[]; last: 
         <span className="section-row__rule" />
       </div>
       <MonthChart months={months} />
-      <table className="months">
-        <caption className="visually-hidden">Income, expenses and net for each of the last six months</caption>
-        <thead>
-          <tr>
-            <th scope="col" className="label">
-              Month
-            </th>
-            <th scope="col" className="label">
-              In
-            </th>
-            <th scope="col" className="label">
-              Out
-            </th>
-            <th scope="col" className="label">
-              Net
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...months].reverse().map(({ month, income, expenses, balance }) => (
-            <tr key={month}>
-              <th scope="row">{monthLabel(month)}</th>
-              <td className="amount amount--income">{formatMoney(income)}</td>
-              <td className="amount">{formatMoney(expenses)}</td>
-              <td className={`amount${balance < 0 ? ' amount--negative' : ''}`}>{formatMoney(balance)}</td>
+      <div className="months-scroll" role="region" aria-label="Monthly totals" tabIndex={0}>
+        <table className="months">
+          <caption className="visually-hidden">Income, expenses and net for each of the last six months</caption>
+          <thead>
+            <tr>
+              <th scope="col" className="label">
+                Month
+              </th>
+              <th scope="col" className="label">
+                In
+              </th>
+              <th scope="col" className="label">
+                Out
+              </th>
+              <th scope="col" className="label">
+                Net
+              </th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {[...months].reverse().map(({ month, income, expenses, balance }) => (
+              <tr key={month}>
+                <th scope="row">{monthLabel(month)}</th>
+                <td className="amount amount--income">{formatMoney(income)}</td>
+                <td className="amount">{formatMoney(expenses)}</td>
+                <td className={`amount${balance < 0 ? ' amount--negative' : ''}`}>{formatMoney(balance)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   )
 }

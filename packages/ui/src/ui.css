@@ -65,3 +65,25 @@
   font-size: var(--text-2xl);
   overflow-wrap: anywhere;
 }
+
+/* Opt-in overview/workspace layout; source order also serves the narrow view. */
+.ui-workspace-layout > :is(.hero, .workspace) { min-width: 0; }
+
+@media (min-width: 1024px) {
+  .ui-workspace-layout {
+    display: grid;
+    grid-template-columns: clamp(18rem, 24vw, 22rem) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-12);
+  }
+
+  .ui-workspace-layout > .hero { text-align: left; }
+
+  .ui-workspace-layout > .workspace {
+    padding-left: var(--space-8);
+    border-left: 1px solid var(--color-faint);
+    min-height: calc(4 * var(--space-24));
+  }
+
+  .ui-workspace-layout .workspace > :first-child { margin-top: 0; }
+}

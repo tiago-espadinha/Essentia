@@ -1,4 +1,4 @@
-/* Acta: a single 520 px column on the shared tokens. */
+/* Acta: responsive working space on the shared tokens. */
 
 .acta-header {
   position: sticky;
@@ -12,8 +12,6 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  max-width: var(--width-column);
-  margin: 0 auto;
   padding: 0 var(--space-4);
 }
 
@@ -25,8 +23,6 @@
 }
 
 .acta {
-  max-width: var(--width-column);
-  margin: 0 auto;
   padding: var(--space-12) var(--space-4) var(--space-16);
 }
 
@@ -202,6 +198,7 @@
 
 .filters__status {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-2);
 }
@@ -433,6 +430,7 @@
   display: grid;
   gap: var(--space-3);
   width: 100%;
+  max-width: var(--width-column);
 }
 
 .field {
@@ -495,4 +493,25 @@
 
 @media (hover: none) {
   .chip { min-height: 44px; }
+}
+
+.add { max-width: var(--width-column); }
+.add__input { min-width: 0; }
+.task__text { max-width: 65ch; }
+.empty__text { max-width: 65ch; margin-inline: auto; }
+
+@media (min-width: 1024px) {
+  .filters__status,
+  .filters__categories { justify-content: flex-start; }
+}
+
+/* Align the header and working canvas at each viewport size. */
+@media (min-width: 640px) {
+  .acta-header__inner,
+  .acta { padding-inline: var(--space-6); }
+}
+
+@media (min-width: 1024px) {
+  .acta-header__inner,
+  .acta { padding-inline: var(--space-8); }
 }

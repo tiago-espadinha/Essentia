@@ -89,74 +89,76 @@ export default function App() {
   return (
     <>
       <AppHeader />
-      <main className="acta" ref={mainRef}>
+      <main className="acta ui-workspace-layout" ref={mainRef}>
         <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
-        <AddTask inputRef={addInput} onAdd={(value) => motion(() => add(value))} />
-        <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
+        <div className="workspace">
+          <AddTask inputRef={addInput} onAdd={(value) => motion(() => add(value))} />
+          <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
 
-        {saveFailed && (
-          <p className="notice" role="alert">
-            Couldn’t save on this device. Your changes last until you close the page.
-          </p>
-        )}
+          {saveFailed && (
+            <p className="notice" role="alert">
+              Couldn’t save on this device. Your changes last until you close the page.
+            </p>
+          )}
 
-        {tasks.length === 0 ? (
-          <section className="empty" aria-labelledby="empty-title">
-            <h2 id="empty-title" className="empty__title">
-              Nothing on the list.
-            </h2>
-            <p className="empty__text">Write the first thing you want to get done in the field above.</p>
-          </section>
-        ) : (
-          <>
-            <Filters
-              status={status}
-              category={category}
-              categories={categories}
-              onStatusChange={setStatus}
-              onCategoryChange={setSelectedCategory}
-            />
-            <section aria-labelledby="list-title">
-              <div className="section-row">
-                <h2 id="list-title" className="label">
-                  {STATUS_LABELS[status]}
-                  {category && ` · ${category}`}
-                </h2>
-                <span className="section-row__rule" />
-                <span className="label">{visible.length}</span>
-              </div>
-              {visible.length === 0 ? (
-                <div className="empty empty--filtered">
-                  <h3 className="empty__title">Nothing matches.</h3>
-                  <p className="empty__text">No tasks fit this filter.</p>
-                  <button type="button" className="button-ghost" onClick={showAll}>
-                    Show all tasks
-                  </button>
-                </div>
-              ) : (
-                <ul className="tasks">
-                  {visible.map((task) => (
-                    <TaskItem
-                      key={task.id}
-                      task={task}
-                      today={today}
-                      categories={categories}
-                      editing={task.id === editingId}
-                      focusRequest={focusRequest?.id === task.id ? focusRequest : undefined}
-                      onToggle={toggle}
-                      onDelete={deleteTask}
-                      onFocused={clearFocusRequest}
-                      onEdit={setEditingId}
-                      onCloseEditor={closeEditor}
-                      onSave={save}
-                    />
-                  ))}
-                </ul>
-              )}
+          {tasks.length === 0 ? (
+            <section className="empty" aria-labelledby="empty-title">
+              <h2 id="empty-title" className="empty__title">
+                Nothing on the list.
+              </h2>
+              <p className="empty__text">Write the first thing you want to get done in the field above.</p>
             </section>
-          </>
-        )}
+          ) : (
+            <>
+              <Filters
+                status={status}
+                category={category}
+                categories={categories}
+                onStatusChange={setStatus}
+                onCategoryChange={setSelectedCategory}
+              />
+              <section aria-labelledby="list-title">
+                <div className="section-row">
+                  <h2 id="list-title" className="label">
+                    {STATUS_LABELS[status]}
+                    {category && ` · ${category}`}
+                  </h2>
+                  <span className="section-row__rule" />
+                  <span className="label">{visible.length}</span>
+                </div>
+                {visible.length === 0 ? (
+                  <div className="empty empty--filtered">
+                    <h3 className="empty__title">Nothing matches.</h3>
+                    <p className="empty__text">No tasks fit this filter.</p>
+                    <button type="button" className="button-ghost" onClick={showAll}>
+                      Show all tasks
+                    </button>
+                  </div>
+                ) : (
+                  <ul className="tasks">
+                    {visible.map((task) => (
+                      <TaskItem
+                        key={task.id}
+                        task={task}
+                        today={today}
+                        categories={categories}
+                        editing={task.id === editingId}
+                        focusRequest={focusRequest?.id === task.id ? focusRequest : undefined}
+                        onToggle={toggle}
+                        onDelete={deleteTask}
+                        onFocused={clearFocusRequest}
+                        onEdit={setEditingId}
+                        onCloseEditor={closeEditor}
+                        onSave={save}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
+          )}
 
+        </div>
       </main>
     </>
   )

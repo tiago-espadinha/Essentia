@@ -78,6 +78,16 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
 - 1280px and wider: Acta, Virtus and Merces use available desktop width with
   24–32 px outer gutters and meaningful list/detail or summary regions. Constrain
   reading/editing line lengths rather than forcing a single narrow page column.
+- Approved working layout: Acta, Virtus and current Aurum use a two-column
+  overview/workspace from 1024 px, with an 18–22 rem overview, 48 px column gap,
+  hairline divider and 32 px outer gutters. The overview contains existing progress
+  or money summaries; forms, filters and content follow in the workspace. Keep
+  add/edit forms at most 520 px and prose at most 65 characters per line. Below
+  1024 px, stack in source order with 16 px phone and 24 px tablet gutters. Wide
+  habit/week and finance/month tables scroll inside labeled, keyboard-focusable
+  regions. Within sufficiently wide workspaces, arrange habit statistics and
+  finance planning/insights in two columns. Signed-out finance retains a readable
+  form width. Finance naming and routes remain part of separate compatibility work.
 - Hub: two-by-two destination grid on wide screens, one column on mobile. Show
   icon, name, catchphrase and one open action per entry; keep shared account,
   appearance and search controls in the header.

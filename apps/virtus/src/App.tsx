@@ -152,28 +152,30 @@ export default function App() {
   return (
     <>
       <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
-      <main className="virtus" ref={mainRef}>
+      <main className="virtus ui-workspace-layout" ref={mainRef}>
         <Hero habits={habits} today={today} />
-        <Views view={view} onChange={setView} />
-        {view === 'today' && <AddHabit inputRef={addInput} categories={categories} onAdd={(value) => motion(() => add(value))} />}
-        <UndoNotice deleted={deleted?.habit ?? null} onUndo={undoDelete} />
+        <div className="workspace">
+          <Views view={view} onChange={setView} />
+          {view === 'today' && <AddHabit inputRef={addInput} categories={categories} onAdd={(value) => motion(() => add(value))} />}
+          <UndoNotice deleted={deleted?.habit ?? null} onUndo={undoDelete} />
 
-        {syncState === 'failed' && (
-          <div className="sync-notice" role="status">
-            <span className="sync-notice__text">{SYNC_FAILED}</span>
-            <button type="button" className="undo__button" onClick={() => void sync()}>
-              Try again
-            </button>
-          </div>
-        )}
+          {syncState === 'failed' && (
+            <div className="sync-notice" role="status">
+              <span className="sync-notice__text">{SYNC_FAILED}</span>
+              <button type="button" className="undo__button" onClick={() => void sync()}>
+                Try again
+              </button>
+            </div>
+          )}
 
-        {saveFailed && (
-          <p className="notice" role="alert">
-            Couldn’t save on this device. Your changes last until you close the page.
-          </p>
-        )}
+          {saveFailed && (
+            <p className="notice" role="alert">
+              Couldn’t save on this device. Your changes last until you close the page.
+            </p>
+          )}
 
-        {list()}
+          {list()}
+        </div>
       </main>
 
       {unclaimed > 0 && auth.status === 'signed-in' && (

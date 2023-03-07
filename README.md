@@ -12,16 +12,19 @@ piece. Live at https://essentia-beta.vercel.app/
 | Acta | `/acta/` | Tasks with categories, due dates and filters | This device |
 | Virtus | `/virtus/` | Habits with streaks, a heatmap and badges; installs as an app and works offline | This device, synced when signed in |
 | Dictum | `/dictum/` | Markdown writing with a live preview, versions and read-only share links | This device, synced when signed in |
-| Aurum | `/aurum/` | Income and expenses, budgets, recurring items and insights | Your account (sign-in required) |
+| Merces | `/merces/` | Income and expenses, budgets, recurring items and insights | Your account (sign-in required) |
 
-One sign-in covers Virtus, Dictum and Aurum, and the light or dark theme you
+One sign-in covers Virtus, Dictum and Merces, and the light or dark theme you
 pick in one app applies to all of them.
 
 | | |
 |---|---|
 | ![Acta](docs/screenshots/acta.png) | ![Virtus](docs/screenshots/virtus.png) |
 | ![Folio](docs/screenshots/folio.png) | ![Dictum](docs/screenshots/dictum.png) |
-| ![Aurum](docs/screenshots/aurum.png) | <img src="docs/screenshots/aurum-phone.png" alt="Aurum at phone width" width="180"> |
+| ![Merces](docs/screenshots/aurum.png) | <img src="docs/screenshots/aurum-phone.png" alt="Merces at phone width" width="180"> |
+
+The app identities are Folio · Your Notes, Acta · Your Tasks, Virtus · Your Habits,
+and Merces · Your Money. Existing screenshots above predate these identity updates.
 
 ## Stack
 
@@ -32,7 +35,8 @@ in [docs/UX_FLOWS.md](docs/UX_FLOWS.md); goals in
 [docs/PROJECT_BRIEF.md](docs/PROJECT_BRIEF.md).
 
 ```text
-apps/          hub at /, and folio, acta, virtus, dictum, aurum each under /<app>/
+apps/          hub at /; folio, acta, virtus, dictum under /<app>/
+               aurum builds Merces at /merces/ (also /aurum/)
 packages/
   config/      shared TypeScript and ESLint configs
   tokens/      design tokens, fonts and base styles
@@ -59,18 +63,18 @@ Open http://localhost:5100. The hub runs there and proxies every app
 To run a single app: `pnpm --filter <app> dev` (for example `pnpm --filter acta dev`
 serves http://localhost:5102/acta/; its link back to the hub needs the full `pnpm dev`).
 
-Without a Supabase project everything except Aurum works: Folio, Acta, Virtus
-and Dictum keep their data in the browser, sign-in is hidden, and Aurum says it
+Without a Supabase project everything except Merces works: Folio, Acta, Virtus
+and Dictum keep their data in the browser, sign-in is hidden, and Merces says it
 is not set up.
 
-### Supabase (for sync and Aurum)
+### Supabase (for sync and Merces)
 
 1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
 2. In the project's SQL editor, run each of these files once. They are independent, so the order does not matter:
    - `apps/virtus/supabase/migration.sql`: habits and check-ins
    - `apps/dictum/supabase/migration.sql`: documents and share links
    - `apps/aurum/supabase/migration.sql`: transactions, budgets and recurring items
-3. Under Authentication, URL configuration: set the Site URL to where the suite runs, and add `http://localhost:5100/**` (and your deployed URL followed by `/**`) to the redirect URLs. The confirmation email leads back to the app it was sent from.
+3. Under Authentication, URL configuration: set the Site URL to where the suite runs, and add `http://localhost:5100/**` (and your deployed URL followed by `/**`) to the redirect URLs. The confirmation email leads back to the app it was sent from. Merces now requests `/merces/`; keep both `/merces/` and `/aurum/` allowed if using explicit paths rather than the wildcard.
 4. Copy `.env.example` into the three apps that sync, then fill in the project URL and the publishable (anon) key from the project's API settings. These files are ignored by git.
    ```bash
    for app in virtus dictum aurum; do cp .env.example apps/$app/.env.local; done
@@ -87,7 +91,7 @@ these files.
 pnpm dev          # hub and every app at http://localhost:5100
 pnpm lint
 pnpm typecheck
-pnpm test         # Vitest, per app and package
+pnpm test         # assembly regression, then Vitest per app and package
 pnpm build        # build everything, then assemble dist/
 pnpm preview      # build, then serve dist/ at http://localhost:4173
 pnpm audit        # should report no known vulnerabilities
@@ -105,6 +109,12 @@ command, the security headers and the rewrite for Dictum share links.
 2. Add the environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the build.
 3. In `vercel.json`, set the `connect-src` of the Content-Security-Policy to your project's origin (`https://<ref>.supabase.co`), or the apps cannot reach Supabase.
 4. Add the deployed URL to the Supabase redirect URLs (step 3 above).
+
+Merces is built from the retained `apps/aurum` workspace (`pnpm --filter aurum dev`).
+The assembled site serves the same finance app at `/merces/` and `/aurum/`, with
+assets under `/merces/`. Both URLs preserve query strings and fragments. Existing
+`essentia-aurum-*` local storage and Supabase tables/session remain unchanged;
+there is no data migration. Preview both paths before deploying.
 
 ## Known limitations
 

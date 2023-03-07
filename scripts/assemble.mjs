@@ -16,4 +16,10 @@ for (const app of apps) {
   cpSync(`apps/${app}/dist`, app === 'hub' ? out : `${out}/${app}`, { recursive: true })
 }
 
+// Merces keeps the former finance entry available for saved links. Both copies
+// use the canonical /merces/ asset base and the same origin-scoped storage.
+if (apps.includes('aurum')) {
+  cpSync(`${out}/aurum`, `${out}/merces`, { recursive: true })
+}
+
 console.log(`Assembled ${apps.length} build(s) into ${out}/: ${apps.join(', ') || 'none'}`)

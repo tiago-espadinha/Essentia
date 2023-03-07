@@ -1,7 +1,7 @@
 {
-  "name": "Virtus · Essentia",
+  "name": "Virtus · Your Habits · Essentia",
   "short_name": "Virtus",
-  "description": "Daily habits with streaks, a heatmap and badges.",
+  "description": "Virtus · Your Habits: daily habits with streaks, a heatmap and badges.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

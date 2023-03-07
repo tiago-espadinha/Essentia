@@ -6,7 +6,7 @@ export function AppHeader({ account }: { account: ReactNode }) {
     <header className="virtus-header">
       <div className="virtus-header__inner">
         <HubLink />
-        <span className="virtus-header__title">Virtus</span>
+        <span className="virtus-header__title app-identity">Virtus{' '}<span className="app-identity__catchphrase">Your Habits</span></span>
         <div className="virtus-header__actions">
           {account}
           <ThemeToggle />

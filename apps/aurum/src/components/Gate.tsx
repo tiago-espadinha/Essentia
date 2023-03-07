@@ -6,16 +6,16 @@ interface GateProps {
   client: SupabaseClient | null
 }
 
-/** What Aurum shows before anyone is signed in: it keeps no money data without an account. */
+/** What Merces shows before anyone is signed in: it keeps no money data without an account. */
 export function Gate({ auth, client }: GateProps) {
   if (!client || auth.status === 'disabled') {
     return (
       <section className="gate" aria-labelledby="gate-title">
         <h1 id="gate-title" className="gate__title">
-          Aurum isn’t set up here
+          Merces isn’t set up here
         </h1>
         <p className="gate__text">
-          Aurum keeps your transactions in your Essentia account, and this copy of the suite has no account service
+          Merces keeps your transactions in your Essentia account, and this copy of the suite has no account service
           configured. The other apps still work on this device.
         </p>
         <a className="gate__link" href="/">
@@ -41,7 +41,7 @@ export function Gate({ auth, client }: GateProps) {
       <div className="gate__form">
         <AuthForm
           client={client}
-          intro="Aurum keeps your income and expenses in your account, so they follow you to every device. Sign in or create an account to start."
+          intro="Merces keeps your income and expenses in your account, so they follow you to every device. Sign in or create an account to start."
         />
       </div>
     </section>

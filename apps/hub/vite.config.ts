@@ -10,7 +10,11 @@ export default defineConfig({
     port: 5100,
     strictPort: true,
     proxy: Object.fromEntries(
-      suiteApps.map((app) => [app.path, { target: `http://localhost:${app.port}`, ws: true }]),
+      suiteApps.flatMap((app) => [app.path, ...(app.aliases ?? [])].map((path) => [path, {
+        target: `http://localhost:${app.port}`,
+        ws: true,
+        rewrite: (url: string) => app.path + url.slice(path.length),
+      }])),
     ),
   },
   // 404.html lands at the root of dist/, where Vercel serves it for unknown paths.

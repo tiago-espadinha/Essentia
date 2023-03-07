@@ -97,7 +97,7 @@ describe('export', () => {
     click(buttonNamed('Insights'))
     click(buttonNamed('Export CSV'))
     expect(clicked).toHaveBeenCalledOnce()
-    expect((clicked.mock.contexts[0] as HTMLAnchorElement).download).toBe('aurum-2022-11-08.csv')
+    expect((clicked.mock.contexts[0] as HTMLAnchorElement).download).toBe('merces-2022-11-08.csv')
     // Blob.text() drops the byte order mark when it decodes, so the bytes are read.
     const bytes = new Uint8Array(await saved!.arrayBuffer())
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])

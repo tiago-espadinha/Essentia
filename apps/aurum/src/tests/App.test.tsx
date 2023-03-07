@@ -5,9 +5,10 @@ import { $, buttonNamed, click, renderApp, setupApp, text } from './testing'
 setupApp()
 
 describe('before sign-in', () => {
-  it('explains that Aurum needs an account service when the build has none', async () => {
+  it('explains that Merces needs an account service when the build has none', async () => {
     await renderApp(null)
-    expect($('h1').textContent).toBe('Aurum isn’t set up here')
+    expect($('h1').textContent).toBe('Merces isn’t set up here')
+    expect($('header').textContent).toContain('Merces Your Money')
     expect(document.querySelector('form')).toBeNull()
     expect(document.querySelector('#account-button')).toBeNull()
   })
@@ -17,7 +18,7 @@ describe('before sign-in', () => {
     expect($('h1').textContent).toBe('Your money, in one place')
     expect($('#auth-email')).toBeTruthy()
     expect($('#auth-password')).toBeTruthy()
-    expect(text()).toContain('Aurum keeps your income and expenses in your account')
+    expect(text()).toContain('Merces keeps your income and expenses in your account')
   })
 
   it('opens on the transactions once signed in, with the account menu in the header', async () => {

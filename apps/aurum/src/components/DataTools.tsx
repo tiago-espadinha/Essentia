@@ -66,7 +66,7 @@ export function DataTools({ transactions, onImport }: DataToolsProps) {
           type="button"
           className="button-ghost data__button"
           disabled={transactions.length === 0}
-          onClick={() => download(`aurum-${todayKey()}.csv`, toCsv(transactions))}
+          onClick={() => download(`merces-${todayKey()}.csv`, toCsv(transactions))}
         >
           Export CSV
         </button>

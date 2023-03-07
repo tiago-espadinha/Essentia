@@ -4,7 +4,7 @@ export function AppHeader() {
   return (
     <header className="folio-header">
       <HubLink />
-      <span className="folio-header__title">Folio</span>
+      <span className="folio-header__title app-identity">Folio{' '}<span className="app-identity__catchphrase">Your Notes</span></span>
       <ThemeToggle />
     </header>
   )

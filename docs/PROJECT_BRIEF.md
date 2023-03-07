@@ -3,7 +3,7 @@
 ## Product in one sentence
 Essentia’s revised destination is four everyday productivity tools—Folio notes and markdown writing, Acta tasks, Virtus habits, and Merces personal finance—sharing one design language and a landing hub, built mainly for the author’s personal use and shown as a portfolio piece.
 
-This is the agreed product direction, not a statement of completed implementation. The current application still has five entry points, including separate Dictum and Aurum apps.
+This is the agreed product direction, not a statement of completed implementation. The current application still has five entry points, including separate Dictum and Merces apps; Merces retains the internal `aurum` identifiers.
 
 ## Audience and context
 - Primary user: the author, in daily personal use.
@@ -17,12 +17,12 @@ This is the agreed product direction, not a statement of completed implementatio
 
 ## Current user journeys
 1. Open the hub, pick an app, use it immediately (Acta and Folio are local-only; Virtus and Dictum work locally without signing in).
-2. Sign in once (one Supabase project, shared session across the suite) and have Virtus, Dictum and Aurum data available across devices.
-3. Aurum: record income and expenses, set budgets, create recurring items that post when the app syncs, review summaries and charts.
+2. Sign in once (one Supabase project, shared session across the suite) and have Virtus, Dictum and Merces data available across devices.
+3. Merces: record income and expenses, set budgets, create recurring items that post when the app syncs, review summaries and charts.
 4. Dictum: write markdown with live preview, keep version history, share a read-only link at `/dictum/shared/<id>`.
 
 ## Requirements
-- Must have in the current baseline: all five apps and the hub working; shared `@essentia/tokens` design system across all apps; Aurum built on Supabase (Auth + RLS); Virtus habits and Dictum documents synced to Supabase; current dependency versions with zero known vulnerabilities; lint, typecheck, test and build passing; no open security findings; deployed on Vercel.
+- Must have in the current baseline: all five apps and the hub working; shared `@essentia/tokens` design system across all apps; Merces built on Supabase (Auth + RLS); Virtus habits and Dictum documents synced to Supabase; current dependency versions with zero known vulnerabilities; lint, typecheck, test and build passing; no open security findings; deployed on Vercel.
 - Should have: tests and an accessibility pass per app; dark mode in every app; UX tweaks where they help users or features.
 - Later / out of scope: CI; E2E tests; native apps; collaboration; bank imports; a daily `pg_cron` job for recurring items.
 
@@ -38,7 +38,7 @@ This is the agreed product direction, not a statement of completed implementatio
 - Architecture: `docs/ARCHITECTURE.md`; flows and screens: `docs/UX_FLOWS.md`.
 
 ## Current baseline acceptance
-Visiting the deployed hub lets you use all five apps on one design system, with sign-in and synced data in Virtus, Dictum and Aurum, working Dictum share links, clean checks, and no known vulnerabilities.
+Visiting the deployed hub lets you use all five apps on one design system, with sign-in and synced data in Virtus, Dictum and Merces, working Dictum share links, clean checks, and no known vulnerabilities.
 
 
 ## Revised destination

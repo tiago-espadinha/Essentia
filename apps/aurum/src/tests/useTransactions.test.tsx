@@ -712,6 +712,31 @@ describe('recurring items', () => {
 })
 
 describe('saved data on the device', () => {
+  it('opens the legacy Aurum keys for the same account after the Merces rename', async () => {
+    const stamp = '2022-11-08T08:00:00.000Z'
+    localStorage.setItem('essentia-aurum-sync', JSON.stringify({ owner: 'ana', deleted: { removed: stamp } }))
+    localStorage.setItem('essentia-aurum-transactions', JSON.stringify([localCopy(1, 'Legacy coffee')]))
+    localStorage.setItem('essentia-aurum-budgets', JSON.stringify({ budgets: [{ category: 'food', amount: 20000, updatedAt: stamp }], deleted: {} }))
+    localStorage.setItem('essentia-aurum-recurring', JSON.stringify({ items: [{
+      id: idOf(2), description: 'Legacy rent', amount: 90000, type: 'expense', category: 'housing',
+      frequency: 'monthly', startOn: '2022-12-01', paused: false, pausedOn: null, resumedOn: null,
+      createdAt: stamp, updatedAt: stamp,
+    }], deleted: {} }))
+    const server = fakeServer()
+    server.fail(true)
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    expect(descriptions()).toEqual(['Legacy coffee'])
+    expect(hook().budgets).toMatchObject([{ category: 'food', amount: 20000 }])
+    expect(hook().recurring).toMatchObject([{ description: 'Legacy rent' }])
+    expect(JSON.parse(localStorage.getItem('essentia-aurum-sync')!)).toMatchObject({ owner: 'ana', deleted: { removed: stamp } })
+    expect(Object.keys(localStorage).some((key) => key.startsWith('essentia-merces-'))).toBe(false)
+    await device.signInAs('ben')
+    expect(descriptions()).toEqual([])
+    expect(hook().budgets).toEqual([])
+    expect(hook().recurring).toEqual([])
+  })
+
   const signedInAsAna = () => localStorage.setItem(SYNC_KEY, JSON.stringify({ owner: 'ana', deleted: {} }))
 
   it('skips what is unreadable or repeated when it opens', async () => {

@@ -87,3 +87,12 @@
 
   .ui-workspace-layout .workspace > :first-child { margin-top: 0; }
 }
+
+/* App names and catchphrases stay readable beside navigation and account controls. */
+.app-identity { min-width: 0; text-align: center; }
+.app-identity__catchphrase {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}

@@ -4,6 +4,8 @@ export interface SuiteApp {
   name: string
   path: string
   latin: string
+  catchphrase?: string
+  aliases?: string[]
   description: string
   port: number
 }
@@ -11,6 +13,7 @@ export interface SuiteApp {
 export const suiteApps: SuiteApp[] = [
   {
     name: 'Folio',
+    catchphrase: 'Your Notes',
     path: '/folio/',
     latin: 'a leaf',
     description: 'Notes with rich text, tags and pins.',
@@ -18,6 +21,7 @@ export const suiteApps: SuiteApp[] = [
   },
   {
     name: 'Acta',
+    catchphrase: 'Your Tasks',
     path: '/acta/',
     latin: 'things done',
     description: 'Tasks with categories, due dates and filters.',
@@ -25,6 +29,7 @@ export const suiteApps: SuiteApp[] = [
   },
   {
     name: 'Virtus',
+    catchphrase: 'Your Habits',
     path: '/virtus/',
     latin: 'strength of character',
     description: 'Habits with streaks, a heatmap and badges.',
@@ -38,9 +43,11 @@ export const suiteApps: SuiteApp[] = [
     port: 5104,
   },
   {
-    name: 'Aurum',
-    path: '/aurum/',
-    latin: 'gold',
+    name: 'Merces',
+    catchphrase: 'Your Money',
+    path: '/merces/',
+    aliases: ['/aurum/'],
+    latin: 'earnings',
     description: 'Income and expenses, filtered and summed, in your account.',
     port: 5105,
   },

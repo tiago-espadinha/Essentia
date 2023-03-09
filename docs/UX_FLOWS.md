@@ -23,7 +23,7 @@ four-app destination is specified separately below; it is not yet delivered.
 ## Current screen inventory
 | Screen / route | User goal | Primary action | Key states | Responsive notes |
 |---|---|---|---|---|
-| Hub `/` | Pick an app | Open an app | Default | 640 px column; single column of app entries at 375 px |
+| Hub `/` | Pick an app | Open an app | Populated; empty registry | Four primary entries in two columns from 768 px, one below; separate Dictum link |
 | Acta `/acta/` | Manage tasks | Add task | Empty, list, filtered (none match), completed | 520 px column |
 | Folio `/folio/` | Write and find notes | New note | Empty library, list, editor, search no results, save failed | Library, list and editor from 1024 px; list + editor from 768 px (library folds into a filter bar); one pane below 768 px |
 | Virtus `/virtus/` | Track habits | Check in today | Empty, habits, streak milestone, offline | 520 px column |

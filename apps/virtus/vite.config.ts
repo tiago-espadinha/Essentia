@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -52,8 +52,8 @@ function offline(): Plugin {
         contents.set(output.fileName, output.type === 'chunk' ? output.code : output.source)
       }
       for (const entry of readdirSync(publicDir, { recursive: true, withFileTypes: true })) {
-        if (!entry.isFile()) continue
         const path = join(entry.parentPath, entry.name)
+        if (!statSync(path).isFile()) continue
         contents.set(relative(publicDir, path).split(sep).join('/'), readFileSync(path))
       }
 

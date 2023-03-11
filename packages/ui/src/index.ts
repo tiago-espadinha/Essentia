@@ -2,5 +2,6 @@ export { THEME_KEY, applyStoredTheme, currentTheme, setTheme, type Theme } from 
 export { useTheme } from './hooks/useTheme'
 export { useRecordMotion } from './hooks/useRecordMotion'
 export { ThemeToggle } from './components/ThemeToggle'
+export { AccentSelect } from './components/AccentSelect'
 export { HubLink } from './components/HubLink'
 export { Dialog } from './components/Dialog'

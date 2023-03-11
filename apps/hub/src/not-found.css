@@ -40,7 +40,7 @@
   transition: opacity var(--duration-fast) var(--ease);
 }
 
-.not-found__action:hover { opacity: 0.9; }
+.not-found__action:hover { text-decoration: underline; text-underline-offset: var(--space-1); }
 
 @media (max-width: 480px) {
   .not-found { padding: var(--space-16) var(--space-4); }

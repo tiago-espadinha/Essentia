@@ -15,6 +15,7 @@ four-app destination is specified separately below; it is not yet delivered.
 
 ## Secondary journeys
 - Sign in once (Supabase) and stay signed in across Virtus, Dictum and Merces (shared session on one origin).
+- Choose Accent in the hub header (Terracotta, Blue or Violet); it applies to every app and open same-origin tab and survives reload when browser storage is available. If saving fails, inline feedback explains the current-page-only choice.
 - Switch theme in any app; the choice applies to every app (`essentia-theme`).
 - Dictum: share a document and open the link at `/dictum/shared/<id>` while signed out.
 - Merces: recurring items post when the app syncs, catching up any missed periods.
@@ -77,7 +78,7 @@ four-app destination is specified separately below; it is not yet delivered.
 
 | Surface | Agreed direction | Remaining decision |
 | --- | --- | --- |
-| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Exact controls and interim handling of separate Dictum; custom app creation is not approved |
+| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Accent select and theme toggle implemented; account/search pending. Separate Dictum access retained; custom app creation excluded |
 | Folio | Dictum writing/preview patterns; collapsible library aside; explicit rich-text/markdown control | Default mode, lossless conversion, folder/tag model, nesting and pane breakpoints |
 | Acta, Virtus, Merces | Use wide desktop space with comfortable reading regions, 24–32 px outer gutters and meaningful list/detail or summary areas; collapse on mobile | Exact density, pane arrangement and breakpoints require rendered review |
 | Virtus Track/Schedule | Track is recommended for check-ins; Schedule for recurrence | Exact copy, target screen and disclosure behavior are TBD |

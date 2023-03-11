@@ -103,7 +103,7 @@
   transition: opacity var(--duration-fast) var(--ease);
 }
 
-.button-primary:hover { opacity: 0.9; }
+.button-primary:hover { box-shadow: inset 0 0 0 1px currentColor; }
 
 /* Still readable while a request is out; the label says what is happening. */
 .button-primary[aria-disabled='true'] { opacity: 0.7; cursor: default; }

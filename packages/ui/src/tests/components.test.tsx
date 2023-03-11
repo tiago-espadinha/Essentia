@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 
 import { Dialog } from '../components/Dialog'
 import { HubLink } from '../components/HubLink'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { AccentSelect } from '../components/AccentSelect'
 import { THEME_KEY } from '../domain/theme'
 
 declare global {
@@ -39,6 +40,52 @@ afterEach(() => {
   act(() => root.unmount())
   container.remove()
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
+
+describe('AccentSelect', () => {
+  it('offers named palettes and saves a keyboard-compatible native selection', () => {
+    delete document.documentElement.dataset.accent
+    render(<AccentSelect />)
+    const select = container.querySelector('select')!
+    expect(container.querySelector('label')?.textContent).toBe('Accent')
+    expect(container.querySelector('label')?.htmlFor).toBe(select.id)
+    expect(Array.from(select.options, (option) => option.text)).toEqual(['Terracotta', 'Blue', 'Violet'])
+    expect(select.value).toBe('terracotta')
+    act(() => {
+      select.value = 'blue'
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(select.value).toBe('blue')
+    expect(localStorage.getItem('essentia-accent')).toBe('blue')
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('')
+  })
+
+  it('announces unsaved choice when persistence fails and clears feedback on retry', () => {
+    render(<AccentSelect />)
+    const save = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    const select = container.querySelector('select')!
+    act(() => {
+      select.value = 'violet'
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(select.value).toBe('violet')
+    expect(select.getAttribute('aria-describedby')).toBe(container.querySelector('[role="status"]')?.id)
+    expect(container.querySelector('[role="status"]')?.textContent).toContain('could not save')
+    act(() => {
+      document.documentElement.dataset.accent = 'blue'
+      window.dispatchEvent(new Event('essentia-accent-change'))
+    })
+    expect(select.value).toBe('blue')
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('')
+    save.mockRestore()
+    act(() => {
+      select.value = 'terracotta'
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('')
+    expect(select.hasAttribute('aria-describedby')).toBe(false)
+  })
 })
 
 describe('ThemeToggle', () => {

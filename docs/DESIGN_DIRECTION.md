@@ -15,7 +15,7 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
 ## Choice and alternatives
 - Chosen: retain the existing editorial language while revising the hub, readability and wide layouts for Folio, Acta, Virtus and Merces. Dictum folds into Folio; Aurum becomes Merces through separately reviewed compatibility work.
 - Alternatives considered: a redesign (`create` mode); per-app accent colours.
-- Revised accent direction: terracotta remains the default; offer a curated set of suite-wide palettes after light/dark contrast verification. Exact palette choices and preference storage/sync remain TBD. Arbitrary color selection is not included.
+- Revised accent direction: terracotta remains the default; offer a curated set of suite-wide palettes after light/dark contrast verification. Approved palettes are Terracotta (default), Blue and Violet; a hub header selector stores the device-local preference under `essentia-accent`, shared across apps and open tabs on the same origin. Account sync is excluded. Arbitrary color selection is not included.
 - Trade-offs: apps are told apart by name, serif title and icon, not colour.
 
 ## References
@@ -39,8 +39,9 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
   - Background `--color-sand` #F2EDE6 / #1A1816; surface `--color-paper` #EDE8E0 / #222019.
   - Text `--color-ink` #2A2520 / #E8E3DC; muted `--color-mid` #6F665D / #9A9087.
   - Decorative lines `--color-faint` #DDD8D0 / #2F2C28; control borders `--color-line-strong` #8A8076 / #7A7168.
-  - Primary action and accent fill `--color-terracotta` #B8572A / #D4764A, with `--color-on-accent` #FFFFFF / #1A1816.
+  - Default primary action and accent fill `--color-terracotta` #B8572A / #D4764A, with `--color-on-accent` #FFFFFF / #1A1816.
   - Accent text and links `--color-accent-text` #A24B23 / #D4764A.
+  - Alternate accent roles (light fill / light text and focus / dark fill, text and focus): Blue #34689B / #285A89 / #7AADE0; Violet #76549E / #68458F / #B99ADB. The legacy `--color-terracotta` token follows the selected palette.
   - Status: success #3F6B4C / #6AAF7D; danger #B23F3F / #E06060.
   - All text pairs are 4.5:1 or better; control borders 3:1 or better (ratios in the tokens file).
 - Spacing scale: 4 px base: 2, 4, 8, 12, 16, 24, 32, 48, 64, 96 (`--space-*`).
@@ -122,6 +123,15 @@ hub-entry management is excluded. Track/Schedule copy, category color assignment
 exact Streaks destination remain TBD. Category markers need text equivalents and
 must remain distinct from success/danger and the selected accent. New palettes
 require verified text (4.5:1), control and focus (3:1) contrast in both themes.
+
+## Accent preference
+
+Choose Accent in the hub header; native named options work with keyboard and touch.
+The choice applies immediately and before rendering each app on reload. Invalid,
+missing or removed preferences fall back to Terracotta. Blocked reads use the
+default; a failed save keeps the current-page choice and shows unsaved feedback.
+Cross-tab changes and storage clearing update the palette. Semantic status and
+category colors retain their meaning. Palette switching has no color animation.
 
 ## Historical visual acceptance evidence
 

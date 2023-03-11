@@ -18,13 +18,14 @@ apps/
 packages/
   config/    shared TypeScript and ESLint configs
   tokens/    design tokens, fonts and base styles (one CSS import)
-  ui/        theme, theme toggle, back-to-hub link, Dialog
+  ui/        theme, accent preference/selector, back-to-hub link, Dialog
   supabase/  the one Supabase client, auth hooks, sign-in form, account menu
 scripts/
   assemble.mjs   copies each app's dist/ into one dist/ (hub at the root)
 ```
 
 - There is no server of our own. Every app is a static bundle; the only backend is one Supabase project (Auth and Postgres).
+- The hub Accent selector saves a validated Terracotta/Blue/Violet ID under `essentia-accent`. Each app loads the same blocking external startup script through a public symlink before styles/modules; it applies the saved palette and listens for cross-tab changes. Unknown/missing values default to Terracotta. Failed writes keep the current-page choice with feedback; preferences never sync to accounts.
 - All apps share one origin, so they share the theme choice (`essentia-theme` in localStorage) and the Supabase session.
 - Apps do not import each other; anything shared lives in `packages/`.
 

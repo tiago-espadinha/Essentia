@@ -5,6 +5,8 @@
  * Theme: set data-theme="dark" | "light" on <html>; without it the system
  * preference applies. The choice is stored under "essentia-theme" and is
  * shared by every app (same origin).
+ * Accent: data-accent selects a curated suite palette. The legacy terracotta
+ * token remains the selected fill so existing app controls follow the choice.
  * Contrast ratios in comments are against --color-sand / --color-paper.
  */
 :root {
@@ -115,6 +117,40 @@
   --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
   --grain-opacity: 0;
   color-scheme: dark;
+}
+
+/* Palette contrast against sand / paper: links >= 4.83, fill >= 3.88.
+ * On-accent text is white in light mode and ink-dark in dark mode. */
+:root[data-accent="blue"] {
+  --color-terracotta: #34689B;
+  --color-accent-text: #285A89;
+}
+
+:root[data-accent="violet"] {
+  --color-terracotta: #76549E;
+  --color-accent-text: #68458F;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-accent="blue"]:not([data-theme="light"]) {
+    --color-terracotta: #7AADE0;
+    --color-accent-text: #7AADE0;
+  }
+
+  :root[data-accent="violet"]:not([data-theme="light"]) {
+    --color-terracotta: #B99ADB;
+    --color-accent-text: #B99ADB;
+  }
+}
+
+:root[data-theme="dark"][data-accent="blue"] {
+  --color-terracotta: #7AADE0;
+  --color-accent-text: #7AADE0;
+}
+
+:root[data-theme="dark"][data-accent="violet"] {
+  --color-terracotta: #B99ADB;
+  --color-accent-text: #B99ADB;
 }
 
 @media (prefers-reduced-motion: reduce) {

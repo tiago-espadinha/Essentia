@@ -1,3 +1,5 @@
+import { useLocale } from '@essentia/ui'
+import { t } from '../locale'
 import { Dialog } from '@essentia/ui'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState } from 'react'
@@ -29,6 +31,7 @@ interface AccountMenuProps {
 
 /** Sign in, or see the account and sign out; nothing without a Supabase project or while the session loads. */
 export function AccountMenu({ auth, client, syncState, onSync, text }: AccountMenuProps) {
+  useLocale()
   // The dialog belongs to the state it was opened in: signing in or out closes it.
   const [openFor, setOpenFor] = useState<Auth['status'] | null>(null)
   if (openFor !== null && openFor !== auth.status) setOpenFor(null)
@@ -39,10 +42,10 @@ export function AccountMenu({ auth, client, syncState, onSync, text }: AccountMe
     return (
       <>
         <button id={BUTTON_ID} type="button" className="account__sign-in" aria-haspopup="dialog" onClick={() => setOpenFor('signed-out')}>
-          Sign in
+          {t("Sign in")}
         </button>
         {openFor && (
-          <Dialog title="Sign in" titleId="sign-in-title" returnFocusId={BUTTON_ID} onClose={close}>
+          <Dialog title={t("Sign in")} titleId="sign-in-title" returnFocusId={BUTTON_ID} onClose={close}>
             <div className="account__body">
               <AuthForm
                 client={client}
@@ -57,12 +60,12 @@ export function AccountMenu({ auth, client, syncState, onSync, text }: AccountMe
 
   return (
     <>
-      <button id={BUTTON_ID} type="button" className="ui-icon-button" aria-haspopup="dialog" title="Account" onClick={() => setOpenFor('signed-in')}>
+      <button id={BUTTON_ID} type="button" className="ui-icon-button" aria-haspopup="dialog" title={t("Account")} onClick={() => setOpenFor('signed-in')}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="7" r="3.25" stroke="currentColor" strokeWidth="1.5" />
           <path d="M3.75 16.5a6.25 6.25 0 0 1 12.5 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        <span className="visually-hidden">Account</span>
+        <span className="visually-hidden">{t("Account")}</span>
       </button>
       {openFor && <AccountDialog email={auth.email} client={client} syncState={syncState} onSync={onSync} text={text} onClose={close} />}
     </>
@@ -79,6 +82,7 @@ interface AccountDialogProps {
 }
 
 function AccountDialog({ email, client, syncState, onSync, text, onClose }: AccountDialogProps) {
+  useLocale()
   const [unsynced, setUnsynced] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
@@ -101,36 +105,36 @@ function AccountDialog({ email, client, syncState, onSync, text, onClose }: Acco
   }
 
   return (
-    <Dialog title="Account" titleId="account-title" returnFocusId={BUTTON_ID} onClose={onClose}>
+    <Dialog title={t("Account")} titleId="account-title" returnFocusId={BUTTON_ID} onClose={onClose}>
       <div className="account__body">
         <p className="account__email">
-          Signed in as <strong>{email}</strong>.
+          {t('Signed in as ')}<strong>{email}</strong>.
         </p>
         <div className="account__sync" role="status">
           <span>{text.sync[syncState]}</span>
           {syncState === 'failed' && (
             <button type="button" className="account__retry" onClick={() => void onSync()}>
-              Try again
+              {t("Try again")}
             </button>
           )}
         </div>
         <p className="account__note">{text.signOut}</p>
         {unsynced && (
           <p className="account__error" role="alert">
-            Your latest changes haven’t reached your account yet. Try again, or sign out anyway and lose them.
+            {t("Your latest changes haven’t reached your account yet. Try again, or sign out anyway and lose them.")}
           </p>
         )}
         {failure && (
           <p className="account__error" role="alert">
-            {failure}
+            {t(failure)}
           </p>
         )}
         <div className="account__actions">
           <button type="button" className="account__close" onClick={onClose}>
-            Close
+            {t("Close")}
           </button>
           <button type="button" className="account__sign-out" onClick={() => void leave()} aria-disabled={pending}>
-            {pending ? 'Signing out…' : unsynced ? 'Sign out anyway' : 'Sign out'}
+            {pending ? t("Signing out…") : unsynced ? t("Sign out anyway") : t("Sign out")}
           </button>
         </div>
       </div>

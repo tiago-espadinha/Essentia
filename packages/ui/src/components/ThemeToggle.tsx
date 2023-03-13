@@ -1,8 +1,11 @@
+import { t } from '../locale'
+import { useLocale } from '../domain/locale'
 import { useTheme } from '../hooks/useTheme'
 import '../ui.css'
 
 /** The icon offers the other theme; the stable toggle name and pressed state describe dark mode. */
 export function ThemeToggle() {
+  useLocale()
   const { theme, toggle } = useTheme()
 
   return (
@@ -10,10 +13,10 @@ export function ThemeToggle() {
       type="button"
       className="ui-icon-button ui-theme-toggle"
       aria-pressed={theme === 'dark'}
-      title="Dark theme"
+      title={t('Dark theme')}
       onClick={toggle}
     >
-      <span className="visually-hidden">Dark theme</span>
+      <span className="visually-hidden">{t('Dark theme')}</span>
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         {theme === 'dark' ? (
           <g stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

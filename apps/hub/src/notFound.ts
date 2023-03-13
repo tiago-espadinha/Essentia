@@ -1,7 +1,24 @@
-// The 404 page is static HTML; this module only brings in the suite's styles
-// and the stored theme, since the CSP allows no inline styles or scripts.
+// Keep usable fallback HTML while applying device preferences without inline scripts.
 import '@essentia/tokens/index.css'
-import { applyStoredTheme } from '@essentia/ui'
+import { applyStoredTheme, subscribeLocale } from '@essentia/ui'
+import { t } from './locale'
 import './not-found.css'
 
 applyStoredTheme()
+
+function renderNotFound() {
+  document.title = t('Page not found · Essentia')
+  const copy = {
+    '.not-found__label': '404 · Not found',
+    '.not-found__title': 'Nothing lives at this address.',
+    '.not-found__text': 'The link may be mistyped or out of date. Every app starts from the home page.',
+    '.not-found__action': 'Go to Essentia',
+  }
+  for (const [selector, text] of Object.entries(copy)) {
+    const element = document.querySelector(selector)
+    if (element) element.textContent = t(text)
+  }
+}
+
+renderNotFound()
+subscribeLocale(renderNotFound)

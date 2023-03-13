@@ -1,0 +1,32 @@
+import { createTranslator } from '@essentia/ui'
+
+export const messages = {
+  "Your Notes": "As suas notas",
+  "Your Tasks": "As suas tarefas",
+  "Your Habits": "Os seus hábitos",
+  "Your Money": "O seu dinheiro",
+  "a leaf": "uma folha",
+  "things done": "coisas feitas",
+  "strength of character": "força de caráter",
+  "a thing said": "algo dito",
+  "earnings": "rendimentos",
+  "Notes with rich text, tags and pins.": "Notas com texto formatado, etiquetas e destaques.",
+  "Tasks with categories, due dates and filters.": "Tarefas com categorias, datas limite e filtros.",
+  "Habits with streaks, a heatmap and badges.": "Hábitos com sequências, mapa de atividade e conquistas.",
+  "Markdown writing with a live preview and versions.": "Escrita em markdown com pré-visualização e versões.",
+  "Income and expenses, filtered and summed, in your account.": "Receitas e despesas, filtradas e somadas, na sua conta.",
+  "Open {name}": "Abrir {name}",
+  "The essentials of a working day.": "O essencial de um dia de trabalho.",
+  "A little space to think, do, grow and plan.": "Um pequeno espaço para pensar, fazer, crescer e planear.",
+  "Nothing here yet.": "Ainda não há nada aqui.",
+  "Apps appear here as they join the suite.": "As aplicações aparecem aqui à medida que se juntam à suite.",
+  "Everyday tools": "Ferramentas do dia a dia",
+  "Markdown writing": "Escrita em markdown",
+  "Dictum is still your separate space for markdown, previews and versions.": "O Dictum continua a ser o seu espaço separado para markdown, pré-visualizações e versões.",
+  "Page not found · Essentia": "Página não encontrada · Essentia",
+  "404 · Not found": "404 · Não encontrado",
+  "Nothing lives at this address.": "Não há nada neste endereço.",
+  "The link may be mistyped or out of date. Every app starts from the home page.": "A ligação pode estar incorreta ou desatualizada. Todas as aplicações estão na página inicial.",
+  "Go to Essentia": "Ir para Essentia"
+}
+export const t = createTranslator(messages)

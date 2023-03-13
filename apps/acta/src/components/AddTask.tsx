@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useState, type FormEvent, type RefObject } from 'react'
 
 interface AddTaskProps {
@@ -26,7 +27,7 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
   return (
     <form className="add" onSubmit={submit} noValidate>
       <label className="visually-hidden" htmlFor="add-task">
-        New task
+        {t("New task")}
       </label>
       <div className="add__row">
         <input
@@ -38,7 +39,7 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
             setText(event.target.value)
             setRefusals(0)
           }}
-          placeholder="Add something to do…"
+          placeholder={t("Add something to do…")}
           autoComplete="off"
           aria-invalid={invalid}
           aria-describedby={invalid ? 'add-task-error' : undefined}
@@ -47,12 +48,12 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="visually-hidden">Add task</span>
+          <span className="visually-hidden">{t("Add task")}</span>
         </button>
       </div>
       {invalid && (
         <p key={refusals} id="add-task-error" className="field-error" role="alert">
-          Write something first.
+          {t("Write something first.")}
         </p>
       )}
     </form>

@@ -1,7 +1,8 @@
+import { t } from '../locale'
 import { Fragment } from 'react'
 import type { Note } from '../domain/notes'
 
-const message = (note: Note) => `Deleted “${note.title.trim() || 'Untitled'}”.`
+const message = (note: Note) => t('Deleted “{title}”.', { title: note.title.trim() || t('Untitled') })
 
 /** The strip under the list head while the latest deleted note can come back. */
 export function UndoNotice({ deleted, onUndo }: { deleted: Note | null; onUndo: () => void }) {
@@ -9,9 +10,7 @@ export function UndoNotice({ deleted, onUndo }: { deleted: Note | null; onUndo: 
   return (
     <div className="undo">
       <span className="undo__text">{message(deleted)}</span>
-      <button type="button" className="undo__button" onClick={onUndo}>
-        Undo
-      </button>
+      <button type="button" className="undo__button" onClick={onUndo}>{t("Undo")}</button>
     </div>
   )
 }

@@ -1,3 +1,5 @@
+import { formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import { formatDate, plainText, type Note } from '../domain/notes'
 import { UndoNotice } from './UndoNotice'
 
@@ -46,7 +48,7 @@ export function NoteList({
     <section className="pane list-pane" aria-labelledby="list-title">
       <div className="pane__head">
         <h2 id="list-title" className="label">
-          Notes · {notes.length}
+          {t('Notes · {count}', { count: formatNumber(notes.length) })}
         </h2>
         {total > 0 && (
           <div className="pane__actions">
@@ -59,9 +61,7 @@ export function NoteList({
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M2.5 4h11M4.5 8h7M6.5 12h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              Filter
-            </button>
+              </svg>{t("Filter")}</button>
             <NewNoteButton onClick={onNew} />
           </div>
         )}
@@ -72,27 +72,25 @@ export function NoteList({
       <div className="pane__body">
         {total === 0 ? (
           <div className="empty">
-            <h3 className="empty__title">No notes yet.</h3>
-            <p className="empty__text">Start one and it stays on this device.</p>
+            <h3 className="empty__title">{t("No notes yet.")}</h3>
+            <p className="empty__text">{t("Start one and it stays on this device.")}</p>
             <NewNoteButton onClick={onNew} />
           </div>
         ) : notes.length === 0 ? (
           <div className="empty">
-            <h3 className="empty__title">Nothing matches.</h3>
-            <p className="empty__text">No notes fit this search.</p>
-            <button type="button" className="button-ghost button-ghost--outlined" onClick={onClearFilters}>
-              Clear search
-            </button>
+            <h3 className="empty__title">{t("Nothing matches.")}</h3>
+            <p className="empty__text">{t("No notes fit this search.")}</p>
+            <button type="button" className="button-ghost button-ghost--outlined" onClick={onClearFilters}>{t("Clear search")}</button>
           </div>
         ) : pinned.length === 0 ? (
           rows(others)
         ) : (
           <>
-            <h3 className="label group-label">Pinned</h3>
+            <h3 className="label group-label">{t("Pinned")}</h3>
             {rows(pinned)}
             {others.length > 0 && (
               <>
-                <h3 className="label group-label">Notes</h3>
+                <h3 className="label group-label">{t("Notes")}</h3>
                 {rows(others)}
               </>
             )}
@@ -108,9 +106,7 @@ function NewNoteButton({ onClick }: { onClick: () => void }) {
     <button type="button" className="button-primary" onClick={onClick}>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-      New note
-    </button>
+      </svg>{t("New note")}</button>
   )
 }
 
@@ -125,7 +121,7 @@ function NoteRow({ note, selected, onSelect }: { note: Note; selected: boolean; 
       aria-current={selected ? 'true' : undefined}
       onClick={() => onSelect(note.id)}
     >
-      <span className="note-row__title">{note.title.trim() || 'Untitled'}</span>
+      <span className="note-row__title">{note.title.trim() || t('Untitled')}</span>
       {preview && <span className="note-row__preview">{preview}</span>}
       <span className="label note-row__date">{formatDate(note.updatedAt)}</span>
     </button>

@@ -1,3 +1,4 @@
+import { t } from '../locale'
 interface LibraryProps {
   query: string
   tags: string[]
@@ -11,16 +12,14 @@ interface LibraryProps {
 /** Search and the tag filter. */
 export function Library({ query, tags, activeTag, open, onQueryChange, onTagChange }: LibraryProps) {
   return (
-    <section id="library" className="pane library-pane" aria-label="Library" data-open={open || undefined}>
+    <section id="library" className="pane library-pane" aria-label={t("Library")} data-open={open || undefined}>
       <div className="pane__head" role="search">
-        <label htmlFor="search" className="visually-hidden">
-          Search notes
-        </label>
+        <label htmlFor="search" className="visually-hidden">{t("Search notes")}</label>
         <input
           id="search"
           className="search"
           type="search"
-          placeholder="Search notes"
+          placeholder={t("Search notes")}
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
         />
@@ -29,9 +28,7 @@ export function Library({ query, tags, activeTag, open, onQueryChange, onTagChan
       <div className="pane__body library">
         {tags.length > 0 && (
           <nav aria-labelledby="tags-title">
-            <h2 id="tags-title" className="label">
-              Tags
-            </h2>
+            <h2 id="tags-title" className="label">{t("Tags")}</h2>
             <ul className="tag-list">
               <li>
                 <button
@@ -39,9 +36,7 @@ export function Library({ query, tags, activeTag, open, onQueryChange, onTagChan
                   className="tag-button"
                   aria-pressed={activeTag === null}
                   onClick={() => onTagChange(null)}
-                >
-                  All notes
-                </button>
+                >{t("All notes")}</button>
               </li>
               {tags.map((tag) => (
                 <li key={tag}>

@@ -1,4 +1,5 @@
-import { useRecordMotion } from '@essentia/ui'
+import { t } from './locale'
+import { useLocale, useRecordMotion } from '@essentia/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
@@ -12,6 +13,8 @@ import { useNotes } from './hooks/useNotes'
 const PHONE = '(width < 768px)'
 
 export default function App() {
+  const locale = useLocale()
+  useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
   const { notes, saveFailed, add, update, remove, restore } = useNotes()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // The latest deleted note, until it is restored or another one is deleted.
@@ -109,7 +112,7 @@ export default function App() {
     <>
       <AppHeader />
       <main className="folio" ref={mainRef} data-view={selected && view === 'editor' ? 'editor' : 'list'}>
-        <h1 className="visually-hidden">Folio notes</h1>
+        <h1 className="visually-hidden">{t("Folio notes")}</h1>
         <DeleteAnnouncer deleted={deleted} />
         <Library
           query={query}
@@ -131,11 +134,9 @@ export default function App() {
           onClearFilters={clearFilters}
           onUndo={undoDelete}
         />
-        <section data-motion-detail className="pane editor-pane" aria-label="Editor">
+        <section data-motion-detail className="pane editor-pane" aria-label={t("Editor")}>
           {saveFailed && (
-            <p className="notice" role="alert">
-              Couldn’t save on this device. Your changes last until you close the page.
-            </p>
+            <p className="notice" role="alert">{t("Couldn’t save on this device. Your changes last until you close the page.")}</p>
           )}
           {selected ? (
             <Editor
@@ -152,7 +153,7 @@ export default function App() {
               onDelete={() => deleteNote(selected.id)}
             />
           ) : (
-            <p className="editor-pane__idle">Your note opens here.</p>
+            <p className="editor-pane__idle">{t("Your note opens here.")}</p>
           )}
         </section>
       </main>

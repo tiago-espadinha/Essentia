@@ -1,3 +1,5 @@
+import { formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import type { ReactNode } from 'react'
 import { displayTitle, formatDate, type Doc } from '../domain/documents'
 import { VIEW_KEYS } from '../domain/keys'
@@ -22,7 +24,7 @@ export function DocList({ docs, total, selectedId, filters, onClearFilters, noti
     <section className="pane list-pane" aria-labelledby="list-title">
       <div className="pane__head">
         <h2 id="list-title" className="label">
-          Documents · {docs.length}
+          {t('Documents · {count}', { count: formatNumber(docs.length) })}
         </h2>
         {total > 0 && <NewDocButton onClick={onNew} />}
       </div>
@@ -32,17 +34,15 @@ export function DocList({ docs, total, selectedId, filters, onClearFilters, noti
       <div className="pane__body">
         {total === 0 ? (
           <div className="empty">
-            <h3 className="empty__title">Nothing written yet.</h3>
-            <p className="empty__text">Start a document and it stays on this device.</p>
+            <h3 className="empty__title">{t("Nothing written yet.")}</h3>
+            <p className="empty__text">{t("Start a document and it stays on this device.")}</p>
             <NewDocButton onClick={onNew} />
           </div>
         ) : docs.length === 0 ? (
           <div className="empty">
-            <h3 className="empty__title">Nothing matches.</h3>
-            <p className="empty__text">No documents fit these filters.</p>
-            <button type="button" className="button-ghost button-ghost--outlined" onClick={onClearFilters}>
-              Clear filters
-            </button>
+            <h3 className="empty__title">{t("Nothing matches.")}</h3>
+            <p className="empty__text">{t("No documents fit these filters.")}</p>
+            <button type="button" className="button-ghost button-ghost--outlined" onClick={onClearFilters}>{t("Clear filters")}</button>
           </div>
         ) : (
           <ul className="docs">
@@ -76,14 +76,12 @@ function NewDocButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       className="button-primary"
-      title={`New document (${VIEW_KEYS.newDoc.label})`}
+      title={`${t('New document')} (${VIEW_KEYS.newDoc.label})`}
       aria-keyshortcuts={VIEW_KEYS.newDoc.aria}
       onClick={onClick}
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
         <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      </svg>
-      New document
-    </button>
+      </svg>{t("New document")}</button>
   )
 }

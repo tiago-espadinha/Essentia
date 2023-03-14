@@ -106,6 +106,6 @@ describe('filterNotes', () => {
 
 describe('formatDate', () => {
   it('shows a short calendar date', () => {
-    expect(formatDate('2022-06-20T12:00:00Z')).toBe('Jun 20, 2022')
+    expect(formatDate('2022-06-20T12:00:00Z')).toBe('20 Jun 2022')
   })
 })

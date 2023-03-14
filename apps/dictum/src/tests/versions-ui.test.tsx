@@ -62,7 +62,7 @@ describe('versions', () => {
 
     vi.setSystemTime(new Date('2022-10-10T09:10:00'))
     type(contentField(), 'Third draft, unsaved')
-    click(buttonNamed('Restore the version from Oct 10, 9:00 AM'))
+    click(buttonNamed('Restore the version from 10 Oct, 9:00'))
     expect(document.querySelector('dialog')).toBeNull()
     expect(contentField().value).toBe('First draft')
     expect(document.activeElement).toBe(buttonNamed('Versions'))

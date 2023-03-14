@@ -1,4 +1,5 @@
-import { useRecordMotion } from '@essentia/ui'
+import { t } from './locale'
+import { useLocale, useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
@@ -26,6 +27,7 @@ const NO_FILTER: DocFilter = { query: '', folder: null, tag: null }
 const client = getSupabase()
 
 export default function App() {
+  useLocale()
   const auth = useAuth(client)
   const { docs, unclaimed, answer, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -142,7 +144,7 @@ export default function App() {
     <>
       <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main className="dictum" ref={mainRef} data-view={selected && view === 'doc' ? 'doc' : 'list'}>
-        <h1 className="visually-hidden">Dictum documents</h1>
+        <h1 className="visually-hidden">{t("Dictum documents")}</h1>
         <DocList
           notice={
             <>
@@ -152,10 +154,8 @@ export default function App() {
               />
               {syncState === 'failed' && (
                 <div className="sync-notice" role="status">
-                  <span className="sync-notice__text">{SYNC_FAILED}</span>
-                  <button type="button" className="undo__button" onClick={() => void sync()}>
-                    Try again
-                  </button>
+                  <span className="sync-notice__text">{t(SYNC_FAILED)}</span>
+                  <button type="button" className="undo__button" onClick={() => void sync()}>{t("Try again")}</button>
                 </div>
               )}
             </>
@@ -168,11 +168,9 @@ export default function App() {
           onSelect={openDoc}
           onNew={newDoc}
         />
-        <section data-motion-detail className="pane doc-pane" aria-label="Document">
+        <section data-motion-detail className="pane doc-pane" aria-label={t("Document")}>
           {saveFailed && (
-            <p className="notice" role="alert">
-              Couldn’t save on this device. Your changes last until you close the page.
-            </p>
+            <p className="notice" role="alert">{t("Couldn’t save on this device. Your changes last until you close the page.")}</p>
           )}
           {selected ? (
             <Editor
@@ -200,12 +198,12 @@ export default function App() {
               }
             />
           ) : (
-            <p className="doc-pane__idle">Your document opens here.</p>
+            <p className="doc-pane__idle">{t("Your document opens here.")}</p>
           )}
         </section>
       </main>
       {unclaimed > 0 && auth.status === 'signed-in' && (
-        <ClaimDialog count={unclaimed} noun={['document', 'documents']} email={auth.email} onAnswer={answer} />
+        <ClaimDialog count={unclaimed} noun={[t('document'), t('documents')]} email={auth.email} onAnswer={answer} />
       )}
       {dialog?.kind === 'share' && dialogDoc && client && (
         <ShareDialog doc={dialogDoc} auth={auth} client={client} onSync={sync} onClose={() => setDialog(null)} />

@@ -139,6 +139,6 @@ describe('readingMinutes', () => {
 
 describe('formatDate', () => {
   it('shows a short date', () => {
-    expect(formatDate('2022-10-07T12:00:00Z')).toBe('Oct 7, 2022')
+    expect(formatDate('2022-10-07T12:00:00Z')).toBe('7 Oct 2022')
   })
 })

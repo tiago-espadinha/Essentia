@@ -1,3 +1,5 @@
+import { formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
 import { insertTransfer, placeCaretAt } from '../domain/editing'
 import { countWords, formatDate, parseTags, plainText, type Note, type NoteChanges } from '../domain/notes'
@@ -62,9 +64,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
         <button type="button" className="button-ghost back-button" onClick={onBack}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Notes
-        </button>
+          </svg>{t("Notes")}</button>
         <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
         <button
           type="button"
@@ -80,34 +80,28 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-          </svg>
-          Pin
-        </button>
-        <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>
-          Delete
-        </button>
+          </svg>{t("Pin")}</button>
+        <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>{t("Delete")}</button>
       </div>
 
       <div className="pane__body">
         <article className="editor">
-          <label htmlFor="note-title" className="visually-hidden">
-            Title
-          </label>
+          <label htmlFor="note-title" className="visually-hidden">{t("Title")}</label>
           <textarea
             id="note-title"
             ref={titleRef}
             className="editor__title"
             rows={1}
-            placeholder="Untitled"
+            placeholder={t("Untitled")}
             value={note.title}
             onChange={(event) => onChange({ title: event.target.value.replace(/\n/g, ' ') })}
             onKeyDown={titleKeyDown}
           />
 
           <div className="editor__meta">
-            <span className="label">Updated {formatDate(note.updatedAt)}</span>
+            <span className="label">{t('Updated {date}', { date: formatDate(note.updatedAt) })}</span>
             <span className="label">
-              {countWords(text)} words · {text.length} characters
+              {t(countWords(text) === 1 ? '{count} word' : '{count} words', { count: formatNumber(countWords(text)) })} · {t(text.length === 1 ? '{count} character' : '{count} characters', { count: formatNumber(text.length) })}
             </span>
             <TagsField tags={note.tags} onChange={(tags) => onChange({ tags })} />
           </div>
@@ -118,8 +112,8 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
             contentEditable
             role="textbox"
             aria-multiline="true"
-            aria-label="Note"
-            data-placeholder="Start writing"
+            aria-label={t("Note")}
+            data-placeholder={t("Start writing")}
             onFocus={() => document.execCommand?.('defaultParagraphSeparator', false, 'p')}
             onInput={saveBody}
             onPaste={(event) => {
@@ -152,11 +146,11 @@ function TagsField({ tags, onChange }: { tags: string[]; onChange: (tags: string
 
   return (
     <label className="tags-field">
-      <span className="label">Tags</span>
+      <span className="label">{t("Tags")}</span>
       <input
         className="tags-field__input"
         value={draft}
-        placeholder="work, ideas"
+        placeholder={t("work, ideas")}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={commit}
         onKeyDown={(event) => {

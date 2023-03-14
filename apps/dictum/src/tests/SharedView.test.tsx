@@ -1,6 +1,7 @@
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { setLocale } from '@essentia/ui'
 import { fakeServer, type Row } from './fakeServer'
 import { SharedView } from '../components/SharedView'
 import './testing'
@@ -44,6 +45,7 @@ const heading = () => container.querySelector('h1')?.textContent
 
 afterEach(() => {
   if (container?.isConnected) close()
+  document.documentElement.lang = 'en-GB'
   vi.restoreAllMocks()
 })
 
@@ -53,7 +55,7 @@ describe('SharedView', () => {
     await open(<SharedView linkId={LINK} client={server.client(null).client} />)
     expect(container.querySelectorAll('h1')).toHaveLength(1)
     expect(heading()).toBe('Goals')
-    expect(container.textContent).toContain('Updated Oct 25, 2022')
+    expect(container.textContent).toContain('Updated 25 Oct 2022')
     expect(container.textContent).not.toContain('Private folder')
     expect(container.textContent).not.toContain('secret-tag')
     expect(container.querySelector('textarea, input')).toBeNull()
@@ -107,5 +109,28 @@ describe('SharedView', () => {
     vi.spyOn(client, 'rpc').mockResolvedValue({ data: [{ title: 1, content: null }], error: null } as never)
     await open(<SharedView linkId={LINK} client={client} />)
     expect(heading()).toBe('This document isn’t shared any more.')
+  })
+
+  it('switches an existing share error and retry to Portuguese without requesting private fields', async () => {
+    const server = serverWith()
+    server.fail(true)
+    const client = server.client(null).client
+    const rpc = vi.spyOn(client, 'rpc')
+    await open(<SharedView linkId={LINK} client={client} />)
+    expect(heading()).toBe('Couldn’t load this document.')
+    const calls = rpc.mock.calls.length
+    act(() => { setLocale('pt-PT') })
+    expect(heading()).toBe('Não foi possível carregar este documento.')
+    expect(container.querySelector('main button')?.textContent).toBe('Tentar novamente')
+    expect(document.title).toBe('Documento partilhado · Dictum')
+    expect(rpc).toHaveBeenCalledTimes(calls)
+
+    server.fail(false)
+    await act(async () => container.querySelector<HTMLButtonElement>('main button')!.click())
+    expect(heading()).toBe('Goals')
+    expect(container.textContent).toContain('Atualizado em 25/10/2022')
+    expect(container.textContent).toContain('Ship it.')
+    expect(container.textContent).not.toContain('Private folder')
+    expect(container.textContent).not.toContain('secret-tag')
   })
 })

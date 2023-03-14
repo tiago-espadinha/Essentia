@@ -1,3 +1,5 @@
+import { t } from '../locale'
+import { formatNumber } from '@essentia/ui'
 import type { ReactNode } from 'react'
 
 interface HabitSectionProps {
@@ -14,12 +16,12 @@ export function HabitSection({ id, title, count, children }: HabitSectionProps) 
     <section aria-labelledby={id}>
       <div className="section-row">
         <h2 id={id} className="label">
-          {title}
+          {t(title)}
         </h2>
         <span className="section-row__rule" />
         <span className="label">
-          {count}
-          <span className="visually-hidden"> {count === 1 ? 'habit' : 'habits'}</span>
+          {formatNumber(count)}
+          <span className="visually-hidden"> {count === 1 ? t('habit') : t('habits')}</span>
         </span>
       </div>
       <ul className="habits">{children}</ul>

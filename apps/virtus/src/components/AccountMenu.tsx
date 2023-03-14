@@ -1,5 +1,6 @@
 import { AccountMenu as SuiteAccountMenu, type AccountText, type Auth, type SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { t } from '../locale'
 import { SYNC_FAILED } from '../hooks/useHabits'
 
 const TEXT: AccountText = {
@@ -22,5 +23,5 @@ interface AccountMenuProps {
 
 /** The suite's account menu, worded for habits. */
 export function AccountMenu(props: AccountMenuProps) {
-  return <SuiteAccountMenu {...props} text={TEXT} />
+  return <SuiteAccountMenu {...props} text={{ intro: t(TEXT.intro), signOut: t(TEXT.signOut), sync: { off: t(TEXT.sync.off), syncing: t(TEXT.sync.syncing), synced: t(TEXT.sync.synced), failed: t(TEXT.sync.failed) } }} />
 }

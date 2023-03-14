@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { VIEW_LABELS, type View } from '../domain/views'
 
 interface ViewsProps {
@@ -7,7 +8,7 @@ interface ViewsProps {
 
 export function Views({ view, onChange }: ViewsProps) {
   return (
-    <nav className="views" aria-label="Views">
+    <nav className="views" aria-label={t("Views")}>
       {(Object.keys(VIEW_LABELS) as View[]).map((value) => (
         <button
           key={value}
@@ -16,7 +17,7 @@ export function Views({ view, onChange }: ViewsProps) {
           aria-current={view === value ? 'page' : undefined}
           onClick={() => onChange(value)}
         >
-          {VIEW_LABELS[value]}
+          {t(VIEW_LABELS[value])}
         </button>
       ))}
     </nav>

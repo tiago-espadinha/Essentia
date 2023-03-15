@@ -1,6 +1,8 @@
 // The transaction model and the pure rules around it. Amounts are whole cents;
 // `date` is the local calendar day the money moved; stamps are ISO timestamps.
 
+import { formatDate } from '@essentia/ui'
+
 export type TransactionType = 'income' | 'expense'
 
 export interface Transaction {
@@ -71,13 +73,13 @@ export const monthOf = (day: string) => day.slice(0, 7)
 /** '2022-11' -> 'November 2022'. */
 export function monthLabel(month: string): string {
   const [year, number] = month.split('-').map(Number)
-  return new Date(year, number - 1, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  return formatDate(new Date(year, number - 1, 1), { month: 'long', year: 'numeric' })
 }
 
 /** '2022-11-03' -> 'Nov 3'. */
 export function shortDate(day: string): string {
   const [year, month, date] = day.split('-').map(Number)
-  return new Date(year, month - 1, date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return formatDate(new Date(year, month - 1, date), { month: 'short', day: 'numeric' })
 }
 
 /** The row's Edit button, which gets focus back when its dialog closes. */

@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useState, type FormEvent, type RefObject } from 'react'
 import { parseQuickAdd, QUICK_ADD_HINT } from '../domain/quickAdd'
 import { todayKey, type TransactionFields } from '../domain/transactions'
@@ -31,8 +32,7 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
   return (
     <form className="add" onSubmit={submit} noValidate>
       <label className="visually-hidden" htmlFor="add-transaction">
-        New transaction
-      </label>
+        {t("New transaction")}</label>
       <div className="add__row">
         <input
           ref={inputRef}
@@ -43,7 +43,7 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
             setInput(event.target.value)
             setError(false)
           }}
-          placeholder="Coffee €3.50, or +Salary €2100"
+          placeholder={t("Coffee €3.50, or +Salary €2100")}
           autoComplete="off"
           aria-invalid={error}
           aria-describedby="add-transaction-hint"
@@ -52,17 +52,16 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="visually-hidden">Add transaction</span>
+          <span className="visually-hidden">{t("Add transaction")}</span>
         </button>
       </div>
       {error ? (
         <p key={refusals} id="add-transaction-hint" className="field-error" role="alert">
-          {QUICK_ADD_HINT}
+          {t(QUICK_ADD_HINT)}
         </p>
       ) : (
         <p id="add-transaction-hint" className="add__hint">
-          A leading + records income. End with a category, like “housing”, to file it.
-        </p>
+          {t("A leading + records income. End with a category, like “housing”, to file it.")}</p>
       )}
     </form>
   )

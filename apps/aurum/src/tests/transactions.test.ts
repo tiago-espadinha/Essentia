@@ -53,7 +53,7 @@ describe('createTransaction and applyChanges', () => {
 
 describe('days', () => {
   it('keys a moment by the local day, not the UTC one', () => {
-    // Tests run in Pacific/Auckland: 20:00 UTC on Nov 2 is already Nov 3 there.
+    // Tests run in Pacific/Auckland: 20:00 UTC on Nov 2 is already 3 Nov there.
     expect(dayKey(new Date('2022-11-02T20:00:00Z'))).toBe('2022-11-03')
   })
 
@@ -69,7 +69,7 @@ describe('days', () => {
   it('names months and days', () => {
     expect(monthOf('2022-11-03')).toBe('2022-11')
     expect(monthLabel('2022-11')).toBe('November 2022')
-    expect(shortDate('2022-11-03')).toBe('Nov 3')
+    expect(shortDate('2022-11-03')).toBe('3 Nov')
   })
 })
 

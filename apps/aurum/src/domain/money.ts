@@ -2,6 +2,8 @@
 // edges: what the user types, what the table stores, what the page shows.
 
 /** numeric(12, 2) in the table: just under ten billion euros. */
+import { formatNumber } from '@essentia/ui'
+
 export const MAX_CENTS = 999_999_999_999
 
 /**
@@ -35,11 +37,10 @@ export function fromEuros(value: unknown): number | null {
   return cents > 0 && cents <= MAX_CENTS ? cents : null
 }
 
-const EUR = new Intl.NumberFormat('en-IE', { style: 'currency', currency: 'EUR' })
 
 /** 350 -> '€3.50'; a negative amount takes a true minus sign, as signed rows do. */
 export function formatMoney(cents: number): string {
-  return `${cents < 0 ? '−' : ''}${EUR.format(Math.abs(cents) / 100)}`
+  return `${cents < 0 ? '−' : ''}${formatNumber(Math.abs(cents) / 100, { style: 'currency', currency: 'EUR' })}`
 }
 
 /** Income with a plus, expenses with a minus: '+€2,100.00', '−€3.50'. */

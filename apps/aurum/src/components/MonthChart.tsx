@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Component, lazy, Suspense, type ReactNode } from 'react'
 import type { MonthTotals } from '../domain/insights'
 
@@ -26,9 +27,7 @@ export function MonthChart({ months }: { months: MonthTotals[] }) {
   return (
     <div className="month-chart" aria-hidden="true">
       <p className="month-chart__key label">
-        <span className="month-chart__swatch month-chart__swatch--income" /> In
-        <span className="month-chart__swatch month-chart__swatch--expenses" /> Out
-      </p>
+        <span className="month-chart__swatch month-chart__swatch--income" /> {t("In")}<span className="month-chart__swatch month-chart__swatch--expenses" /> {t("Out")}</p>
       <ChartFallback>
         <Suspense fallback={placeholder}>
           <MonthBars months={months} />

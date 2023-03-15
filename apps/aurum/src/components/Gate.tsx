@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { AuthForm, type Auth } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
@@ -12,15 +13,11 @@ export function Gate({ auth, client }: GateProps) {
     return (
       <section className="gate" aria-labelledby="gate-title">
         <h1 id="gate-title" className="gate__title">
-          Merces isn’t set up here
-        </h1>
+          {t("Merces isn’t set up here")}</h1>
         <p className="gate__text">
-          Merces keeps your transactions in your Essentia account, and this copy of the suite has no account service
-          configured. The other apps still work on this device.
-        </p>
+          {t("Merces keeps your transactions in your Essentia account, and this copy of the suite has no account service configured. The other apps still work on this device.")}</p>
         <a className="gate__link" href="/">
-          Back to Essentia
-        </a>
+          {t("Back to Essentia")}</a>
       </section>
     )
   }
@@ -28,20 +25,18 @@ export function Gate({ auth, client }: GateProps) {
   if (auth.status === 'loading') {
     return (
       <p className="gate__loading" role="status">
-        Checking your session…
-      </p>
+        {t("Checking your session…")}</p>
     )
   }
 
   return (
     <section className="gate" aria-labelledby="gate-title">
       <h1 id="gate-title" className="gate__title">
-        Your money, in one place
-      </h1>
+        {t("Your money, in one place")}</h1>
       <div className="gate__form">
         <AuthForm
           client={client}
-          intro="Merces keeps your income and expenses in your account, so they follow you to every device. Sign in or create an account to start."
+          intro={t("Merces keeps your income and expenses in your account, so they follow you to every device. Sign in or create an account to start.")}
         />
       </div>
     </section>

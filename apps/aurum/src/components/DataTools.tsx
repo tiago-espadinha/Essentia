@@ -1,3 +1,5 @@
+import { t } from '../locale'
+import { formatNumber } from '@essentia/ui'
 import { useState, type ChangeEvent } from 'react'
 import { IMPORT_LIMITS, readCsv, toCsv, type CsvImport, type SkippedRow } from '../domain/csv'
 import { todayKey, type Transaction, type TransactionFields } from '../domain/transactions'
@@ -53,14 +55,11 @@ export function DataTools({ transactions, onImport }: DataToolsProps) {
     <section className="insight" aria-labelledby="data-title">
       <div className="section-row">
         <h2 id="data-title" className="label">
-          Your data
-        </h2>
+          {t("Your data")}</h2>
         <span className="section-row__rule" />
       </div>
       <p className="insight__none">
-        A CSV file of every transaction opens in any spreadsheet. Importing adds a file’s rows as new transactions, so the same file twice
-        adds them twice.
-      </p>
+        {t("A CSV file of every transaction opens in any spreadsheet. Importing adds a file’s rows as new transactions, so the same file twice adds them twice.")}</p>
       <div className="data__actions">
         <button
           type="button"
@@ -68,8 +67,7 @@ export function DataTools({ transactions, onImport }: DataToolsProps) {
           disabled={transactions.length === 0}
           onClick={() => download(`merces-${todayKey()}.csv`, toCsv(transactions))}
         >
-          Export CSV
-        </button>
+          {t("Export CSV")}</button>
         <input
           id="import-file"
           type="file"
@@ -79,7 +77,7 @@ export function DataTools({ transactions, onImport }: DataToolsProps) {
           onChange={choose}
         />
         <label htmlFor="import-file" className="button-ghost data__button" aria-disabled={busy}>
-          {busy ? 'Importing…' : 'Import CSV'}
+          {t(busy ? 'Importing…' : 'Import CSV')}
         </label>
       </div>
       <ImportOutcome outcome={outcome} />
@@ -92,7 +90,7 @@ function ImportOutcome({ outcome }: { outcome: Outcome | null }) {
   const failed = outcome !== null && 'error' in outcome
   return (
     <div className={`data__outcome${failed ? ' notice--error' : ''}`} role="status">
-      {outcome !== null && ('error' in outcome ? <p>{outcome.error}</p> : <Imported {...outcome} />)}
+      {outcome !== null && ('error' in outcome ? <p>{t(outcome.error)}</p> : <Imported {...outcome} />)}
     </div>
   )
 }
@@ -101,17 +99,17 @@ function Imported({ added, skipped }: { added: number; skipped: SkippedRow[] }) 
   return (
     <>
       <p>
-        {added === 0 ? 'Nothing imported.' : `Imported ${added} transaction${added === 1 ? '' : 's'}.`}
-        {skipped.length > 0 && ` Skipped ${skipped.length} row${skipped.length === 1 ? '' : 's'}:`}
+        {added === 0 ? t('Nothing imported.') : t(added === 1 ? 'Imported {count} transaction.' : 'Imported {count} transactions.', { count: formatNumber(added) })}
+        {skipped.length > 0 && <>{' '}{t(skipped.length === 1 ? 'Skipped {count} row:' : 'Skipped {count} rows:', { count: formatNumber(skipped.length) })}</>}
       </p>
       {skipped.length > 0 && (
         <ul className="data__skipped">
           {skipped.slice(0, LISTED).map(({ row, reason }) => (
             <li key={row}>
-              Row {row}: {reason}
+              {t("Row {row}: {reason}", { row: formatNumber(row), reason: t(reason) })}
             </li>
           ))}
-          {skipped.length > LISTED && <li>and {skipped.length - LISTED} more.</li>}
+          {skipped.length > LISTED && <li>{t("and {count} more.", { count: formatNumber(skipped.length - LISTED) })}</li>}
         </ul>
       )}
     </>

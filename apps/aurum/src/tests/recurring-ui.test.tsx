@@ -34,7 +34,7 @@ describe('recurring items', () => {
     addRecurring('Rent', '900', '2022-09-30')
     expect(status()).toBe('Rent added. What has fallen due posts with the next sync.')
     expect(document.activeElement).toBe($('#recurring-description'))
-    expect(rows()).toEqual(['RentMonthlyNext Nov 30housingExpense −€900.00Pause “Rent”Delete “Rent”'])
+    expect(rows()).toEqual(['RentMonthlyNext 30 NovhousingExpense −€900.00Pause “Rent”Delete “Rent”'])
     await settle()
     click(buttonNamed('Transactions'))
     expect([...document.querySelectorAll('.row__description')].map((p) => p.textContent)).toEqual(['Rent', 'Rent'])
@@ -43,8 +43,8 @@ describe('recurring items', () => {
   it('says when a future item first posts', async () => {
     await signedIn()
     addRecurring('Gym', '30', '2022-12-01')
-    expect(status()).toBe('Gym added, first on Dec 1.')
-    expect(rows()[0]).toContain('Next Dec 1')
+    expect(status()).toBe('Gym added, first on 1 Dec.')
+    expect(rows()[0]).toContain('Next 1 Dec')
   })
 
   it('pauses, resumes and deletes an item', async () => {
@@ -54,7 +54,7 @@ describe('recurring items', () => {
     expect(rows()[0]).toContain('Paused')
     expect(status()).toBe('Rent paused.')
     click(buttonNamed('Resume “Rent”'))
-    expect(rows()[0]).toContain('Next Dec 1')
+    expect(rows()[0]).toContain('Next 1 Dec')
     click(buttonNamed('Delete “Rent”'))
     expect(text()).toContain('Nothing recurring yet.')
     expect(status()).toBe('Rent deleted. What it already posted stays.')
@@ -63,7 +63,7 @@ describe('recurring items', () => {
   it('refuses a first day more than a year back', async () => {
     await signedIn()
     addRecurring('Rent', '900', '0202-11-08')
-    expect($('#recurring-date-error').textContent).toBe('Choose a day from Nov 8, 2021 on.')
+    expect($('#recurring-date-error').textContent).toBe('Choose a day from 8 Nov, 2021 on.')
     expect(document.activeElement).toBe($('#recurring-date'))
     expect(rows()).toEqual([])
     type($<HTMLInputElement>('#recurring-date'), '2021-11-08')

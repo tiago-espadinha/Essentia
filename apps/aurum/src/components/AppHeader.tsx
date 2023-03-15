@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { HubLink, ThemeToggle } from '@essentia/ui'
 import type { ReactNode } from 'react'
 
@@ -7,7 +8,7 @@ export function AppHeader({ account }: { account?: ReactNode }) {
     <header className="aurum-header">
       <div className="aurum-header__inner">
         <HubLink />
-        <span className="aurum-header__title app-identity">Merces{' '}<span className="app-identity__catchphrase">Your Money</span></span>
+        <span className="aurum-header__title app-identity">{t("Merces")}{' '}<span className="app-identity__catchphrase">{t("Your Money")}</span></span>
         <div className="aurum-header__actions">
           {account}
           <ThemeToggle />

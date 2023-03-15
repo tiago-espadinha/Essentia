@@ -1,4 +1,5 @@
-import { useRecordMotion } from '@essentia/ui'
+import { t } from './locale'
+import { useLocale, formatNumber, useRecordMotion } from '@essentia/ui'
 import { useAuth } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState } from 'react'
@@ -31,6 +32,8 @@ import { SYNC_FAILED, useTransactions } from './hooks/useTransactions'
 import { Views, type View } from './components/Views'
 
 export default function App({ client }: { client: SupabaseClient | null }) {
+  const locale = useLocale()
+  useEffect(() => { document.title = `Merces · ${t('Your Money')} · Essentia` }, [locale])
   const auth = useAuth(client)
   const {
     transactions,
@@ -117,21 +120,19 @@ export default function App({ client }: { client: SupabaseClient | null }) {
           <>
             {saveFailed && (
               <p className="notice notice--error" role="alert">
-                Couldn’t save on this device. Your latest changes may be lost if you close this page.
-              </p>
+                {t("Couldn’t save on this device. Your latest changes may be lost if you close this page.")}</p>
             )}
             {syncState === 'failed' && (
               <p className="notice notice--error" role="alert">
-                {SYNC_FAILED}{' '}
+                {t(SYNC_FAILED)}{' '}
                 <button type="button" className="notice__action" onClick={() => void sync()}>
-                  Try again
-                </button>
+                  {t("Try again")}</button>
               </p>
             )}
             {!ready ? (
               <>
-                <h1 className="visually-hidden">Your money</h1>
-                <div className="skeleton" role="status" aria-label="Loading your transactions">
+                <h1 className="visually-hidden">{t("Your money")}</h1>
+                <div className="skeleton" role="status" aria-label={t("Loading your transactions")}>
                   <span className="skeleton__line" />
                   <span className="skeleton__line" />
                   <span className="skeleton__line" />
@@ -184,8 +185,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                       <section aria-labelledby="list-title">
                         <div className="section-row">
                           <h2 id="list-title" className="label">
-                            Transactions
-                          </h2>
+                            {t("Transactions")}</h2>
                           <span className="section-row__rule" />
                         </div>
                         {transactions.length > 0 && (
@@ -193,21 +193,20 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                         )}
                         {filtered && (
                           <p className="filtered" role="status">
-                            {visible.length} of {transactions.length} shown · net {formatMoney(totals(visible).balance)}
+                            {t("{shown} of {total} shown · net {amount}", { shown: formatNumber(visible.length), total: formatNumber(transactions.length), amount: formatMoney(totals(visible).balance) })}
                           </p>
                         )}
                         {transactions.length === 0 ? (
                           <div className="empty">
-                            <p className="empty__title">Nothing recorded yet.</p>
-                            <p className="empty__text">Add what came in or went out today, and the balance follows.</p>
+                            <p className="empty__title">{t("Nothing recorded yet.")}</p>
+                            <p className="empty__text">{t("Add what came in or went out today, and the balance follows.")}</p>
                           </div>
                         ) : visible.length === 0 ? (
                           <div className="empty">
-                            <p className="empty__title">Nothing matches.</p>
-                            <p className="empty__text">No transaction fits these filters.</p>
+                            <p className="empty__title">{t("Nothing matches.")}</p>
+                            <p className="empty__text">{t("No transaction fits these filters.")}</p>
                             <button type="button" className="button-ghost empty__action" onClick={() => setFilter(NO_FILTER)}>
-                              Clear filters
-                            </button>
+                              {t("Clear filters")}</button>
                           </div>
                         ) : (
                           <ul className="rows">

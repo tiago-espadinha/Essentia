@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Dialog } from '@essentia/ui'
 import { useState, type FormEvent } from 'react'
 import { Field } from './Field'
@@ -33,9 +34,9 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
   }
 
   return (
-    <Dialog title="Edit transaction" titleId="edit-title" returnFocusId={editId(transaction)} onClose={onClose}>
+    <Dialog title={t("Edit transaction")} titleId="edit-title" returnFocusId={editId(transaction)} onClose={onClose}>
       <form className="dialog__body" onSubmit={submit} noValidate>
-        <Field id="edit-description" label="Description" error={errors.description}>
+        <Field id="edit-description" label={t("Description")} error={errors.description}>
           <input
             id="edit-description"
             className="input"
@@ -47,7 +48,7 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
           />
         </Field>
         <fieldset className="field">
-          <legend className="label">Type</legend>
+          <legend className="label">{t("Type")}</legend>
           <div className="segmented">
             {(['expense', 'income'] as const).map((type) => (
               <label key={type} className="segmented__option">
@@ -58,13 +59,13 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
                   checked={form.type === type}
                   onChange={() => change({ type })}
                 />
-                <span>{type === 'expense' ? 'Expense' : 'Income'}</span>
+                <span>{t(type === 'expense' ? 'Expense' : 'Income')}</span>
               </label>
             ))}
           </div>
         </fieldset>
         <div className="field-row">
-          <Field id="edit-amount" label="Amount (€)" error={errors.amount}>
+          <Field id="edit-amount" label={t("Amount (€)")} error={errors.amount}>
             <input
               id="edit-amount"
               className="input"
@@ -75,7 +76,7 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
               {...invalid('edit-amount', errors.amount)}
             />
           </Field>
-          <Field id="edit-date" label="Date" error={errors.date}>
+          <Field id="edit-date" label={t("Date")} error={errors.date}>
             <input
               id="edit-date"
               className="input"
@@ -86,7 +87,7 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
             />
           </Field>
         </div>
-        <Field id="edit-category" label="Category" error={errors.category}>
+        <Field id="edit-category" label={t("Category")} error={errors.category}>
           <input
             id="edit-category"
             className="input"
@@ -105,11 +106,9 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
         </Field>
         <div className="dialog__actions">
           <button type="button" className="button-ghost" onClick={onClose}>
-            Cancel
-          </button>
+            {t("Cancel")}</button>
           <button type="submit" className="button-primary">
-            Save
-          </button>
+            {t("Save")}</button>
         </div>
       </form>
     </Dialog>

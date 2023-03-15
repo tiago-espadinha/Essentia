@@ -133,6 +133,20 @@ default; a failed save keeps the current-page choice and shows unsaved feedback.
 Cross-tab changes and storage clearing update the palette. Semantic status and
 category colors retain their meaning. Palette switching has no color animation.
 
+## Locale preference
+
+The hub header offers a native Language selector with English (UK) and Português
+(Portugal), using their self-names. English is the default and fallback without
+browser-language detection. Selection updates all current apps and open tabs on
+the same origin; it stays on this browser rather than the account. Failed saves
+keep the current-page language and explain that it could not be saved. Labels
+wrap naturally at narrow widths, and changing language retains focus and edits.
+Translate application-owned copy and accessible names, including existing Dictum
+and shared pages; user content, category names and export formats stay unchanged.
+Dates and numbers follow the selected locale; currency remains EUR. Existing
+numeric input rules and Monday-first weeks remain compatible. Browser-owned
+pickers and validation follow browser settings.
+
 ## Historical visual acceptance evidence
 
 These checks describe the previous implementation, not acceptance of the revised

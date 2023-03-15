@@ -1,3 +1,5 @@
+import { t } from '../locale'
+import { useLocale } from '../domain/locale'
 import { useEffect, useRef, type ReactNode } from 'react'
 import '../ui.css'
 
@@ -16,6 +18,7 @@ interface DialogProps {
  * and closes on Esc. Opened on mount; focus goes back on unmount.
  */
 export function Dialog({ title, titleId, returnFocusId, onClose, children }: DialogProps) {
+  useLocale()
   const ref = useRef<HTMLDialogElement>(null)
 
   useEffect(() => {
@@ -51,7 +54,7 @@ export function Dialog({ title, titleId, returnFocusId, onClose, children }: Dia
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="m4 4 8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
-              <span className="visually-hidden">Close</span>
+              <span className="visually-hidden">{t('Close')}</span>
             </button>
           )}
         </div>

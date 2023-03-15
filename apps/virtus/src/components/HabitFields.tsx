@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { WEEK, WEEKDAY_NAMES, type Weekday } from '../domain/habits'
 import type { FormErrors, HabitForm } from '../domain/habitForm'
 import { LIMITS } from '../data/sync'
@@ -23,9 +24,7 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
   return (
     <div className="fields">
       <div className="field">
-        <label className="label" htmlFor={id('category')}>
-          Category
-        </label>
+        <label className="label" htmlFor={id('category')}>{t("Category")}</label>
         <input
           id={id('category')}
           className="input"
@@ -33,7 +32,7 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
           value={form.category}
           maxLength={LIMITS.category}
           onChange={(event) => set({ category: event.target.value })}
-          placeholder="General"
+          placeholder={t("General")}
           autoComplete="off"
         />
         <datalist id={id('categories')}>
@@ -45,38 +44,34 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
 
       <div className="field-row">
         <div className="field">
-          <label className="label" htmlFor={id('schedule')}>
-            Schedule
-          </label>
+          <label className="label" htmlFor={id('schedule')}>{t("Schedule")}</label>
           <select
             id={id('schedule')}
             className="input"
             value={form.everyDay ? 'every' : 'some'}
             onChange={(event) => set({ everyDay: event.target.value === 'every' })}
           >
-            <option value="every">Every day</option>
-            <option value="some">Some days</option>
+            <option value="every">{t("Every day")}</option>
+            <option value="some">{t("Some days")}</option>
           </select>
         </div>
         <div className="field">
-          <label className="label" htmlFor={id('kind')}>
-            Track
-          </label>
+          <label className="label" htmlFor={id('kind')}>{t("Track")}</label>
           <select
             id={id('kind')}
             className="input"
             value={form.numeric ? 'amount' : 'check'}
             onChange={(event) => set({ numeric: event.target.value === 'amount' })}
           >
-            <option value="check">Done or not</option>
-            <option value="amount">An amount</option>
+            <option value="check">{t("Done or not")}</option>
+            <option value="amount">{t("An amount")}</option>
           </select>
         </div>
       </div>
 
       {!form.everyDay && (
         <fieldset className="field">
-          <legend className="label">Days</legend>
+          <legend className="label">{t("Days")}</legend>
           <div className="days" aria-describedby={errors.days ? id('days-error') : undefined}>
             {WEEK.map((day) => (
               <button
@@ -84,16 +79,16 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
                 type="button"
                 className="days__day"
                 aria-pressed={form.days.includes(day)}
-                aria-label={WEEKDAY_NAMES[day]}
+                aria-label={t(WEEKDAY_NAMES[day])}
                 onClick={() => toggleDay(day)}
               >
-                {WEEKDAY_NAMES[day].slice(0, 2)}
+                {t(WEEKDAY_NAMES[day].slice(0, 3)).slice(0, 2)}
               </button>
             ))}
           </div>
           {errors.days && (
             <p id={id('days-error')} className="field-error" role="alert">
-              {errors.days}
+              {t(errors.days)}
             </p>
           )}
         </fieldset>
@@ -103,20 +98,20 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
         <div className="field-row">
           <TextField
             id={id('unit')}
-            label="Unit"
+            label={t("Unit")}
             value={form.unit}
-            placeholder="pages, minutes…"
+            placeholder={t("pages, minutes…")}
             maxLength={LIMITS.unit}
-            error={errors.unit}
+            error={errors.unit && t(errors.unit)}
             onChange={(unit) => set({ unit })}
           />
           <TextField
             id={id('target')}
-            label="Daily target"
+            label={t("Daily target")}
             value={form.target}
-            placeholder="Optional"
+            placeholder={t("Optional")}
             inputMode="decimal"
-            error={errors.target}
+            error={errors.target && t(errors.target)}
             onChange={(target) => set({ target })}
           />
         </div>
@@ -154,6 +149,7 @@ function TextField({ id, label, value, placeholder, inputMode, maxLength, error,
         aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
       />
+      {inputMode === 'decimal' && <p className="label">{t('Use a point for decimals, for example 1.5.')}</p>}
       {error && (
         <p id={`${id}-error`} className="field-error" role="alert">
           {error}

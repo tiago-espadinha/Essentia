@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Fragment } from 'react'
 
 interface UndoNoticeProps {
@@ -12,10 +13,8 @@ export function UndoNotice({ deleted, onUndo }: UndoNoticeProps) {
     <div className="undo" role="status">
       {deleted && (
         <Fragment key={deleted.id}>
-          <span className="undo__text">Deleted “{deleted.title}” and its versions.</span>
-          <button type="button" className="undo__button" onClick={onUndo}>
-            Undo
-          </button>
+          <span className="undo__text">{t('Deleted “{title}” and its versions.', { title: deleted.title })}</span>
+          <button type="button" className="undo__button" onClick={onUndo}>{t("Undo")}</button>
         </Fragment>
       )}
     </div>

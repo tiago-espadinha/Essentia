@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Fragment } from 'react'
 import type { Transaction } from '../domain/transactions'
 
@@ -13,10 +14,9 @@ export function UndoNotice({ deleted, onUndo }: UndoNoticeProps) {
       {/* Keyed by transaction, so two deletes of same-named ones are both announced. */}
       {deleted && (
         <Fragment key={deleted.id}>
-          <span className="undo__text">Deleted “{deleted.description}”.</span>
+          <span className="undo__text">{t("Deleted “{description}”.", { description: deleted.description })}</span>
           <button type="button" className="undo__button" onClick={onUndo}>
-            Undo
-          </button>
+            {t("Undo")}</button>
         </Fragment>
       )}
     </div>

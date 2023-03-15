@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { SORT_LABELS, type ListQuery, type SortMode } from '../domain/habits'
 
 interface FiltersProps {
@@ -12,25 +13,21 @@ export function Filters({ query, categories, sortable, onChange }: FiltersProps)
   const set = (patch: Partial<ListQuery>) => onChange({ ...query, ...patch })
 
   return (
-    <div className="filters" role="search" aria-label="Find habits">
+    <div className="filters" role="search" aria-label={t("Find habits")}>
       <div className="filters__row">
-        <label className="visually-hidden" htmlFor="search">
-          Search habits
-        </label>
+        <label className="visually-hidden" htmlFor="search">{t("Search habits")}</label>
         <input
           id="search"
           type="search"
           className="input filters__search"
           value={query.search}
-          placeholder="Search habits…"
+          placeholder={t("Search habits…")}
           autoComplete="off"
           onChange={(event) => set({ search: event.target.value })}
         />
         {sortable && (
           <>
-            <label className="visually-hidden" htmlFor="sort">
-              Sort habits
-            </label>
+            <label className="visually-hidden" htmlFor="sort">{t("Sort habits")}</label>
             <select
               id="sort"
               className="input filters__sort"
@@ -39,7 +36,7 @@ export function Filters({ query, categories, sortable, onChange }: FiltersProps)
             >
               {(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => (
                 <option key={mode} value={mode}>
-                  {SORT_LABELS[mode]}
+                  {t(SORT_LABELS[mode])}
                 </option>
               ))}
             </select>
@@ -47,10 +44,8 @@ export function Filters({ query, categories, sortable, onChange }: FiltersProps)
         )}
       </div>
       {categories.length > 1 && (
-        <div className="filters__categories" role="group" aria-label="Category">
-          <button type="button" className="chip" aria-pressed={query.category === null} onClick={() => set({ category: null })}>
-            Any
-          </button>
+        <div className="filters__categories" role="group" aria-label={t("Category")}>
+          <button type="button" className="chip" aria-pressed={query.category === null} onClick={() => set({ category: null })}>{t("Any")}</button>
           {categories.map((category) => (
             <button
               key={category}

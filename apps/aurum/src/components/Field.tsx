@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import type { ReactNode } from 'react'
 
 /** A labelled field with its inline error underneath. */
@@ -20,7 +21,7 @@ export function Field({
       {children}
       {error && (
         <p id={`${id}-error`} className="field-error">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>

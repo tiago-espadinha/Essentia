@@ -1,3 +1,5 @@
+import { t } from '../locale'
+import { formatNumber } from '@essentia/ui'
 import { useState } from 'react'
 import { monthlyTotals, spendingByCategory } from '../domain/insights'
 import { MonthChart } from './MonthChart'
@@ -18,11 +20,10 @@ export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
   if (transactions.length === 0) {
     return (
       <div className="empty">
-        <p className="empty__title">Not enough data yet.</p>
-        <p className="empty__text">Add a transaction and its month shows up here.</p>
+        <p className="empty__title">{t("Not enough data yet.")}</p>
+        <p className="empty__text">{t("Add a transaction and its month shows up here.")}</p>
         <button type="button" className="button-primary empty__action" onClick={onAdd}>
-          Add a transaction
-        </button>
+          {t("Add a transaction")}</button>
       </div>
     )
   }
@@ -36,13 +37,11 @@ export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
       <section className="insight" aria-labelledby="month-title">
         <div className="section-row">
           <h2 id="month-title" className="label">
-            Month
-          </h2>
+            {t("Month")}</h2>
           <span className="section-row__rule" />
         </div>
         <label className="visually-hidden" htmlFor="insight-month">
-          Month to show
-        </label>
+          {t("Month to show")}</label>
         <select id="insight-month" className="input" value={month} onChange={(event) => setMonth(event.target.value)}>
           {months.map((value) => (
             <option key={value} value={value}>
@@ -52,28 +51,28 @@ export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
         </select>
         <dl className="hero__stats">
           <div>
-            <dt className="label">Income</dt>
+            <dt className="label">{t("Income")}</dt>
             <dd className="amount amount--income">{formatMoney(inMonth.income)}</dd>
           </div>
           <div>
-            <dt className="label">Expenses</dt>
+            <dt className="label">{t("Expenses")}</dt>
             <dd className="amount">{formatMoney(inMonth.expenses)}</dd>
           </div>
           <div>
-            <dt className="label">Net</dt>
+            <dt className="label">{t("Net")}</dt>
             <dd className={`amount${inMonth.balance < 0 ? ' amount--negative' : ''}`}>{formatMoney(inMonth.balance)}</dd>
           </div>
         </dl>
-        <h3 className="insight__subtitle">Spending by category</h3>
+        <h3 className="insight__subtitle">{t("Spending by category")}</h3>
         {spending.length === 0 ? (
-          <p className="insight__none">No expenses in {monthLabel(month)}.</p>
+          <p className="insight__none">{t("No expenses in {month}.", { month: monthLabel(month) })}</p>
         ) : (
           <ul className="spend">
             {spending.map(({ category, amount, share }) => (
               <li key={category} className="spend__item">
                 <span className="spend__name">{category}</span>
                 <span className="amount">{formatMoney(amount)}</span>
-                <span className="spend__share">{Math.round(share * 100)}%</span>
+                <span className="spend__share">{formatNumber(share, { style: 'percent', maximumFractionDigits: 0 })}</span>
                 <span className="spend__track" aria-hidden="true">
                   <span className="spend__fill" style={{ width: `${share * 100}%` }} />
                 </span>
@@ -93,28 +92,23 @@ function SixMonths({ transactions, last }: { transactions: Transaction[]; last: 
     <section className="insight" aria-labelledby="months-title">
       <div className="section-row">
         <h2 id="months-title" className="label">
-          Last six months
-        </h2>
+          {t("Last six months")}</h2>
         <span className="section-row__rule" />
       </div>
       <MonthChart months={months} />
-      <div className="months-scroll" role="region" aria-label="Monthly totals" tabIndex={0}>
+      <div className="months-scroll" role="region" aria-label={t("Monthly totals")} tabIndex={0}>
         <table className="months">
-          <caption className="visually-hidden">Income, expenses and net for each of the last six months</caption>
+          <caption className="visually-hidden">{t("Income, expenses and net for each of the last six months")}</caption>
           <thead>
             <tr>
               <th scope="col" className="label">
-                Month
-              </th>
+                {t("Month")}</th>
               <th scope="col" className="label">
-                In
-              </th>
+                {t("In")}</th>
               <th scope="col" className="label">
-                Out
-              </th>
+                {t("Out")}</th>
               <th scope="col" className="label">
-                Net
-              </th>
+                {t("Net")}</th>
             </tr>
           </thead>
           <tbody>

@@ -1,3 +1,4 @@
+import { currentLocale } from '@essentia/ui'
 // The task model and the pure rules around it. Dates are ISO calendar days
 // ('YYYY-MM-DD'), so comparing them as strings orders them correctly.
 
@@ -84,7 +85,7 @@ export function isOverdue(task: Task, today: string): boolean {
 
 /** 'May 28' for an ISO day; the date is read as a calendar day, not a moment. */
 export function formatDue(due: string): string {
-  return new Date(`${due}T00:00:00Z`).toLocaleDateString('en-US', {
+  return new Date(`${due}T00:00:00Z`).toLocaleDateString(currentLocale(), {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',

@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useState, type KeyboardEvent, type ReactNode } from 'react'
 import { SHORTCUTS, type Format } from '../domain/formatting'
 import { shortcut } from '../domain/keys'
@@ -56,7 +57,7 @@ export function Toolbar({ onFormat }: { onFormat: (format: Format) => void }) {
   }
 
   return (
-    <div className="toolbar" role="toolbar" aria-label="Formatting" aria-controls="doc-content" onKeyDown={move}>
+    <div className="toolbar" role="toolbar" aria-label={t("Formatting")} aria-controls="doc-content" onKeyDown={move}>
       {TOOLS.map((group) => (
         <div key={group[0].format} className="toolbar__group">
           {group.map(({ format, label, icon }) => {
@@ -67,7 +68,7 @@ export function Toolbar({ onFormat }: { onFormat: (format: Format) => void }) {
                 key={format}
                 type="button"
                 className="toolbar__button"
-                title={keys ? `${label} (${keys.label})` : label}
+                title={keys ? `${t(label)} (${keys.label})` : t(label)}
                 aria-keyshortcuts={keys?.aria}
                 tabIndex={position === current ? 0 : -1}
                 onFocus={() => setCurrent(position)}
@@ -76,7 +77,7 @@ export function Toolbar({ onFormat }: { onFormat: (format: Format) => void }) {
                 onClick={() => onFormat(format)}
               >
                 {icon}
-                <span className="visually-hidden">{label}</span>
+                <span className="visually-hidden">{t(label)}</span>
               </button>
             )
           })}

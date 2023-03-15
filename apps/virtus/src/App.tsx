@@ -1,4 +1,5 @@
-import { useRecordMotion } from '@essentia/ui'
+import { t } from './locale'
+import { useLocale, useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
@@ -24,6 +25,8 @@ const NO_FILTER: ListQuery = { search: '', category: null, sort: 'newest' }
 const client = getSupabase()
 
 export default function App() {
+  const locale = useLocale()
+  useEffect(() => { document.title = `Virtus · ${t('Your Habits')} · Essentia` }, [locale])
   const auth = useAuth(client)
   const { habits, unclaimed, answer, saveFailed, syncState, sync, add, update, toggle, log, remove, restore } = useHabits(client)
   const [editing, setEditing] = useState<Habit | null>(null)
@@ -107,11 +110,9 @@ export default function App() {
     if (habits.length === 0) {
       return (
         <section className="empty" aria-labelledby="empty-title">
-          <h2 id="empty-title" className="empty__title">
-            No habits yet.
-          </h2>
+          <h2 id="empty-title" className="empty__title">{t("No habits yet.")}</h2>
           <p className="empty__text">
-            {view === 'today' ? 'Add one above, then check it in each day to build a streak.' : 'Add one in Today to start a streak.'}
+            {view === 'today' ? t('Add one above, then check it in each day to build a streak.') : t('Add one in Today to start a streak.')}
           </p>
         </section>
       )
@@ -131,16 +132,12 @@ export default function App() {
         <Filters query={query} categories={categories} sortable={view === 'today'} onChange={setQuery} />
         {shown.length === 0 ? (
           <section className="empty empty--filtered" aria-labelledby="empty-title">
-            <h2 id="empty-title" className="empty__title">
-              No habits match.
-            </h2>
-            <button type="button" className="button-ghost" onClick={() => setQuery({ ...NO_FILTER, sort: query.sort })}>
-              Clear search and category
-            </button>
+            <h2 id="empty-title" className="empty__title">{t("No habits match.")}</h2>
+            <button type="button" className="button-ghost" onClick={() => setQuery({ ...NO_FILTER, sort: query.sort })}>{t("Clear search and category")}</button>
           </section>
         ) : (
           sections.map((section) => (
-            <HabitSection key={section.id} id={section.id} title={section.title} count={section.habits.length}>
+            <HabitSection key={section.id} id={section.id} title={t(section.title)} count={section.habits.length}>
               {section.habits.map(row)}
             </HabitSection>
           ))
@@ -161,17 +158,13 @@ export default function App() {
 
           {syncState === 'failed' && (
             <div className="sync-notice" role="status">
-              <span className="sync-notice__text">{SYNC_FAILED}</span>
-              <button type="button" className="undo__button" onClick={() => void sync()}>
-                Try again
-              </button>
+              <span className="sync-notice__text">{t(SYNC_FAILED)}</span>
+              <button type="button" className="undo__button" onClick={() => void sync()}>{t("Try again")}</button>
             </div>
           )}
 
           {saveFailed && (
-            <p className="notice" role="alert">
-              Couldn’t save on this device. Your changes last until you close the page.
-            </p>
+            <p className="notice" role="alert">{t("Couldn’t save on this device. Your changes last until you close the page.")}</p>
           )}
 
           {list()}
@@ -179,7 +172,7 @@ export default function App() {
       </main>
 
       {unclaimed > 0 && auth.status === 'signed-in' && (
-        <ClaimDialog count={unclaimed} noun={['habit', 'habits']} email={auth.email} onAnswer={answer} />
+        <ClaimDialog count={unclaimed} noun={[t('habit'), t('habits')]} email={auth.email} onAnswer={answer} />
       )}
 
       {statsFor && <HabitStatsDialog habit={statsFor} today={today} onClose={() => setStatsFor(null)} />}

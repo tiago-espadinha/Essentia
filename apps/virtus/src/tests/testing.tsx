@@ -23,6 +23,7 @@ let root: Root | null = null
 export function setupApp() {
   beforeEach(() => {
     localStorage.clear()
+    document.documentElement.lang = 'en-GB'
     // Monday 15 August 2022, mid-morning; only Date is faked, so timers still run.
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(TODAY_DATE)

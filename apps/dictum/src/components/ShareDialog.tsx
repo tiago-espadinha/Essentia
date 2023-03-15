@@ -1,3 +1,5 @@
+import { formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import { AuthForm, type Auth } from '@essentia/supabase'
 import { Dialog } from '@essentia/ui'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -21,14 +23,14 @@ interface ShareDialogProps {
 /** A read-only link to the open document, made from the account's copy; signing in comes first. */
 export function ShareDialog({ doc, auth, client, onSync, onClose }: ShareDialogProps) {
   return (
-    <Dialog title="Share" titleId="share-title" returnFocusId={SHARE_BUTTON_ID} onClose={onClose}>
+    <Dialog title={t("Share")} titleId="share-title" returnFocusId={SHARE_BUTTON_ID} onClose={onClose}>
       {auth.status === 'signed-in' ? (
         <ShareLink key={`${auth.userId}:${doc.id}`} doc={doc} client={client} onSync={onSync} />
       ) : (
         <div className="share">
           <AuthForm
             client={client}
-            intro="Sign in to share. A shared document is read from your account, and the documents on this device are added to it."
+            intro={t("Sign in to share. A shared document is read from your account, and the documents on this device are added to it.")}
           />
         </div>
       )}
@@ -137,22 +139,17 @@ function ShareLink({ doc, client, onSync }: ShareLinkProps) {
   if (tooLarge) {
     body = (
       <p className="dialog__text">
-        “{title}” is too large to keep in your account, so it can’t be shared. It stays on this device. Your account
-        holds titles up to {LIMITS.title} characters, {LIMITS.tags} tags and about a million characters of text.
+        {t('“{title}” is too large to keep in your account, so it can’t be shared. It stays on this device. Your account holds titles up to {characters} characters, {tags} tags and about a million characters of text.', { title, characters: formatNumber(LIMITS.title), tags: formatNumber(LIMITS.tags) })}
       </p>
     )
   } else if (state.status === 'loading') {
-    body = <p className="dialog__text">Checking “{title}” in your account…</p>
+    body = <p className="dialog__text">{t('Checking “{title}” in your account…', { title })}</p>
   } else if (state.status === 'failed') {
     body = (
       <>
-        <p className="dialog__text">
-          Couldn’t reach your account, so this document can’t be shared yet. Your writing is kept on this device.
-        </p>
+        <p className="dialog__text">{t("Couldn’t reach your account, so this document can’t be shared yet. Your writing is kept on this device.")}</p>
         <div className="share__actions">
-          <button type="button" className="button-primary share__primary" onClick={retry}>
-            Try again
-          </button>
+          <button type="button" className="button-primary share__primary" onClick={retry}>{t("Try again")}</button>
         </div>
       </>
     )
@@ -160,11 +157,11 @@ function ShareLink({ doc, client, onSync }: ShareLinkProps) {
     body = (
       <>
         <p className="dialog__text">
-          Anyone with the link can read “{title}”, signed in or not. They can’t edit it or see your other documents.
+          {t('Anyone with the link can read “{title}”, signed in or not. They can’t edit it or see your other documents.', { title })}
         </p>
         <div className="share__actions">
           <button type="button" className="button-primary share__primary" aria-disabled={pending} onClick={() => void create()}>
-            {pending ? 'Creating…' : 'Create link'}
+            {t(pending ? 'Creating…' : 'Create link')}
           </button>
         </div>
       </>
@@ -174,21 +171,16 @@ function ShareLink({ doc, client, onSync }: ShareLinkProps) {
     body = (
       <>
         <p className="dialog__text">
-          Anyone with this link can read “{title}” as last synced. Stopping breaks the link for everyone who has it;
-          sharing again makes a new one.
+          {t('Anyone with this link can read “{title}” as last synced. Stopping breaks the link for everyone who has it; sharing again makes a new one.', { title })}
         </p>
         <div className="share__link">
-          <label className="visually-hidden" htmlFor="share-url">
-            Share link
-          </label>
+          <label className="visually-hidden" htmlFor="share-url">{t("Share link")}</label>
           <input id="share-url" className="field-input share__primary" readOnly value={url} onFocus={(event) => event.currentTarget.select()} />
-          <button type="button" className="button-primary" onClick={() => void copy(url)}>
-            Copy link
-          </button>
+          <button type="button" className="button-primary" onClick={() => void copy(url)}>{t("Copy link")}</button>
         </div>
         <div className="share__actions">
           <button type="button" className="button-ghost button-ghost--danger" aria-disabled={pending} onClick={() => void stop()}>
-            {pending ? 'Stopping…' : 'Stop sharing'}
+            {t(pending ? 'Stopping…' : 'Stop sharing')}
           </button>
         </div>
       </>
@@ -200,7 +192,7 @@ function ShareLink({ doc, client, onSync }: ShareLinkProps) {
       {body}
       {/* One live region for the whole dialog, so each outcome is announced. */}
       <p className="share__status" role="status" data-failed={message?.failed || undefined}>
-        {message?.text}
+        {message && t(message.text)}
       </p>
     </div>
   )

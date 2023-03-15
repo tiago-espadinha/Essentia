@@ -1,3 +1,4 @@
+import { currentLocale } from '@essentia/ui'
 // The note model and the pure rules around it. Bodies are sanitized HTML
 // (see sanitize.ts); dates are ISO timestamps.
 
@@ -67,7 +68,7 @@ export function filterNotes(notes: Note[], query: string, tag: string | null): N
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt))
 }
 
-/** 'Jun 20, 2022' in the user's own time zone. */
+/** The selected locale's short date, in the user's own time zone. */
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(currentLocale(), { month: 'short', day: 'numeric', year: 'numeric' })
 }

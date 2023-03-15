@@ -1,9 +1,10 @@
+import { formatDate } from '@essentia/ui'
 import { Bar, BarChart, ResponsiveContainer, XAxis } from 'recharts'
 import type { MonthTotals } from '../domain/insights'
 
 const shortMonth = (month: string) => {
   const [year, number] = month.split('-').map(Number)
-  return new Date(year, number - 1, 1).toLocaleDateString('en-US', { month: 'short' })
+  return formatDate(new Date(year, number - 1, 1), { month: 'short' })
 }
 
 /**

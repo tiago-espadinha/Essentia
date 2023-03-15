@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useState } from 'react'
 import { cleanFolder, parseTags, type DocChanges } from '../domain/documents'
 import { LIMITS } from '../data/sync'
@@ -38,12 +39,12 @@ export function DocFields({ folder, tags, folders, onChange }: DocFieldsProps) {
   return (
     <div className="doc-fields">
       <label className="doc-fields__field">
-        <span className="label">Folder</span>
+        <span className="label">{t("Folder")}</span>
         <input
           className="field-input"
           list="folder-options"
           autoComplete="off"
-          placeholder="Unfiled"
+          placeholder={t("Unfiled")}
           maxLength={LIMITS.folder}
           value={folderDraft}
           onChange={(event) => setFolderDraft(event.target.value)}
@@ -57,11 +58,11 @@ export function DocFields({ folder, tags, folders, onChange }: DocFieldsProps) {
         </datalist>
       </label>
       <label className="doc-fields__field doc-fields__field--wide">
-        <span className="label">Tags</span>
+        <span className="label">{t("Tags")}</span>
         <input
           className="field-input"
           autoComplete="off"
-          placeholder="essay, draft"
+          placeholder={t("essay, draft")}
           value={tagsDraft}
           onChange={(event) => setTagsDraft(event.target.value)}
           onBlur={commitTags}

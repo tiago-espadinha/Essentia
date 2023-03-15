@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useState, type FormEvent, type RefObject } from 'react'
 import { HabitFields } from './HabitFields'
 import { EMPTY_FORM, readForm, type FormErrors } from '../domain/habitForm'
@@ -36,9 +37,7 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
 
   return (
     <form className="add" onSubmit={submit} noValidate>
-      <label className="visually-hidden" htmlFor="add-habit">
-        New habit
-      </label>
+      <label className="visually-hidden" htmlFor="add-habit">{t("New habit")}</label>
       <div className="add__row">
         <input
           ref={inputRef}
@@ -50,7 +49,7 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
             setForm({ ...form, name: event.target.value })
             setErrors({ ...errors, name: undefined })
           }}
-          placeholder="Add a new habit…"
+          placeholder={t("Add a new habit…")}
           autoComplete="off"
           aria-invalid={errors.name !== undefined}
           aria-describedby={errors.name ? 'add-habit-error' : undefined}
@@ -59,12 +58,12 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
-          <span className="visually-hidden">Add habit</span>
+          <span className="visually-hidden">{t("Add habit")}</span>
         </button>
       </div>
       {errors.name && (
         <p key={refusals} id="add-habit-error" className="field-error" role="alert">
-          {errors.name}
+          {t(errors.name)}
         </p>
       )}
       <button
@@ -73,9 +72,7 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
         aria-expanded={optionsOpen}
         aria-controls="add-options"
         onClick={() => setOptionsOpen(!optionsOpen)}
-      >
-        Options
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      >{t("Options")}<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>

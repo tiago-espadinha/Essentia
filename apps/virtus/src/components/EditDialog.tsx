@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Dialog } from '@essentia/ui'
 import { useState, type FormEvent } from 'react'
 import { HabitFields } from './HabitFields'
@@ -28,12 +29,10 @@ export function EditDialog({ habit, categories, onSave, onClose }: EditDialogPro
   }
 
   return (
-    <Dialog title="Edit habit" titleId="edit-title" returnFocusId={editId(habit)} onClose={onClose}>
+    <Dialog title={t("Edit habit")} titleId="edit-title" returnFocusId={editId(habit)} onClose={onClose}>
       <form className="dialog__body" onSubmit={submit} noValidate>
         <div className="field">
-          <label className="label" htmlFor="edit-name">
-            Name
-          </label>
+          <label className="label" htmlFor="edit-name">{t("Name")}</label>
           <input
             id="edit-name"
             className="input"
@@ -49,7 +48,7 @@ export function EditDialog({ habit, categories, onSave, onClose }: EditDialogPro
           />
           {errors.name && (
             <p id="edit-name-error" className="field-error" role="alert">
-              {errors.name}
+              {t(errors.name)}
             </p>
           )}
         </div>
@@ -64,12 +63,8 @@ export function EditDialog({ habit, categories, onSave, onClose }: EditDialogPro
           }}
         />
         <div className="dialog__actions">
-          <button type="button" className="button-ghost" onClick={onClose}>
-            Cancel
-          </button>
-          <button type="submit" className="button-primary">
-            Save
-          </button>
+          <button type="button" className="button-ghost" onClick={onClose}>{t("Cancel")}</button>
+          <button type="submit" className="button-primary">{t("Save")}</button>
         </div>
       </form>
     </Dialog>

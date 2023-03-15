@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useEffect, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react'
 import { activeFormats, applyFormat, type Format } from '../domain/editing'
 
@@ -85,7 +86,7 @@ export function Toolbar({ bodyRef, onFormat }: ToolbarProps) {
   }
 
   return (
-    <div className="toolbar" role="toolbar" aria-label="Formatting" onKeyDown={moveFocus}>
+    <div className="toolbar" role="toolbar" aria-label={t("Formatting")} onKeyDown={moveFocus}>
       {TOOLS.map((group, index) => (
         <div key={index} className="toolbar__group">
           {group.map(({ format: target, label, icon }) => (
@@ -93,8 +94,8 @@ export function Toolbar({ bodyRef, onFormat }: ToolbarProps) {
               key={target}
               type="button"
               className="toolbar__button"
-              aria-label={label}
-              title={label}
+              aria-label={t(label)}
+              title={t(label)}
               aria-pressed={active.has(target)}
               tabIndex={target === current ? 0 : -1}
               onFocus={() => setCurrent(target)}

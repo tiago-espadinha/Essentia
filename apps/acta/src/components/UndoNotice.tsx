@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Fragment } from 'react'
 import type { Task } from '../domain/tasks'
 
@@ -13,9 +14,9 @@ export function UndoNotice({ deleted, onUndo }: UndoNoticeProps) {
       {/* Keyed by task, so two deletes of same-named tasks are both announced. */}
       {deleted && (
         <Fragment key={deleted.id}>
-          <span className="undo__text">Deleted “{deleted.text}”.</span>
+          <span className="undo__text">{t('Deleted “{title}”.', { title: deleted.text })}</span>
           <button type="button" className="undo__button" onClick={onUndo}>
-            Undo
+            {t("Undo")}
           </button>
         </Fragment>
       )}

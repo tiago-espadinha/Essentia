@@ -1,4 +1,5 @@
 import { AuthApiError, AuthRetryableFetchError, type SupabaseClient } from '@supabase/supabase-js'
+import { setLocale } from '@essentia/ui'
 import { act, type ReactNode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -59,6 +60,29 @@ beforeEach(() => {
 afterEach(() => {
   act(() => root.unmount())
   container.remove()
+  document.documentElement.lang = 'en-GB'
+})
+
+it('translates open validation and safe service errors while preserving credentials and focus', async () => {
+  const { client, auth } = fakeClient()
+  render(<AuthForm client={client} intro="" />)
+  await submit()
+  const email = $<HTMLInputElement>('#auth-email')
+  const password = $<HTMLInputElement>('#auth-password')
+  expect(document.activeElement).toBe(email)
+  act(() => { setLocale('pt-PT') })
+  expect(document.activeElement).toBe(email)
+  expect($('#auth-email-error').textContent).toBe('Introduza o seu endereço de email.')
+  type(email, 'ana@example.com')
+  type(password, 'keep this password')
+  auth.signInWithPassword.mockResolvedValueOnce({ error: new AuthApiError('untrusted private text', 400, 'invalid_credentials') })
+  await submit()
+  expect($('.auth__failure').textContent).toContain('não correspondem a uma conta')
+  act(() => { setLocale('en-GB') })
+  expect($('.auth__failure').textContent).toBe('That email and password don’t match an account.')
+  expect(container.textContent).not.toContain('untrusted private text')
+  expect(password.value).toBe('keep this password')
+  expect(email.value).toBe('ana@example.com')
 })
 
 describe('useAuth', () => {

@@ -1,3 +1,5 @@
+import { formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import { lazy, Suspense, useDeferredValue, useEffect, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from 'react'
 import { DocFields } from './DocFields'
 import { countWords, readingMinutes, type Doc, type DocChanges } from '../domain/documents'
@@ -80,9 +82,9 @@ export function Editor({ doc, folders, mode, focus, onFocused, onModeChange, onC
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="action-text">Documents</span>
+          <span className="action-text">{t("Documents")}</span>
         </button>
-        <div className="mode-switch" role="group" aria-label="Show">
+        <div className="mode-switch" role="group" aria-label={t("Show")}>
           {(['write', 'preview'] as const).map((value) => (
             <button
               key={value}
@@ -90,11 +92,11 @@ export function Editor({ doc, folders, mode, focus, onFocused, onModeChange, onC
               className="mode-switch__button"
               aria-pressed={mode === value}
               // The key switches to the side not showing.
-              title={mode === value ? undefined : `${value === 'write' ? 'Write' : 'Preview'} (${VIEW_KEYS.preview.label})`}
+              title={mode === value ? undefined : `${t(value === 'write' ? 'Write' : 'Preview')} (${VIEW_KEYS.preview.label})`}
               aria-keyshortcuts={mode === value ? undefined : VIEW_KEYS.preview.aria}
               onClick={() => onModeChange(value)}
             >
-              {value === 'write' ? 'Write' : 'Preview'}
+              {t(value === 'write' ? 'Write' : 'Preview')}
             </button>
           ))}
         </div>
@@ -102,21 +104,19 @@ export function Editor({ doc, folders, mode, focus, onFocused, onModeChange, onC
       </div>
 
       <div className="doc-head">
-        <label htmlFor="doc-title" className="visually-hidden">
-          Title
-        </label>
+        <label htmlFor="doc-title" className="visually-hidden">{t("Title")}</label>
         <input
           id="doc-title"
           ref={titleRef}
           className="doc-head__title"
-          placeholder="Untitled"
+          placeholder={t("Untitled")}
           autoComplete="off"
           maxLength={LIMITS.title}
           value={doc.title}
           onChange={(event) => onChange({ title: event.target.value })}
         />
         <p className="label doc-head__stats">
-          {words} {words === 1 ? 'word' : 'words'} · {readingMinutes(words)} min read
+          {t(words === 1 ? '{count} word' : '{count} words', { count: formatNumber(words) })} · {t('{count} min read', { count: formatNumber(readingMinutes(words)) })}
         </p>
         <DocFields folder={doc.folder} tags={doc.tags} folders={folders} onChange={onChange} />
       </div>
@@ -124,14 +124,12 @@ export function Editor({ doc, folders, mode, focus, onFocused, onModeChange, onC
       <div className="panes" data-mode={mode}>
         <div className="write-pane">
           <Toolbar onFormat={applyFormat} />
-          <label htmlFor="doc-content" className="visually-hidden">
-            Markdown
-          </label>
+          <label htmlFor="doc-content" className="visually-hidden">{t("Markdown")}</label>
           <textarea
             id="doc-content"
             ref={textRef}
             className="write-pane__text"
-            placeholder="Write in markdown: # for a heading, ** for bold, - for a list"
+            placeholder={t("Write in markdown: # for a heading, ** for bold, - for a list")}
             spellCheck
             maxLength={LIMITS.content}
             value={doc.content}
@@ -140,8 +138,8 @@ export function Editor({ doc, folders, mode, focus, onFocused, onModeChange, onC
           />
         </div>
         {/* Focusable for the shortcut that shows it; focused, the arrow keys scroll it. */}
-        <section ref={previewRef} className="preview-pane" aria-label="Preview" tabIndex={-1}>
-          <Suspense fallback={<p className="preview__idle">Loading the preview…</p>}>
+        <section ref={previewRef} className="preview-pane" aria-label={t("Preview")} tabIndex={-1}>
+          <Suspense fallback={<p className="preview__idle">{t("Loading the preview…")}</p>}>
             <Preview content={previewContent} />
           </Suspense>
         </section>

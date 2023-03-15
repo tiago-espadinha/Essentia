@@ -63,7 +63,7 @@ describe('applyDraft', () => {
   })
 
   it('falls back to the default category and drops an invalid date', () => {
-    expect(applyDraft(original, { text: 'New', category: ' ', due: 'May 28' })).toMatchObject({
+    expect(applyDraft(original, { text: 'New', category: ' ', due: '28 May' })).toMatchObject({
       category: DEFAULT_CATEGORY,
       due: '',
     })
@@ -109,7 +109,7 @@ describe('dates', () => {
   it('accepts only real ISO days', () => {
     expect(isIsoDay('2022-05-28')).toBe(true)
     expect(isIsoDay('2022-02-30')).toBe(false)
-    expect(isIsoDay('May 28')).toBe(false)
+    expect(isIsoDay('28 May')).toBe(false)
     expect(isIsoDay('')).toBe(false)
   })
 
@@ -126,7 +126,7 @@ describe('dates', () => {
   })
 
   it('formats a due date as a calendar day', () => {
-    expect(formatDue('2022-05-28')).toBe('May 28')
-    expect(formatDue('2023-01-01')).toBe('Jan 1')
+    expect(formatDue('2022-05-28')).toBe('28 May')
+    expect(formatDue('2023-01-01')).toBe('1 Jan')
   })
 })

@@ -1,3 +1,5 @@
+import { formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import { useState, type ReactNode } from 'react'
 import { BadgeShelf } from './BadgeShelf'
 import { addDays, type Habit } from '../domain/habits'
@@ -15,7 +17,7 @@ interface StatsViewProps {
 
 function rateText(value: Tally) {
   const rate = percent(value)
-  return rate === null ? '—' : `${rate}%`
+  return rate === null ? '—' : `${formatNumber(rate)}%`
 }
 
 export function StatsView({ habits, today }: StatsViewProps) {
@@ -24,10 +26,8 @@ export function StatsView({ habits, today }: StatsViewProps) {
   if (habits.length === 0) {
     return (
       <section className="empty" aria-labelledby="empty-title">
-        <h2 id="empty-title" className="empty__title">
-          Not enough data yet.
-        </h2>
-        <p className="empty__text">Add a habit in Today and check it in to see your progress here.</p>
+        <h2 id="empty-title" className="empty__title">{t("Not enough data yet.")}</h2>
+        <p className="empty__text">{t("Add a habit in Today and check it in to see your progress here.")}</p>
       </section>
     )
   }
@@ -36,33 +36,33 @@ export function StatsView({ habits, today }: StatsViewProps) {
   const overall = sumTallies(habits.map((habit) => tally(habit, from, today)))
   const best = bestStreaks(habits, today)
   const tiles: { label: string; value: string; note: string }[] = [
-    { label: 'Completion', value: rateText(overall), note: `${overall.done} of ${overall.due} due days` },
-    { label: 'Check-ins', value: String(checkInsSince(habits, from, today)), note: `last ${range} days` },
-    { label: 'Current best', value: `${best.current!.days}d`, note: best.current!.days > 0 ? best.current!.habit.name : 'no streak yet' },
-    { label: 'Best ever', value: `${best.longest!.days}d`, note: best.longest!.days > 0 ? best.longest!.habit.name : 'no streak yet' },
+    { label: 'Completion', value: rateText(overall), note: t('{done} of {due} due days', { done: formatNumber(overall.done), due: formatNumber(overall.due) }) },
+    { label: 'Check-ins', value: formatNumber(checkInsSince(habits, from, today)), note: t('last {count} days', { count: range }) },
+    { label: 'Current best', value: `${formatNumber(best.current!.days)}d`, note: best.current!.days > 0 ? best.current!.habit.name : t('no streak yet') },
+    { label: 'Best ever', value: `${formatNumber(best.longest!.days)}d`, note: best.longest!.days > 0 ? best.longest!.habit.name : t('no streak yet') },
   ]
 
   return (
     <div className="stats">
-      <div className="stats__range" role="group" aria-label="Range">
+      <div className="stats__range" role="group" aria-label={t("Range")}>
         {RANGES.map((days) => (
           <button key={days} type="button" className="chip" aria-pressed={range === days} onClick={() => setRange(days)}>
-            {days} days
+            {t('{count} days', { count: days })}
           </button>
         ))}
       </div>
 
       <dl className="tiles">
         {tiles.map((tile) => (
-          <div key={tile.label} className="tiles__item">
-            <dt className="label">{tile.label}</dt>
+          <div key={t(tile.label)} className="tiles__item">
+            <dt className="label">{t(tile.label)}</dt>
             <dd className="tiles__value">{tile.value}</dd>
             <dd className="tiles__note">{tile.note}</dd>
           </div>
         ))}
       </dl>
 
-      <StatsSection id="stats-categories" title={`By category, last ${range} days`}>
+      <StatsSection id="stats-categories" title={t('By category, last {count} days', { count: range })}>
         <ul className="categories">
           {categoryTallies(habits, from, today).map(({ category, tally: value }) => (
             <li key={category} className="categories__row">
@@ -76,11 +76,11 @@ export function StatsView({ habits, today }: StatsViewProps) {
         </ul>
       </StatsSection>
 
-      <StatsSection id="stats-week" title="Last 7 days">
+      <StatsSection id="stats-week" title={t("Last 7 days")}>
         <WeeklyChart habits={habits} today={today} />
       </StatsSection>
 
-      <StatsSection id="stats-heatmap" title="Last 12 weeks">
+      <StatsSection id="stats-heatmap" title={t("Last 12 weeks")}>
         <Heatmap habits={habits} today={today} />
       </StatsSection>
 

@@ -2,6 +2,9 @@
 // ('YYYY-MM-DD'), so comparing them as strings orders them correctly; the
 // rules take `today` as an argument instead of reading the clock.
 
+import { formatDate, formatNumber } from '@essentia/ui'
+import { t } from '../locale'
+
 /** 0 = Sunday … 6 = Saturday, as `Date.getDay()`. */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -89,7 +92,14 @@ export function daysBetween(start: string, end: string): string[] {
 
 /** "Aug 15", for text alternatives to the charts. */
 export function shortDate(day: string): string {
-  return new Date(`${day}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  return formatDate(new Date(`${day}T12:00:00`), { month: 'short', day: 'numeric' })
+}
+
+/** Preserve positive targets and existing log values across the accepted Number range. */
+export function formatHabitAmount(value: number): string {
+  const magnitude = Math.abs(value)
+  const notation = magnitude !== 0 && (magnitude < 1e-6 || magnitude >= 1e21) ? 'scientific' : 'standard'
+  return formatNumber(value, { maximumSignificantDigits: 21, notation })
 }
 
 /** Monday to Sunday of the week holding `day`. */
@@ -211,9 +221,9 @@ export function toggleDay(habit: Habit, day: string): Habit {
 
 /** 'Mon, Wed, Fri', or 'Every day'. */
 export function describeDays(days: Weekday[]): string {
-  if (days.length === 0) return 'Every day'
+  if (days.length === 0) return t('Every day')
   return WEEK.filter((day) => days.includes(day))
-    .map((day) => WEEKDAY_NAMES[day].slice(0, 3))
+    .map((day) => t(WEEKDAY_NAMES[day].slice(0, 3)))
     .join(', ')
 }
 

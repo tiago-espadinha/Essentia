@@ -1,3 +1,6 @@
+import { formatHabitAmount } from '../domain/habits'
+import { currentLocale, formatNumber } from '@essentia/ui'
+import { t } from '../locale'
 import { useState, type FormEvent } from 'react'
 import { controlId, describeDays, editId, statsId, isDone, isNumeric, MILESTONES, streaks, type Habit } from '../domain/habits'
 
@@ -40,20 +43,17 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onLog, o
           {habit.days.length > 0 && <span className="label">{describeDays(habit.days)}</span>}
           {current > 0 && (
             <span className="label habit__streak">
-              {current} day streak{MILESTONES.includes(current) && ' · milestone'}
+              {t(current === 1 || currentLocale() === 'en-GB' ? '{count} day streak' : '{count} days streak', { count: formatNumber(current) })}{MILESTONES.includes(current) && t(' · milestone')}
             </span>
           )}
-          {showLongest && <span className="label">Best {longest}</span>}
+          {showLongest && <span className="label">{t('Best {count}', { count: formatNumber(longest) })}</span>}
         </p>
         <div className="habit__actions">
-          <button id={statsId(habit)} type="button" className="habit__action" onClick={() => onShowStats(habit)}>
-            Stats<span className="visually-hidden"> for “{habit.name}”</span>
+          <button id={statsId(habit)} type="button" className="habit__action" onClick={() => onShowStats(habit)}>{t("Stats")}<span className="visually-hidden">{t(' for “{name}”', { name: habit.name })}</span>
           </button>
-          <button id={editId(habit)} type="button" className="habit__action" onClick={() => onEdit(habit)}>
-            Edit<span className="visually-hidden"> “{habit.name}”</span>
+          <button id={editId(habit)} type="button" className="habit__action" onClick={() => onEdit(habit)}>{t("Edit")}<span className="visually-hidden"> “{habit.name}”</span>
           </button>
-          <button type="button" className="habit__action" onClick={() => onDelete(habit.id)}>
-            Delete<span className="visually-hidden"> “{habit.name}”</span>
+          <button type="button" className="habit__action" onClick={() => onDelete(habit.id)}>{t("Delete")}<span className="visually-hidden"> “{habit.name}”</span>
           </button>
         </div>
         {isNumeric(habit) && <AmountLog habit={habit} today={today} onLog={onLog} />}
@@ -91,12 +91,12 @@ function AmountLog({ habit, today, onLog }: AmountLogProps) {
   return (
     <form className="amount" onSubmit={submit} noValidate>
       <p className="amount__today">
-        <span className="amount__value">{logged}</span>
-        {habit.target !== null && ` / ${habit.target}`} {habit.unit} today
+        <span className="amount__value">{formatHabitAmount(logged)}</span>
+        {habit.target !== null && ` / ${formatHabitAmount(habit.target)}`} {habit.unit} {t('today')}
       </p>
       <div className="amount__row">
         <label className="visually-hidden" htmlFor={controlId(habit)}>
-          Add {habit.unit} for “{habit.name}”
+          {t('Add {unit} for “{name}”', { unit: habit.unit, name: habit.name })}
         </label>
         <input
           id={controlId(habit)}
@@ -112,19 +112,15 @@ function AmountLog({ habit, today, onLog }: AmountLogProps) {
             setInvalid(false)
           }}
         />
-        <button type="submit" className="button-ghost amount__button">
-          Log
-        </button>
+        <button type="submit" className="button-ghost amount__button">{t("Log")}</button>
         {logged > 0 && (
-          <button type="button" className="button-ghost amount__button" onClick={() => onLog(habit.id, 0)}>
-            Clear<span className="visually-hidden"> today’s {habit.unit}</span>
+          <button type="button" className="button-ghost amount__button" onClick={() => onLog(habit.id, 0)}>{t("Clear")}<span className="visually-hidden">{t(' today’s {unit}', { unit: habit.unit })}</span>
           </button>
         )}
       </div>
+      <p className="label">{t('Use a point for decimals, for example 1.5.')}</p>
       {invalid && (
-        <p id={errorId} className="field-error" role="alert">
-          Use a number above zero.
-        </p>
+        <p id={errorId} className="field-error" role="alert">{t("Use a number above zero.")}</p>
       )}
     </form>
   )

@@ -1,3 +1,5 @@
+import { useLocale } from '@essentia/ui'
+import { t } from '../locale'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useState, type FormEvent } from 'react'
 import { signIn, signUp } from '../data/auth'
@@ -24,6 +26,7 @@ interface AuthFormProps {
 
 /** Sign in or create an account with email and password; the session then reaches the app through useAuth. */
 export function AuthForm({ client, intro }: AuthFormProps) {
+  useLocale()
   const [mode, setMode] = useState<Mode>('sign-in')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -60,7 +63,7 @@ export function AuthForm({ client, intro }: AuthFormProps) {
     return (
       <div className="auth" role="status">
         <p>
-          Check your inbox at <strong>{confirmTo}</strong> and open the link to confirm your account, then sign in.
+          {t('Check your inbox at ')}<strong>{confirmTo}</strong>{t(' and open the link to confirm your account, then sign in.')}
         </p>
         <button
           type="button"
@@ -71,7 +74,7 @@ export function AuthForm({ client, intro }: AuthFormProps) {
             setPassword('')
           }}
         >
-          Back to sign in
+          {t("Back to sign in")}
         </button>
       </div>
     )
@@ -81,10 +84,10 @@ export function AuthForm({ client, intro }: AuthFormProps) {
   return (
     <form className="auth" onSubmit={submit} noValidate aria-busy={pending}>
       <p className="auth__intro">{intro}</p>
-      <Field id="auth-email" label="Email" type="email" autoComplete="email" value={email} onChange={setEmail} error={errors.email} />
+      <Field id="auth-email" label={t("Email")} type="email" autoComplete="email" value={email} onChange={setEmail} error={errors.email} />
       <Field
         id="auth-password"
-        label="Password"
+        label={t("Password")}
         type="password"
         autoComplete={signingIn ? 'current-password' : 'new-password'}
         value={password}
@@ -93,14 +96,14 @@ export function AuthForm({ client, intro }: AuthFormProps) {
       />
       {failure && (
         <p className="auth__failure" role="alert">
-          {failure}
+          {t(failure)}
         </p>
       )}
       <button type="submit" className="auth__submit" aria-disabled={pending}>
-        {pending ? 'Please wait…' : signingIn ? 'Sign in' : 'Create account'}
+        {pending ? t("Please wait…") : signingIn ? t("Sign in") : t("Create account")}
       </button>
       <p className="auth__switch">
-        {signingIn ? 'No account yet?' : 'Already have an account?'}{' '}
+        {signingIn ? t("No account yet?") : t("Already have an account?")}{' '}
         <button
           type="button"
           className="auth__link"
@@ -110,7 +113,7 @@ export function AuthForm({ client, intro }: AuthFormProps) {
             setFailure(null)
           }}
         >
-          {signingIn ? 'Create one' : 'Sign in'}
+          {signingIn ? t("Create one") : t("Sign in")}
         </button>
       </p>
     </form>
@@ -147,7 +150,7 @@ function Field({ id, label, type, autoComplete, value, onChange, error }: FieldP
       />
       {error && (
         <p id={errorId} className="auth__error">
-          {error}
+          {t(error)}
         </p>
       )}
     </div>

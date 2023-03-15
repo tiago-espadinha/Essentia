@@ -1,5 +1,7 @@
+import { formatNumber, useLocale } from '@essentia/ui'
+import { t } from './locale'
 import { useRecordMotion } from '@essentia/ui'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { AddTask } from './components/AddTask'
 import { AppHeader } from './components/AppHeader'
 import { Filters } from './components/Filters'
@@ -20,6 +22,8 @@ import {
 import { useTasks } from './hooks/useTasks'
 
 export default function App() {
+  const locale = useLocale()
+  useEffect(() => { document.title = `Acta · ${t('Your Tasks')} · Essentia` }, [locale])
   const { tasks, saveFailed, add, toggle, remove, restore, update } = useTasks()
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -97,16 +101,16 @@ export default function App() {
 
           {saveFailed && (
             <p className="notice" role="alert">
-              Couldn’t save on this device. Your changes last until you close the page.
+              {t("Couldn’t save on this device. Your changes last until you close the page.")}
             </p>
           )}
 
           {tasks.length === 0 ? (
             <section className="empty" aria-labelledby="empty-title">
               <h2 id="empty-title" className="empty__title">
-                Nothing on the list.
+                {t("Nothing on the list.")}
               </h2>
-              <p className="empty__text">Write the first thing you want to get done in the field above.</p>
+              <p className="empty__text">{t("Write the first thing you want to get done in the field above.")}</p>
             </section>
           ) : (
             <>
@@ -120,18 +124,18 @@ export default function App() {
               <section aria-labelledby="list-title">
                 <div className="section-row">
                   <h2 id="list-title" className="label">
-                    {STATUS_LABELS[status]}
+                    {t(STATUS_LABELS[status])}
                     {category && ` · ${category}`}
                   </h2>
                   <span className="section-row__rule" />
-                  <span className="label">{visible.length}</span>
+                  <span className="label">{formatNumber(visible.length)}</span>
                 </div>
                 {visible.length === 0 ? (
                   <div className="empty empty--filtered">
-                    <h3 className="empty__title">Nothing matches.</h3>
-                    <p className="empty__text">No tasks fit this filter.</p>
+                    <h3 className="empty__title">{t("Nothing matches.")}</h3>
+                    <p className="empty__text">{t("No tasks fit this filter.")}</p>
                     <button type="button" className="button-ghost" onClick={showAll}>
-                      Show all tasks
+                      {t("Show all tasks")}
                     </button>
                   </div>
                 ) : (

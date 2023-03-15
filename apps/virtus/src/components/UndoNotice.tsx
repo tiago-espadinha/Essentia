@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { Fragment } from 'react'
 import type { Habit } from '../domain/habits'
 
@@ -13,10 +14,8 @@ export function UndoNotice({ deleted, onUndo }: UndoNoticeProps) {
       {/* Keyed by habit, so two deletes of same-named habits are both announced. */}
       {deleted && (
         <Fragment key={deleted.id}>
-          <span className="undo__text">Deleted “{deleted.name}” and its history.</span>
-          <button type="button" className="undo__button" onClick={onUndo}>
-            Undo
-          </button>
+          <span className="undo__text">{t('Deleted “{name}” and its history.', { name: deleted.name })}</span>
+          <button type="button" className="undo__button" onClick={onUndo}>{t("Undo")}</button>
         </Fragment>
       )}
     </div>

@@ -1,3 +1,5 @@
+import { useLocale } from '@essentia/ui'
+import { t } from '../locale'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { AppHeader } from './AppHeader'
@@ -34,6 +36,7 @@ interface SharedViewProps {
 
 /** A shared document, read-only, for anyone with the link. */
 export function SharedView({ linkId, client }: SharedViewProps) {
+  const locale = useLocale()
   const [state, setState] = useState<State>(linkId && client ? { status: 'loading' } : { status: 'missing' })
   const [attempt, setAttempt] = useState(0)
 
@@ -54,27 +57,25 @@ export function SharedView({ linkId, client }: SharedViewProps) {
   }, [client, linkId, attempt])
 
   useEffect(() => {
-    document.title = state.status === 'ready' ? `${displayTitle({ title: state.doc.title })} · Dictum` : 'Shared document · Dictum'
-  }, [state])
+    document.title = state.status === 'ready' ? `${displayTitle({ title: state.doc.title })} · Dictum` : t('Shared document · Dictum')
+  }, [state, locale])
 
   return (
     <>
       <AppHeader />
       <main className="shared" aria-busy={state.status === 'loading'}>
-        {state.status === 'loading' && <p className="shared__note">Loading the document…</p>}
+        {state.status === 'loading' && <p className="shared__note">{t("Loading the document…")}</p>}
         {state.status === 'missing' && (
           <div className="shared__message">
-            <h1 className="shared__title">This document isn’t shared any more.</h1>
-            <p className="shared__note">The link may have been stopped, or the document deleted.</p>
-            <a className="button-ghost button-ghost--outlined" href="/">
-              Go to Essentia
-            </a>
+            <h1 className="shared__title">{t("This document isn’t shared any more.")}</h1>
+            <p className="shared__note">{t("The link may have been stopped, or the document deleted.")}</p>
+            <a className="button-ghost button-ghost--outlined" href="/">{t("Go to Essentia")}</a>
           </div>
         )}
         {state.status === 'failed' && (
           <div className="shared__message">
-            <h1 className="shared__title">Couldn’t load this document.</h1>
-            <p className="shared__note">Check your connection and try again.</p>
+            <h1 className="shared__title">{t("Couldn’t load this document.")}</h1>
+            <p className="shared__note">{t("Check your connection and try again.")}</p>
             <button
               type="button"
               className="button-primary"
@@ -82,19 +83,17 @@ export function SharedView({ linkId, client }: SharedViewProps) {
                 setState({ status: 'loading' })
                 setAttempt((count) => count + 1)
               }}
-            >
-              Try again
-            </button>
+            >{t("Try again")}</button>
           </div>
         )}
         {state.status === 'ready' && (
           <article className="shared__doc">
             <header className="shared__head">
               {!opensWithTitle(state.doc.content) && <h1 className="shared__title">{displayTitle({ title: state.doc.title })}</h1>}
-              <p className="label">Shared from Dictum · Updated {formatDate(state.doc.updatedAt)}</p>
+              <p className="label">{t('Shared from Dictum · Updated {date}', { date: formatDate(state.doc.updatedAt) })}</p>
             </header>
-            <Suspense fallback={<p className="shared__note">Loading the document…</p>}>
-              <Preview content={state.doc.content} idle="This document is empty." />
+            <Suspense fallback={<p className="shared__note">{t("Loading the document…")}</p>}>
+              <Preview content={state.doc.content} idle={t("This document is empty.")} />
             </Suspense>
           </article>
         )}

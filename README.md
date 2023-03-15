@@ -17,6 +17,13 @@ piece. Live at https://essentia-beta.vercel.app/
 One sign-in covers Virtus, Dictum and Merces, and the light or dark theme you
 pick in one app applies to all of them.
 
+Choose English (UK) or Português (Portugal) with Language in the hub header.
+The choice stays on this browser and applies across the suite and open tabs.
+Dates and amounts follow that locale; money remains in euros. Your notes,
+categories and other content keep their original language. Input and CSV rules
+stay the same: finance accepts comma or point decimals, while numeric habit
+inputs use a point. Native browser date controls follow browser settings.
+
 | | |
 |---|---|
 | ![Acta](docs/screenshots/acta.png) | ![Virtus](docs/screenshots/virtus.png) |

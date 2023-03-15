@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
 import type { Task, TaskDraft } from '../domain/tasks'
 
@@ -26,10 +27,10 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
   }
 
   return (
-    <form className="editor" onSubmit={submit} onKeyDown={cancelOnEscape} noValidate aria-label="Edit task">
+    <form className="editor" onSubmit={submit} onKeyDown={cancelOnEscape} noValidate aria-label={t("Edit task")}>
       <div className="field">
         <label className="label" htmlFor={id('text')}>
-          Task
+          {t("Task")}
         </label>
         <input
           id={id('text')}
@@ -46,14 +47,14 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
         />
         {invalid && (
           <p id={id('error')} className="field-error">
-            A task needs some text.
+            {t("A task needs some text.")}
           </p>
         )}
       </div>
       <div className="editor__row">
         <div className="field">
           <label className="label" htmlFor={id('category')}>
-            Category
+            {t("Category")}
           </label>
           <input
             id={id('category')}
@@ -71,7 +72,7 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
         </div>
         <div className="field">
           <label className="label" htmlFor={id('due')}>
-            Due date
+            {t("Due date")}
           </label>
           <input
             id={id('due')}
@@ -84,10 +85,10 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
       </div>
       <div className="editor__actions">
         <button type="button" className="button-ghost" onClick={onCancel}>
-          Cancel
+          {t("Cancel")}
         </button>
         <button type="submit" className="button-primary">
-          Save
+          {t("Save")}
         </button>
       </div>
     </form>

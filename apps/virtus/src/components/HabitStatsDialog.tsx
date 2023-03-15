@@ -1,4 +1,5 @@
-import { Dialog } from '@essentia/ui'
+import { t } from '../locale'
+import { Dialog, formatNumber } from '@essentia/ui'
 import { addDays, daysBetween, describeDays, shortDate, statsId, WEEK, WEEKDAY_NAMES, type Habit } from '../domain/habits'
 import { DAY_STATE_LABELS, dayState, percent, summarize } from '../domain/stats'
 
@@ -8,7 +9,7 @@ interface HabitStatsDialogProps {
   onClose: () => void
 }
 
-const format = (value: number) => value.toLocaleString('en-US', { maximumFractionDigits: 1 })
+const format = (value: number) => formatNumber(value, { maximumFractionDigits: 1 })
 
 export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProps) {
   const summary = summarize(habit, today)
@@ -17,13 +18,13 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
   const strip = daysBetween(addDays(today, -29), today).map((day) => ({ day, state: dayState(habit, day, today) }))
   const missed = strip.filter((item) => item.state === 'missed').map((item) => shortDate(item.day))
   const metrics: [string, string][] = [
-    ['Current streak', String(summary.current)],
-    ['Best streak', String(summary.longest)],
-    ['Check-ins', String(summary.checkIns)],
+    ['Current streak', formatNumber(summary.current)],
+    ['Best streak', formatNumber(summary.longest)],
+    ['Check-ins', formatNumber(summary.checkIns)],
   ]
   if (summary.amounts) {
     metrics.push(
-      [`Total ${habit.unit}`, format(summary.amounts.total)],
+      [t('Total {unit}', { unit: habit.unit }), format(summary.amounts.total)],
       ['Average a day', format(summary.amounts.average)],
       ['Best day', format(summary.amounts.best)],
     )
@@ -38,8 +39,8 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
 
       <dl className="metrics">
         {metrics.map(([label, value]) => (
-          <div key={label} className="metrics__item">
-            <dt className="label">{label}</dt>
+          <div key={t(label)} className="metrics__item">
+            <dt className="label">{t(label)}</dt>
             <dd className="metrics__value">{value}</dd>
           </div>
         ))}
@@ -47,34 +48,30 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
 
       <section className="strip" aria-labelledby="strip-title">
         <div className="strip__header">
-          <h3 id="strip-title" className="label">
-            Last 30 days
-          </h3>
+          <h3 id="strip-title" className="label">{t("Last 30 days")}</h3>
           <span className="label">
-            {rate === null ? 'Nothing due yet' : `${summary.last30.done} of ${summary.last30.due} due days · ${rate}%`}
+            {rate === null ? t('Nothing due yet') : t('{done} of {due} due days · {rate}%', { done: formatNumber(summary.last30.done), due: formatNumber(summary.last30.due), rate: formatNumber(rate) })}
           </span>
         </div>
         <ol className="strip__days" aria-hidden="true">
           {strip.map(({ day, state }) => (
-            <li key={day} className={`strip__day strip__day--${state}`} title={`${day}: ${DAY_STATE_LABELS[state]}`} />
+            <li key={day} className={`strip__day strip__day--${state}`} title={`${shortDate(day)}: ${t(DAY_STATE_LABELS[state])}`} />
           ))}
         </ol>
-        <p className="visually-hidden">{missed.length === 0 ? 'No missed days.' : `Missed: ${missed.join(', ')}.`}</p>
+        <p className="visually-hidden">{missed.length === 0 ? t('No missed days.') : t('Missed: {dates}.', { dates: missed.join(', ') })}</p>
       </section>
 
       <section className="by-day" aria-labelledby="by-day-title">
-        <h3 id="by-day-title" className="label">
-          Check-ins by weekday
-        </h3>
+        <h3 id="by-day-title" className="label">{t("Check-ins by weekday")}</h3>
         <ol className="by-day__bars">
           {WEEK.map((day) => (
             <li key={day} className="by-day__bar">
               <span className="by-day__fill" style={{ height: `${(summary.byWeekday[day] / peak) * 100}%` }} />
               <span className="label" aria-hidden="true">
-                {WEEKDAY_NAMES[day][0]}
+                {t(WEEKDAY_NAMES[day])[0]}
               </span>
               <span className="visually-hidden">
-                {WEEKDAY_NAMES[day]}: {summary.byWeekday[day]}
+                {t(WEEKDAY_NAMES[day])}: {formatNumber(summary.byWeekday[day])}
               </span>
             </li>
           ))}

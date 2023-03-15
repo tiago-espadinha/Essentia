@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { useRef, useState, type FormEvent } from 'react'
 import { budgetStatus, type Budget, type BudgetStatus } from '../domain/budgets'
 import { Field } from './Field'
@@ -27,7 +28,7 @@ export function Budgets({ budgets, ready, transactions, onSet, onRemove }: Budge
   // The budget Edit filled the form with; renaming its category moves the limit rather than adding one.
   const [editing, setEditing] = useState<string | null>(null)
   // Said once after each change; the list itself shows the result.
-  const [announcement, setAnnouncement] = useState('')
+  const [announcement, setAnnouncement] = useState<{ key: string; category: string; amount?: number } | null>(null)
   const categoryRef = useRef<HTMLInputElement>(null)
   const amountRef = useRef<HTMLInputElement>(null)
   const expenses = transactions.filter((t) => t.type === 'expense')
@@ -55,7 +56,7 @@ export function Budgets({ budgets, ready, transactions, onSet, onRemove }: Budge
     onSet(category, amount!)
     setForm({ category: '', amount: '' })
     setEditing(null)
-    setAnnouncement(`Budget for ${category} set to ${formatMoney(amount!)} a month.`)
+    setAnnouncement({ key: 'Budget for {category} set to {amount} a month.', category, amount: amount! })
     categoryRef.current?.focus()
   }
 
@@ -69,7 +70,7 @@ export function Budgets({ budgets, ready, transactions, onSet, onRemove }: Budge
   function remove(budget: Budget) {
     onRemove(budget.category)
     if (editing === budget.category) setEditing(null)
-    setAnnouncement(`Budget for ${budget.category} removed.`)
+    setAnnouncement({ key: 'Budget for {category} removed.', category: budget.category })
     categoryRef.current?.focus()
   }
 
@@ -77,13 +78,12 @@ export function Budgets({ budgets, ready, transactions, onSet, onRemove }: Budge
     <section className="insight" aria-labelledby="budgets-title">
       <div className="section-row">
         <h2 id="budgets-title" className="label">
-          Budgets
-        </h2>
+          {t("Budgets")}</h2>
         <span className="section-row__rule" />
         <span className="label">{monthLabel(month)}</span>
       </div>
       <form className="budget-form" onSubmit={submit} noValidate>
-        <Field id="budget-category" label="Category" error={errors.category}>
+        <Field id="budget-category" label={t("Category")} error={errors.category}>
           <input
             ref={categoryRef}
             id="budget-category"
@@ -101,7 +101,7 @@ export function Budgets({ budgets, ready, transactions, onSet, onRemove }: Budge
             ))}
           </datalist>
         </Field>
-        <Field id="budget-amount" label="Monthly limit (€)" error={errors.amount}>
+        <Field id="budget-amount" label={t("Monthly limit (€)")} error={errors.amount}>
           <input
             ref={amountRef}
             id="budget-amount"
@@ -114,21 +114,20 @@ export function Budgets({ budgets, ready, transactions, onSet, onRemove }: Budge
           />
         </Field>
         <button type="submit" className="button-primary budget-form__button">
-          Set budget
-        </button>
+          {t("Set budget")}</button>
       </form>
       <p className="visually-hidden" role="status">
-        {announcement}
+        {announcement && t(announcement.key, { category: announcement.category, amount: formatMoney(announcement.amount ?? 0) })}
       </p>
       {!ready ? (
-        <div className="skeleton" role="status" aria-label="Loading your budgets">
+        <div className="skeleton" role="status" aria-label={t("Loading your budgets")}>
           <span className="skeleton__line" />
           <span className="skeleton__line" />
         </div>
       ) : budgets.length === 0 ? (
         <div className="empty">
-          <p className="empty__title">No budgets yet.</p>
-          <p className="empty__text">Set a monthly limit for a category, and this month’s spending shows against it.</p>
+          <p className="empty__title">{t("No budgets yet.")}</p>
+          <p className="empty__text">{t("Set a monthly limit for a category, and this month’s spending shows against it.")}</p>
         </div>
       ) : (
         <ul className="budgets">
@@ -153,7 +152,7 @@ function BudgetItem({ status, onEdit, onRemove }: BudgetItemProps) {
     <li className="budget">
       <span className="budget__name">{status.category}</span>
       <span className="amount">
-        {formatMoney(status.spent)} <span className="budget__of">of {formatMoney(status.amount)}</span>
+        {formatMoney(status.spent)} <span className="budget__of">{t("of")} {formatMoney(status.amount)}</span>
       </span>
       <span className="spend__track" aria-hidden="true">
         <span
@@ -162,14 +161,14 @@ function BudgetItem({ status, onEdit, onRemove }: BudgetItemProps) {
         />
       </span>
       <span className={`budget__left${over ? ' budget__left--over' : ''}`}>
-        {over ? `${formatMoney(-status.left)} over` : `${formatMoney(status.left)} left`}
+        {over ? t('{amount} over', { amount: formatMoney(-status.left) }) : t('{amount} left', { amount: formatMoney(status.left) })}
       </span>
       <span className="budget__actions">
         <button type="button" className="row__action" onClick={() => onEdit(status)}>
-          Edit<span className="visually-hidden"> {status.category} budget</span>
+          {t("Edit")}<span className="visually-hidden"> {status.category} {t("budget")}</span>
         </button>
         <button type="button" className="row__action" onClick={() => onRemove(status)}>
-          Remove<span className="visually-hidden"> {status.category} budget</span>
+          {t("Remove")}<span className="visually-hidden"> {status.category} {t("budget")}</span>
         </button>
       </span>
     </li>

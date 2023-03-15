@@ -186,7 +186,7 @@ describe('editing a task', () => {
     expect(document.activeElement).toBe(buttonNamed('Edit “Final”'))
     expect($('.task__tag').textContent).toBe('Design')
     expect($('time').getAttribute('datetime')).toBe('2999-05-28')
-    expect($('time').textContent).toBe('May 28')
+    expect($('time').textContent).toBe('28 May')
   })
 
   it('marks an open task with a past due date as overdue', () => {
@@ -196,7 +196,7 @@ describe('editing a task', () => {
     type(field('Due date'), '2000-01-01')
     submit($<HTMLFormElement>('form.editor'))
 
-    expect($('.task__due--over').textContent).toBe('Overdue · Jan 1')
+    expect($('.task__due--over').textContent).toBe('Overdue · 1 Jan')
   })
 
   it('refuses empty text and keeps the editor open', () => {

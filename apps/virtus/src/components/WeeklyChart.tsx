@@ -1,3 +1,5 @@
+import { t } from '../locale'
+import { formatNumber } from '@essentia/ui'
 import { addDays, daysBetween, weekdayOf, WEEKDAY_NAMES, type Habit } from '../domain/habits'
 import { dayTally, withStarts } from '../domain/stats'
 
@@ -20,10 +22,10 @@ export function WeeklyChart({ habits, today }: WeeklyChartProps) {
             <span className="chart__fill" style={{ height: `${(done / peak) * 100}%` }} />
           </span>
           <span className="label" aria-hidden="true">
-            {WEEKDAY_NAMES[weekdayOf(day)].slice(0, 2)}
+            {t(WEEKDAY_NAMES[weekdayOf(day)].slice(0, 3)).slice(0, 2)}
           </span>
           <span className="visually-hidden">
-            {WEEKDAY_NAMES[weekdayOf(day)]}: {done} of {due} done
+            {t('{day}: {done} of {due} done', { day: t(WEEKDAY_NAMES[weekdayOf(day)]), done: formatNumber(done), due: formatNumber(due) })}
           </span>
         </li>
       ))}

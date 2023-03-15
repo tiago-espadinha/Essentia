@@ -85,7 +85,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Virtus categories | Recommend a color marker accompanied by readable category text | Assignment, affected views and interaction with accent preference are TBD |
 | Virtus Streaks | Recommend removing only the dedicated navigation destination; retain history and useful statistics in habit details | Exact destination and whether mechanics change require confirmation |
 | Acta/Virtus input | Recommend `#name` grouping suggestions plus equivalent form controls | Grammar, cardinality and literal/escaped/conflicting tokens remain TBD |
-| Locale selection | Shared preference and consistent formatting | Initial supported languages, defaults/fallback and parser rules remain TBD |
+| Locale selection | Hub Language selector: English (UK) default/fallback and Português (Portugal); device-local across all current apps and open tabs | Regional display only; EUR, Monday-first weeks, stored content and existing input/CSV rules retained |
 
 ### Migration acceptance before retiring entry points
 

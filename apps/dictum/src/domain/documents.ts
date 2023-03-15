@@ -1,3 +1,5 @@
+import { t } from '../locale'
+import { currentLocale } from '@essentia/ui'
 // The document model and the pure rules around it. Content is markdown;
 // dates are ISO timestamps.
 
@@ -46,7 +48,7 @@ export function applyChanges(doc: Doc, changes: DocChanges, now: Date = new Date
 }
 
 export function displayTitle(doc: Pick<Doc, 'title'>): string {
-  return doc.title.trim() || 'Untitled'
+  return doc.title.trim() || t('Untitled')
 }
 
 /** '  Work   notes ' -> 'Work notes'. */
@@ -91,14 +93,14 @@ export function readingMinutes(words: number): number {
   return Math.ceil(words / 200)
 }
 
-/** 'Oct 7, 2022' in the user's own time zone. */
+/** The selected locale's short date, in the user's own time zone. */
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(iso).toLocaleDateString(currentLocale(), { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 /** A safe file name for the export: 'Plan: v2?' -> 'Plan v2.md'. */
 export function fileName(doc: Doc): string {
-  const base = displayTitle(doc)
+  const base = (doc.title.trim() || 'Untitled')
     .replace(/[\\/:*?"<>|]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()

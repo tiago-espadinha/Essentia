@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { badges, type BadgeIcon } from '../domain/badges'
 import type { Habit } from '../domain/habits'
 
@@ -21,12 +22,10 @@ export function BadgeShelf({ habits, today }: BadgeShelfProps) {
   return (
     <section className="stats__section" aria-labelledby="stats-badges">
       <div className="section-row">
-        <h2 id="stats-badges" className="label">
-          Badges
-        </h2>
+        <h2 id="stats-badges" className="label">{t("Badges")}</h2>
         <span className="section-row__rule" />
         <span className="label">
-          {earned} of {all.length}
+          {t('{earned} of {total}', { earned, total: all.length })}
         </span>
       </div>
       <ul className="badges">
@@ -41,10 +40,10 @@ export function BadgeShelf({ habits, today }: BadgeShelfProps) {
                 strokeLinejoin="round"
               />
             </svg>
-            <span className="badge__name">{badge.name}</span>
+            <span className="badge__name">{t(badge.name)}</span>
             <span className="badge__description">
-              {badge.description}
-              <span className="visually-hidden">{badge.earned ? ', earned' : ', not earned yet'}</span>
+              {t(badge.description)}
+              <span className="visually-hidden">{badge.earned ? t(', earned') : t(', not earned yet')}</span>
             </span>
           </li>
         ))}

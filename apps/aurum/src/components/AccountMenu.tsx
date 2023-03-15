@@ -1,3 +1,4 @@
+import { t } from '../locale'
 import { AccountMenu as SuiteAccountMenu, type AccountText, type Auth, type SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SYNC_FAILED } from '../hooks/useTransactions'
@@ -22,5 +23,5 @@ interface AccountMenuProps {
 
 /** The suite's account menu, worded for transactions. */
 export function AccountMenu(props: AccountMenuProps) {
-  return <SuiteAccountMenu {...props} text={TEXT} />
+  return <SuiteAccountMenu {...props} text={{ intro: t(TEXT.intro), sync: { off: t(TEXT.sync.off), syncing: t(TEXT.sync.syncing), synced: t(TEXT.sync.synced), failed: t(TEXT.sync.failed) }, signOut: t(TEXT.signOut) }} />
 }

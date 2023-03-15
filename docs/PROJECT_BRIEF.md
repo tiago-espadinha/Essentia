@@ -85,9 +85,10 @@ See [design direction](DESIGN_DIRECTION.md) and [flows](UX_FLOWS.md) for boundar
 - Recommend `#name` for Acta/Virtus grouping, with suggestions and equivalent form
   controls. Quoting, spaces, escaping, repetition, literal hashes and conflicts are
   TBD. Dates/priorities/schedules use explicit controls initially.
-- English and Portuguese (Portugal) are initial locale candidates, not a finalized
-  supported set. Default/fallback, regional formats, week start and numeric parsing
-  rules remain TBD.
+- Locale scope approved: English (UK), the default and fallback, and Portuguese
+  (Portugal), selected in the hub and stored on this browser across current apps.
+  Dates/numbers use selected regional formats; EUR, Monday-first week views,
+  existing numeric/CSV parsers and stored user content remain unchanged.
 - Account changes, additional sync, install targets and individual app improvements
   need bounded follow-on designs. This direction does not authorize security,
   retention, migration or deployment changes.

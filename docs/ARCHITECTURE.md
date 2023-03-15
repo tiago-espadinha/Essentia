@@ -18,7 +18,7 @@ apps/
 packages/
   config/    shared TypeScript and ESLint configs
   tokens/    design tokens, fonts and base styles (one CSS import)
-  ui/        theme, accent preference/selector, back-to-hub link, Dialog
+  ui/        theme, accent and locale preferences/selectors, formatting, Dialog
   supabase/  the one Supabase client, auth hooks, sign-in form, account menu
 scripts/
   assemble.mjs   copies each app's dist/ into one dist/ (hub at the root)
@@ -27,6 +27,19 @@ scripts/
 - There is no server of our own. Every app is a static bundle; the only backend is one Supabase project (Auth and Postgres).
 - The hub Accent selector saves a validated Terracotta/Blue/Violet ID under `essentia-accent`. Each app loads the same blocking external startup script through a public symlink before styles/modules; it applies the saved palette and listens for cross-tab changes. Unknown/missing values default to Terracotta. Failed writes keep the current-page choice with feedback; preferences never sync to accounts.
 - All apps share one origin, so they share the theme choice (`essentia-theme` in localStorage) and the Supabase session.
+- The hub Language selector stores `en-GB` or `pt-PT` under `essentia-locale`.
+  A blocking shared startup script sets HTML `lang` and handles cross-tab changes.
+  Missing/invalid/unreadable preferences use English without language detection;
+  failed writes retain the current-page language with unsaved feedback. React
+  subscriptions update existing views without remounting editors or dialogs.
+  Each app owns its Portuguese message catalog; missing keys fall back to English.
+  Catalog tests check literal message coverage and interpolation parity.
+- Locale changes only presentation: Intl formats calendar dates, counts and EUR
+  amounts. Stored ISO dates, cents arithmetic, Monday-first weeks, sorting, user
+  content and CSV/input grammars stay compatible. Finance accepts comma and point
+  decimals; numeric habit inputs retain their point-decimal parser. Export
+  filenames and CSV machine values remain stable. Browser-owned controls follow
+  browser/OS locale settings.
 - Apps do not import each other; anything shared lives in `packages/`.
 
 ## Source folders

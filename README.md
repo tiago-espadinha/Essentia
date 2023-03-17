@@ -24,6 +24,15 @@ categories and other content keep their original language. Input and CSV rules
 stay the same: finance accepts comma or point decimals, while numeric habit
 inputs use a point. Native browser date controls follow browser settings.
 
+The hub and each app can be installed through a supporting browser's Install
+menu (or Add to Home Screen). Visit the entry online first and let its offline
+setup finish. Folio, Acta, Virtus and the Dictum editor then reopen with their
+device-local data; the hub also reopens offline. Each app needs its own online
+visit: installing the hub does not download every app. Merces requires a
+connection for finance writes, and shared Dictum links require one to load.
+Close that app's open tabs and installed windows to apply a downloaded update.
+Existing `/aurum/` links install the canonical Merces app.
+
 | | |
 |---|---|
 | ![Acta](docs/screenshots/acta.png) | ![Virtus](docs/screenshots/virtus.png) |

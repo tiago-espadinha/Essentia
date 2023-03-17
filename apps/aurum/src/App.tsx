@@ -2,7 +2,7 @@ import { t } from './locale'
 import { useLocale, formatNumber, useRecordMotion } from '@essentia/ui'
 import { useAuth } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { AccountMenu } from './components/AccountMenu'
 import { AppHeader } from './components/AppHeader'
 import { Budgets } from './components/Budgets'
@@ -29,9 +29,20 @@ import {
 } from './domain/transactions'
 import { UndoNotice } from './components/UndoNotice'
 import { SYNC_FAILED, useTransactions } from './hooks/useTransactions'
+import { OfflineNotice } from './components/OfflineNotice'
 import { Views, type View } from './components/Views'
 
+function subscribeConnection(notify: () => void) {
+  window.addEventListener('online', notify)
+  window.addEventListener('offline', notify)
+  return () => {
+    window.removeEventListener('online', notify)
+    window.removeEventListener('offline', notify)
+  }
+}
+
 export default function App({ client }: { client: SupabaseClient | null }) {
+  const online = useSyncExternalStore(subscribeConnection, () => navigator.onLine)
   const locale = useLocale()
   useEffect(() => { document.title = `Merces · ${t('Your Money')} · Essentia` }, [locale])
   const auth = useAuth(client)
@@ -109,6 +120,8 @@ export default function App({ client }: { client: SupabaseClient | null }) {
     focusAfter.current = deleted.id
     setDeleted(null)
   }
+
+  if (!online) return <><AppHeader /><OfflineNotice saveFailed={saveFailed} /></>
 
   return (
     <>

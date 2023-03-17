@@ -93,6 +93,32 @@ afterEach(() => {
 })
 
 describe('syncing transactions with the account', () => {
+  it('refuses late add/import/edit/delete/budget/recurring callbacks after going offline', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    const id = add('Unsynced coffee')
+    const existing = hook().transactions[0]
+    act(() => hook().setBudget('food', 10000))
+    act(() => hook().addRecurring({ ...fields('Rent'), frequency: 'monthly', startOn: '2022-12-01' }))
+    const recurringId = hook().recurring[0].id
+    const before = [TRANSACTIONS_KEY, SYNC_KEY, BUDGETS_KEY, RECURRING_KEY].map((key) => localStorage.getItem(key))
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    act(() => {
+      hook().add(fields('Offline addition'))
+      hook().addAll([fields('Late CSV import')])
+      hook().update(id, { amount: 9999 })
+      hook().remove(id)
+      hook().putBack(existing)
+      hook().setBudget('food', 20000)
+      hook().removeBudget('food')
+      hook().addRecurring({ ...fields('Offline rent'), frequency: 'monthly', startOn: '2022-12-01' })
+      hook().setRecurringPaused(recurringId, true)
+      hook().removeRecurring(recurringId)
+    })
+    expect(descriptions()).toEqual(['Unsynced coffee'])
+    expect([TRANSACTIONS_KEY, SYNC_KEY, BUDGETS_KEY, RECURRING_KEY].map((key) => localStorage.getItem(key))).toEqual(before)
+  })
+
   it('keeps nothing and syncs nothing while no one is signed in', async () => {
     const server = fakeServer()
     localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify([{ id: 'x' }]))

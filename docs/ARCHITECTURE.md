@@ -4,7 +4,7 @@
 - Language/framework: TypeScript 6 and React 19 in every app, built with Vite 8.
 - Runtime and version: the browser at run time; Node 24 or later to build (`.nvmrc`).
 - Package manager: pnpm 11 workspaces with turbo; shared dependency versions in the `catalog` in `pnpm-workspace.yaml`.
-- Entry points: `apps/<app>/index.html` and `src/main.tsx` per app. Virtus also builds `sw/worker.ts` to `/virtus/sw.js`.
+- Entry points: `apps/<app>/index.html` and `src/main.tsx` per app. Every production build emits its manifest and scoped `sw.js` through `scripts/pwa.ts`.
 
 ## Boundaries
 ```text
@@ -59,8 +59,40 @@ Keep `App.tsx`, browser entry points (`main.tsx` and the hub's `notFound.ts`),
 package public `index.ts` files, declarations and app/package styles at the source
 root. Components import these root styles by relative path. Import app internals
 directly from their folder; shared package consumers continue using the package's
-public exports. Build configuration and the Virtus worker also import domain
-helpers directly. Config-only and CSS-only packages keep their existing layout.
+public exports. Config-only and CSS-only packages keep their existing layout.
+
+## Installation and offline boundaries
+
+The hub and all five current apps have independent manifest identities and start
+URLs: `/`, `/folio/`, `/acta/`, `/virtus/`, `/dictum/` and `/merces/`. Legacy
+`/aurum/` advertises the canonical Merces manifest and registers its worker at
+`/merces/`; it has no separate install identity. Existing Virtus installations
+retain their resolved start-URL identity, `/virtus/`.
+
+`scripts/pwa.ts` generates a static-file allowlist and content-derived worker
+version for each build. The root worker answers only the hub's own navigation
+and static files, even though its registration scope is `/`. App workers answer
+only their own entry navigation and allowlisted files. Virtus retains the
+`virtus-` cache prefix; other entries use independent `essentia-<app>-` prefixes.
+No worker stores runtime responses, API/auth replies, shared document data or
+rendered user records. Account ownership and sign-out cleanup remain in the
+existing application storage/auth layer.
+
+A successfully installed worker serves its entry and assets from the same build.
+Updates wait until their controlled pages close; there is no forced activation
+or reload. A failed precache is removed without replacing the working version.
+Activation removes only that target's obsolete caches. Cache eviction by the
+browser can still require another online visit.
+
+After an online visit has installed the worker, the hub, Folio, Acta, Virtus and
+Dictum editor reopen offline with existing device-local behavior. Installing the
+hub does not precache the other apps. Shared Dictum navigation remains network
+only, with a static, localized retry page when unreachable. Merces's cached shell
+shows connection-required feedback when the browser reports offline; all finance
+write controls and late mutation callbacks are unavailable until reconnecting.
+Existing unsynced records are retained. This does not add a finance offline queue
+or change existing sync conflict rules. Browser online status is a connectivity
+hint; service outages continue to use existing sync-failure feedback.
 
 ## Data
 - Stores: each app keeps its data in localStorage (`essentia-<app>-*` keys). Virtus, Dictum and Merces also keep a copy in Supabase Postgres for the signed-in user.

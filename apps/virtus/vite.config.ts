@@ -1,13 +1,9 @@
-import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { MANIFEST_TOKEN, precacheFiles } from './src/domain/offline.ts'
-
+import { suitePwa } from '../../scripts/pwa.ts'
 export default defineConfig({
   base: '/virtus/',
-  plugins: [react(), offline()],
+  plugins: [react(), suitePwa('Virtus', 'Virtus · Your Habits · Essentia')],
   server: { port: 5103, strictPort: true },
   test: {
     environment: 'jsdom',
@@ -18,51 +14,3 @@ export default defineConfig({
     env: { TZ: 'Pacific/Auckland', VITE_SUPABASE_URL: '', VITE_SUPABASE_ANON_KEY: '' },
   },
 })
-
-/**
- * Builds sw/worker.ts to sw.js beside the page and writes the list of built and
- * public files into it. The version hashes their contents, so any change installs
- * a new cache.
- */
-function offline(): Plugin {
-  let publicDir = ''
-  return {
-    name: 'virtus-offline',
-    apply: 'build',
-    enforce: 'post',
-    config: () => ({
-      build: {
-        rolldownOptions: {
-          input: { index: 'index.html', sw: 'sw/worker.ts' },
-          output: { entryFileNames: (chunk) => (chunk.name === 'sw' ? 'sw.js' : 'assets/[name]-[hash].js') },
-        },
-      },
-    }),
-    configResolved(config) {
-      publicDir = config.publicDir
-    },
-    generateBundle(_, bundle) {
-      const worker = bundle['sw.js']
-      if (worker?.type !== 'chunk' || !worker.code.includes(MANIFEST_TOKEN)) this.error('sw.js was not built with its manifest placeholder')
-      // A classic worker cannot import; this fails if app code starts sharing src/domain/offline.ts.
-      if (worker.imports.length > 0) this.error('sw.js must be a single file')
-
-      const contents = new Map<string, string | Uint8Array>()
-      for (const output of Object.values(bundle)) {
-        contents.set(output.fileName, output.type === 'chunk' ? output.code : output.source)
-      }
-      for (const entry of readdirSync(publicDir, { recursive: true, withFileTypes: true })) {
-        const path = join(entry.parentPath, entry.name)
-        if (!statSync(path).isFile()) continue
-        contents.set(relative(publicDir, path).split(sep).join('/'), readFileSync(path))
-      }
-
-      const files = precacheFiles([...contents.keys()])
-      const hash = createHash('sha256')
-      for (const file of files) hash.update(file).update(contents.get(file === './' ? 'index.html' : file) ?? '')
-      // The worker's own code is left out: changing it alone still updates the worker, and the cached files are the same.
-      const precache = { version: hash.digest('hex').slice(0, 12), files }
-      worker.code = worker.code.replaceAll(MANIFEST_TOKEN, `(${JSON.stringify(precache)})`)
-    },
-  }
-}

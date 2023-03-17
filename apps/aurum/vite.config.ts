@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { suitePwa } from '../../scripts/pwa.ts'
 
 export default defineConfig({
   base: '/merces/',
-  plugins: [react()],
+  plugins: [react(), suitePwa('Merces', 'Merces · Your Money · Essentia')],
   server: { port: 5105, strictPort: true },
   build: {
     rolldownOptions: {

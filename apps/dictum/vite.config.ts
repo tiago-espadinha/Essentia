@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { suitePwa } from '../../scripts/pwa.ts'
 
 export default defineConfig({
   base: '/dictum/',
-  plugins: [react()],
+  plugins: [react(), suitePwa('Dictum', 'Dictum · Your Writing · Essentia')],
   server: { port: 5104, strictPort: true },
   test: {
     environment: 'jsdom',

@@ -2,13 +2,15 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@essentia/tokens/index.css'
 import { getSupabase } from '@essentia/supabase'
-import { applyStoredTheme } from '@essentia/ui'
+import { applyStoredTheme, registerOfflineWorker } from '@essentia/ui'
 import './dictum.css'
 import App from './App'
 import { readSharePath } from './domain/share'
 import { SharedView } from './components/SharedView'
 
 applyStoredTheme()
+
+if (import.meta.env.PROD) registerOfflineWorker(import.meta.env.BASE_URL)
 
 // A share link (/dictum/shared/<id>) opens the reading view instead of the editor.
 const shared = readSharePath(location.pathname)

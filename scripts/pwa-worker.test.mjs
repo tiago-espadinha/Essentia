@@ -92,7 +92,7 @@ test('activation deletes only this target’s obsolete caches', async () => {
   await w.lifecycle('install')
   await w.lifecycle('activate')
   assert.deepEqual([...stores.keys()], ['essentia-hub-other', 'essentia-dictum-other', 'unrelated-cache', 'virtus-new'])
-  assert.deepEqual(w.takeovers, [])
+  assert.deepEqual(w.takeovers, ['claim'])
 })
 
 test('interrupted update removes the partial new build and preserves the working build', async () => {
@@ -162,9 +162,9 @@ test('shared navigation remains network-only, with a static offline fallback and
 test('evicted static assets recover only through integrity-checked network reads without runtime caching', async () => {
   const w = worker()
   await w.lifecycle('install')
-  w.stores.clear()
+  w.stores.get(w.cacheName).delete(origin + '/virtus/assets/lazy.js')
   assert.match(await (await w.request('/virtus/assets/lazy.js')).text(), /static new:/)
-  assert.equal(w.stores.size, 0)
+  assert.equal(w.stores.get(w.cacheName).has(origin + '/virtus/assets/lazy.js'), false)
   assert.deepEqual(w.takeovers, [])
 })
 
@@ -172,9 +172,14 @@ test('evicted navigation recovers the current online entry and permits a complet
   const w = worker()
   await w.lifecycle('install')
   w.stores.clear()
-  assert.equal((await w.request('/virtus/', {mode:'navigate'})).ok, true)
+  const response = await w.request('/virtus/', {mode:'navigate'})
+  assert.equal(response.status, 307)
+  assert.equal(response.headers.get('location'), origin + '/virtus/')
   assert.deepEqual(w.takeovers, ['unregister'])
   assert.equal(w.stores.size, 0)
+  // A new document's stable public files must bypass the old build's integrity
+  // even if the browser restarts the old worker before its subresource fetch.
+  assert.equal(await (await w.request('/virtus/assets/entry.js')).text(), 'PRIVATE shared response')
 })
 
 test('offline eviction cannot unregister a working registration or invent unavailable assets', async () => {

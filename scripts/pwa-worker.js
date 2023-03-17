@@ -24,10 +24,19 @@ self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys()
     await Promise.all(keys.filter((key) => key.startsWith(config.prefix) && key !== cacheName).map((key) => caches.delete(key)))
+    // Normal activation waits for the previous worker's clients to close.
+    // Claim only then, so first-time app visits leave the hub's controller and
+    // can reopen offline; the browser respects more-specific registrations.
+    await self.clients.claim()
   })())
 })
 
 async function cached(path) {
+  // A recovered network document can still be controlled by this unregistered
+  // worker. Without this build's entry, all its files must come from the current
+  // network deploy, including stable filenames such as locale-init.js.
+  const entry = await caches.match(absolute(`${config.base}index.html`), { cacheName, ignoreVary: true })
+  if (!entry) return fetch(new Request(absolute(path)))
   const response = await caches.match(absolute(path), { cacheName, ignoreVary: true })
   if (response) return response
   // Eviction can leave a live registration without its files. Only the exact
@@ -42,7 +51,12 @@ async function entry(request) {
   // let its normal registration install a complete build instead of stranding
   // this browser behind an unchanged worker with an evicted cache.
   const current = await fetch(request)
-  if (current.ok) await self.registration.unregister()
+  if (current.ok) {
+    await self.registration.unregister()
+    // A fresh navigation drops this controller before the recovered page
+    // registers again; otherwise registration can revive the evicted worker.
+    return Response.redirect(request.url, 307)
+  }
   return current
 }
 

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { join, relative, resolve, sep } from 'node:path'
 import type { Plugin } from 'vite'
 
 const source = (name: string) => readFileSync(new URL(name, import.meta.url), 'utf8')
@@ -20,6 +20,8 @@ const backgroundColor = color('sand')
 export function suitePwa(shortName: string, name: string): Plugin {
   let base = '/'
   let publicDir = ''
+  let outDir = ''
+  let files: string[] = []
   return {
     name: 'essentia-pwa',
     apply: 'build',
@@ -27,6 +29,7 @@ export function suitePwa(shortName: string, name: string): Plugin {
     configResolved(config) {
       base = config.base
       publicDir = config.publicDir
+      outDir = resolve(config.root, config.build.outDir)
     },
     transformIndexHtml(html, context) {
       if (!context.filename.endsWith('index.html')) return html
@@ -68,7 +71,13 @@ export function suitePwa(shortName: string, name: string): Plugin {
         contents.set(fileName, content)
         this.emitFile({ type: 'asset', fileName, source: content })
       }
-      const files = [...contents.keys()].filter((file) => file !== 'sw.js' && file !== '404.html' && !file.endsWith('.map') && !file.startsWith('.vite/')).sort()
+      files = [...contents.keys()].filter((file) => file !== 'sw.js' && file !== '404.html' && !file.endsWith('.map') && !file.startsWith('.vite/')).sort()
+      // Vite still rewrites dynamic-import preload code after generateBundle.
+      this.emitFile({ type: 'asset', fileName: 'sw.js', source: source('./pwa-worker.js') })
+    },
+    writeBundle() {
+      // Hash the final disk bytes, including Vite's late chunk transformations.
+      const contents = new Map(files.map((file) => [file, readFileSync(join(outDir, file))]))
       const worker = source('./pwa-worker.js')
       const hash = createHash('sha256').update(worker)
       for (const file of files) hash.update(file).update(contents.get(file)!)
@@ -81,7 +90,7 @@ export function suitePwa(shortName: string, name: string): Plugin {
           `${base}${file}`, `sha256-${createHash('sha256').update(contents.get(file)!).digest('base64')}`,
         ])),
       }
-      this.emitFile({ type: 'asset', fileName: 'sw.js', source: worker.replace('__ESSENTIA_PWA__', JSON.stringify(config)) })
+      writeFileSync(join(outDir, 'sw.js'), worker.replace('__ESSENTIA_PWA__', JSON.stringify(config)))
     },
   }
 }

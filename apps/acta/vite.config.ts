@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { suitePwa } from '../../scripts/pwa.ts'
 
 export default defineConfig({
   base: '/acta/',
-  plugins: [react()],
+  plugins: [react(), suitePwa('Acta', 'Acta · Your Tasks · Essentia')],
   server: { port: 5102, strictPort: true },
   test: {
     environment: 'jsdom',

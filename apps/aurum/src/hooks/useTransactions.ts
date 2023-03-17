@@ -88,6 +88,7 @@ export function useTransactions(client: SupabaseClient | null) {
 
   /** A change made here: deletions are stamped, and the change is synced. */
   function commit(change: (current: Transaction[]) => Transaction[]) {
+    if (!navigator.onLine) return
     const current = latest.current
     const transactions = change(current.transactions)
     const stamps = stampDeletions(current.transactions, transactions, current.stamps, new Date().toISOString())
@@ -97,6 +98,7 @@ export function useTransactions(client: SupabaseClient | null) {
 
   /** The same for budgets: removals are stamped, and the change is synced. */
   function commitBudgets(change: (current: Budget[]) => Budget[]) {
+    if (!navigator.onLine) return
     const current = latest.current
     const budgets = change(current.budgets.budgets)
     const deleted = stampRemoved(
@@ -112,6 +114,7 @@ export function useTransactions(client: SupabaseClient | null) {
 
   /** The same for recurring items. */
   function commitRecurring(change: (current: RecurringItem[]) => RecurringItem[]) {
+    if (!navigator.onLine) return
     const current = latest.current
     const items = change(current.recurring.items)
     const deleted = stampRemoved(

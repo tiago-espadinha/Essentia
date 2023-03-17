@@ -3,10 +3,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/pwa.ts", "$TURBO_ROOT$/scripts/pwa-worker.js", "$TURBO_ROOT$/scripts/pwa-offline.*"],
       "outputs": ["dist/**"]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/scripts/pwa.ts"]
     },
     "lint": {},
     "test": {

@@ -1,6 +1,8 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "A connection is needed.": "É necessária uma ligação.",
+  "Merces needs a connection. Your existing changes are kept on this device.": "O Merces precisa de uma ligação. As alterações existentes mantêm-se neste dispositivo.",
   "Couldn’t save on this device. Your latest changes may be lost if you close this page.": "Não foi possível guardar neste dispositivo. As últimas alterações podem perder-se se fechar esta página.",
   "Try again": "Tentar novamente",
   "Your money": "O seu dinheiro",

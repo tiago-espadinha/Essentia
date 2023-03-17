@@ -1,8 +1,59 @@
-import { describe, expect, it } from 'vitest'
+import { act } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { fakeServer, settle } from './fakeServer'
-import { $, buttonNamed, click, renderApp, setupApp, text } from './testing'
+import { $, buttonNamed, click, renderApp, setupApp, text, type } from './testing'
 
 setupApp()
+
+describe('offline finance', () => {
+  it('keeps memory-only records and their warning through offline retry and reconnect', async () => {
+    const server = fakeServer()
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('blocked') })
+    const input = $<HTMLInputElement>('#add-transaction')
+    type(input, 'Memory coffee €3.50')
+    act(() => input.form!.requestSubmit())
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    act(() => window.dispatchEvent(new Event('offline')))
+    expect(text()).toContain('Your latest changes may be lost if you close this page.')
+    expect(text()).not.toContain('Your existing changes are kept on this device.')
+    click(buttonNamed('Try again'))
+    expect($('h1').textContent).toBe('A connection is needed.')
+    online.mockReturnValue(true)
+    click(buttonNamed('Try again'))
+    expect(text()).toContain('Memory coffee')
+    expect(text()).toContain('Your latest changes may be lost if you close this page.')
+  })
+
+  it('replaces write controls with recovery, preserves unsynced records and returns online', async () => {
+    const server = fakeServer()
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    const before = localStorage.getItem('essentia-aurum-transactions')
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    act(() => window.dispatchEvent(new Event('offline')))
+    expect($('h1').textContent).toBe('A connection is needed.')
+    expect(document.querySelector('form')).toBeNull()
+    expect(document.querySelector('dialog')).toBeNull()
+    expect(text()).toContain('Your existing changes are kept on this device.')
+    expect(localStorage.getItem('essentia-aurum-transactions')).toBe(before)
+    online.mockReturnValue(true)
+    act(() => window.dispatchEvent(new Event('online')))
+    expect($('h1').textContent).toBe('Your money')
+  })
+
+  it('launches offline in Portuguese without offering finance writes', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    document.documentElement.lang = 'pt-PT'
+    try {
+      await renderApp(null)
+      expect($('h1').textContent).toBe('É necessária uma ligação.')
+      expect(buttonNamed('Tentar novamente')).toBeTruthy()
+      expect(document.querySelector('form')).toBeNull()
+    } finally {
+      document.documentElement.lang = 'en-GB'
+    }
+  })
+})
 
 describe('before sign-in', () => {
   it('explains that Merces needs an account service when the build has none', async () => {

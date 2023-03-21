@@ -139,3 +139,23 @@ Query strings and fragments remain on the visited URL. The `apps/aurum` director
 authentication session retain their identifiers. No data is migrated or removed.
 Signup confirmation now requests `/merces/`; allow this destination alongside old
 `/aurum/` links in Supabase URL configuration (see the README setup steps).
+
+## Keyboard search
+
+The shared header search opens with Ctrl+K (Cmd+K on macOS) or its visible control.
+The hub and anonymous shared-document pages search suite destinations only. Each
+working app additionally supplies its existing in-memory records: tasks, notes,
+habits, markdown documents or transactions. Matching is case-insensitive across
+the record title and its text/category/tag fields; the dialog renders at most
+20 record matches and reports the total. Selecting a record clears filters that
+would hide it and moves focus into its existing editor or row.
+
+Search owns no storage, index, network requests or query history. Existing app
+hooks retain authority over local and account data. Session changes reset the
+dialog and its query; offline or signed-out finance exposes destinations only.
+Already accessible local and unsynced records remain searchable in apps that
+support local use. Search does not read another app’s storage or include shared
+document contents. A native modal traps focus, Escape restores the opener, and
+other open modals retain shortcut ownership. Existing editor handlers take priority,
+including Dictum’s Ctrl+K/Cmd+K link shortcut in the markdown body. Opening
+search preserves unsubmitted metadata drafts instead of committing them on blur.

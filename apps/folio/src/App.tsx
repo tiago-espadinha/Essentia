@@ -1,11 +1,11 @@
 import { t } from './locale'
-import { useLocale, useRecordMotion } from '@essentia/ui'
+import { Search, useLocale, useRecordMotion } from '@essentia/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
 import { Library } from './components/Library'
 import { NoteList } from './components/NoteList'
-import { filterNotes, tagsOf, type Note } from './domain/notes'
+import { filterNotes, plainText, tagsOf, type Note } from './domain/notes'
 import { DeleteAnnouncer } from './components/UndoNotice'
 import { useNotes } from './hooks/useNotes'
 
@@ -110,7 +110,13 @@ export default function App() {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader search={<Search sourceLabel={t('Your Notes')}
+        records={notes.map((note) => ({ id: note.id, title: note.title || t('Untitled'), text: `${plainText(note.body)} ${note.tags.join(' ')}` }))}
+        onSelect={(id) => {
+          clearFilters()
+          openNote(id)
+          setTitleFocusId(id)
+        }} />} />
       <main className="folio" ref={mainRef} data-view={selected && view === 'editor' ? 'editor' : 'list'}>
         <h1 className="visually-hidden">{t("Folio notes")}</h1>
         <DeleteAnnouncer deleted={deleted} />

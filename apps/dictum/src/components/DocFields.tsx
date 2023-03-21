@@ -1,3 +1,4 @@
+import { isSearchFocus } from '@essentia/ui'
 import { t } from '../locale'
 import { useState } from 'react'
 import { cleanFolder, parseTags, type DocChanges } from '../domain/documents'
@@ -48,7 +49,7 @@ export function DocFields({ folder, tags, folders, onChange }: DocFieldsProps) {
           maxLength={LIMITS.folder}
           value={folderDraft}
           onChange={(event) => setFolderDraft(event.target.value)}
-          onBlur={commitFolder}
+          onBlur={(event) => { if (!isSearchFocus(event.relatedTarget)) commitFolder() }}
           onKeyDown={onEnter(commitFolder)}
         />
         <datalist id="folder-options">
@@ -65,7 +66,7 @@ export function DocFields({ folder, tags, folders, onChange }: DocFieldsProps) {
           placeholder={t("essay, draft")}
           value={tagsDraft}
           onChange={(event) => setTagsDraft(event.target.value)}
-          onBlur={commitTags}
+          onBlur={(event) => { if (!isSearchFocus(event.relatedTarget)) commitTags() }}
           onKeyDown={onEnter(commitTags)}
         />
       </label>

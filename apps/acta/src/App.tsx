@@ -1,4 +1,4 @@
-import { formatNumber, useLocale } from '@essentia/ui'
+import { Search, formatNumber, useLocale } from '@essentia/ui'
 import { t } from './locale'
 import { useRecordMotion } from '@essentia/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -92,7 +92,13 @@ export default function App() {
 
   return (
     <>
-      <AppHeader />
+      <AppHeader search={<Search sourceLabel={t('Your Tasks')}
+        records={tasks.map((task) => ({ id: task.id, title: task.text, text: task.category }))}
+        onSelect={(id) => {
+          showAll()
+          setEditingId(id)
+          setFocusRequest({ id, target: 'editor' })
+        }} />} />
       <main className="acta ui-workspace-layout" ref={mainRef}>
         <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
         <div className="workspace">

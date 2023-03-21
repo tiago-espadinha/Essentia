@@ -78,7 +78,7 @@ four-app destination is specified separately below; it is not yet delivered.
 
 | Surface | Agreed direction | Remaining decision |
 | --- | --- | --- |
-| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Accent select and theme toggle implemented; account/search pending. Separate Dictum access retained; custom app creation excluded |
+| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Accent select, theme toggle and search implemented; account pending. Separate Dictum access retained; custom app creation excluded |
 | Folio | Dictum writing/preview patterns; collapsible library aside; explicit rich-text/markdown control | Default mode, lossless conversion, folder/tag model, nesting and pane breakpoints |
 | Acta, Virtus, Merces | Use wide desktop space with comfortable reading regions, 24–32 px outer gutters and meaningful list/detail or summary areas; collapse on mobile | Exact density, pane arrangement and breakpoints require rendered review |
 | Virtus Track/Schedule | Track is recommended for check-ins; Schedule for recurrence | Exact copy, target screen and disclosure behavior are TBD |

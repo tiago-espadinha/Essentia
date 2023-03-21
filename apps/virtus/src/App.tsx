@@ -1,5 +1,5 @@
 import { t } from './locale'
-import { useLocale, useRecordMotion } from '@essentia/ui'
+import { Search, useLocale, useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
@@ -146,9 +146,20 @@ export default function App() {
     )
   }
 
+  const searchSession = auth.status === 'signed-in' ? auth.userId : auth.status
+
   return (
     <>
-      <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
+      <AppHeader search={<Search key={searchSession} sessionKey={searchSession}
+        sourceLabel={t('Your Habits')}
+        sourceState={auth.status === 'loading' ? 'loading' : syncState === 'failed' && habits.length === 0 ? 'unavailable' : 'ready'}
+        records={habits.map((habit) => ({ id: habit.id, title: habit.name, text: habit.category }))}
+        onSelect={(id) => {
+          setQuery(NO_FILTER)
+          setView('today')
+          const habit = habits.find((item) => item.id === id)
+          if (habit) setFocusId(controlId(habit))
+        }} />} account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main className="virtus ui-workspace-layout" ref={mainRef}>
         <Hero habits={habits} today={today} />
         <div className="workspace">

@@ -2,4 +2,3 @@
 export function isSearchFocus(target: EventTarget | null): boolean {
   return target instanceof Element && target.closest('.ui-search, .ui-search-trigger') !== null
 }
-

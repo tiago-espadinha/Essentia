@@ -1,5 +1,5 @@
 import { t } from './locale'
-import { useLocale, useRecordMotion } from '@essentia/ui'
+import { Search, useLocale, useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
@@ -140,9 +140,20 @@ export default function App() {
     rowToFocus.current = deleted.doc.id
   }
 
+  const searchSession = auth.status === 'signed-in' ? auth.userId : auth.status
+
   return (
     <>
-      <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
+      <AppHeader search={<Search key={searchSession} sessionKey={searchSession}
+        sourceLabel={t('Dictum documents')}
+        sourceState={auth.status === 'loading' ? 'loading' : syncState === 'failed' && docs.length === 0 ? 'unavailable' : 'ready'}
+        records={docs.map((doc) => ({ id: doc.id, title: displayTitle(doc), text: `${doc.content} ${doc.folder} ${doc.tags.join(' ')}` }))}
+        onSelect={(id) => {
+          setFilter(NO_FILTER)
+          openDoc(id)
+          setMode('write')
+          setFocusRequest({ docId: id, target: 'title' })
+        }} />} account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main className="dictum" ref={mainRef} data-view={selected && view === 'doc' ? 'doc' : 'list'}>
         <h1 className="visually-hidden">{t("Dictum documents")}</h1>
         <DocList

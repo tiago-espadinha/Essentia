@@ -1,5 +1,5 @@
 import { t } from './locale'
-import { useLocale, formatNumber, useRecordMotion } from '@essentia/ui'
+import { Search, useLocale, formatNumber, useRecordMotion } from '@essentia/ui'
 import { useAuth } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
@@ -121,11 +121,21 @@ export default function App({ client }: { client: SupabaseClient | null }) {
     setDeleted(null)
   }
 
-  if (!online) return <><AppHeader /><OfflineNotice saveFailed={saveFailed} /></>
+  const searchSession = `${signedIn ? auth.userId : auth.status}:${online}`
+  const search = <Search key={searchSession} sessionKey={searchSession} sourceLabel={t('Transactions')}
+    sourceState={!online || !signedIn ? 'unavailable' : !ready ? (syncState === 'failed' ? 'unavailable' : 'loading') : 'ready'}
+    records={online && signedIn && ready ? transactions.map((item) => ({ id: item.id, title: item.description, text: item.category })) : []}
+    onSelect={(id) => {
+      setView('transactions')
+      setFilter(NO_FILTER)
+      focusAfter.current = id
+    }} />
+
+  if (!online) return <><AppHeader search={search} /><OfflineNotice saveFailed={saveFailed} /></>
 
   return (
     <>
-      <AppHeader account={signedIn && <AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
+      <AppHeader search={search} account={signedIn && <AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main className="aurum" ref={mainRef}>
         {!signedIn ? (
           <Gate auth={auth} client={client} />

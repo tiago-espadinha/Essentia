@@ -120,3 +120,49 @@
   line-height: var(--leading-normal);
 }
 .ui-accent__error:not(:empty) { margin-top: var(--space-2); }
+
+.ui-search-trigger { display: inline-flex; gap: var(--space-2); padding: var(--space-2); font: inherit; }
+.ui-search-trigger__label { font-size: var(--text-sm); }
+.ui-dialog.ui-search { width: min(100% - 2 * var(--space-4), var(--width-hub)); }
+.ui-search__label { display: block; margin-top: var(--space-4); margin-bottom: var(--space-2); font-size: var(--text-sm); }
+.ui-search__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font: inherit;
+}
+.ui-search__status, .ui-search__hint { margin: var(--space-3) 0; color: var(--color-mid); font-size: var(--text-sm); line-height: var(--leading-normal); }
+.ui-search__results { max-height: 40vh; overflow-y: auto; }
+.ui-search__heading { margin: var(--space-4) 0 var(--space-2); font-family: var(--font-mono); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-label); color: var(--color-mid); }
+.ui-search__result {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-3);
+  border: 0;
+  border-bottom: 1px solid var(--color-faint);
+  background: transparent;
+  color: var(--color-ink);
+  text-decoration: none;
+  text-align: left;
+  font: inherit;
+  font-size: var(--text-md);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.ui-search__result[aria-selected='true'], .ui-search__result:hover { background: var(--color-sand); color: var(--color-accent-text); }
+.ui-search :is(input, button, a):focus-visible { outline: 2px solid var(--color-focus); outline-offset: var(--space-0-5); }
+@media (max-width: 767px) {
+  .ui-search-trigger__label { display: none; }
+  .ui-search .ui-dialog__panel { padding: var(--space-4); }
+}
+
+.ui-header-actions { display: flex; align-items: center; gap: var(--space-2); }

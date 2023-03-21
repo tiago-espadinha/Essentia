@@ -1,4 +1,4 @@
-import { formatNumber } from '@essentia/ui'
+import { formatNumber, isSearchFocus } from '@essentia/ui'
 import { t } from '../locale'
 import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
 import { insertTransfer, placeCaretAt } from '../domain/editing'
@@ -152,7 +152,7 @@ function TagsField({ tags, onChange }: { tags: string[]; onChange: (tags: string
         value={draft}
         placeholder={t("work, ideas")}
         onChange={(event) => setDraft(event.target.value)}
-        onBlur={commit}
+        onBlur={(event) => { if (!isSearchFocus(event.relatedTarget)) commit() }}
         onKeyDown={(event) => {
           if (event.key === 'Enter') commit()
         }}

@@ -1,6 +1,6 @@
 import { useLocale } from '@essentia/ui'
 import { t } from './locale'
-import { AccentSelect, LocaleSelect, ThemeToggle } from '@essentia/ui'
+import { AccentSelect, LocaleSelect, Search, ThemeToggle } from '@essentia/ui'
 import { suiteApps, type SuiteApp } from './domain/apps'
 import { AppIcon } from './AppIcon'
 
@@ -30,6 +30,7 @@ export default function App({ apps = suiteApps }: { apps?: SuiteApp[] }) {
       <header className="hub__bar">
         <span className="hub__wordmark">Essentia</span>
         <div className="hub__appearance">
+          <Search />
           <LocaleSelect />
           <AccentSelect />
           <ThemeToggle />

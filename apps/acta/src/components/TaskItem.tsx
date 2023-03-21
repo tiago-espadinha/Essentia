@@ -6,7 +6,7 @@ import { formatDue, isOverdue, type Task, type TaskDraft } from '../domain/tasks
 /** Asks a row to focus one of its controls; a new object asks again. */
 export interface FocusRequest {
   id: string
-  target: 'check' | 'edit'
+  target: 'check' | 'edit' | 'editor'
 }
 
 interface TaskItemProps {
@@ -45,9 +45,10 @@ export function TaskItem({
   // does not take focus again.
   useEffect(() => {
     if (!focusRequest) return
-    ;(focusRequest.target === 'check' ? checkRef : editRef).current?.focus()
+    if (focusRequest.target === 'editor') document.getElementById(`edit-${task.id}-text`)?.focus()
+    else (focusRequest.target === 'check' ? checkRef : editRef).current?.focus()
     onFocused()
-  }, [focusRequest, onFocused])
+  }, [focusRequest, onFocused, task.id])
 
   if (editing) {
     return (

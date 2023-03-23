@@ -1,6 +1,12 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "Cancel": "Cancelar",
+  "Sign out and discard": "Terminar sessão e descartar",
+  "Check app sync": "Verificar sincronização das aplicações",
+  "One account connects Virtus, Dictum and Merces. Open an app to check or retry its sync.": "Uma conta liga o Virtus, Dictum e Merces. Abra uma aplicação para verificar ou repetir a sincronização.",
+  "Signing out clears this device’s account data in Virtus, Dictum and Merces, including Dictum versions. Versions are not synced. Work made while signed out stays; other devices stay signed in.": "Terminar sessão remove os dados da conta neste dispositivo no Virtus, Dictum e Merces, incluindo as versões do Dictum. As versões não são sincronizadas. O trabalho criado sem sessão iniciada mantém-se; os outros dispositivos continuam com sessão iniciada.",
+  "The hub cannot check whether every app has synced. Signing out will discard any unsynced account changes and device-only versions. Open the apps above to check first, or confirm to discard them.": "A página inicial não consegue verificar se todas as aplicações foram sincronizadas. Terminar sessão descarta as alterações da conta por sincronizar e as versões guardadas apenas neste dispositivo. Abra primeiro as aplicações acima para verificar, ou confirme para descartar.",
   "Enter your email address.": "Introduza o seu endereço de email.",
   "Enter an email address like name@example.com.": "Introduza um endereço como nome@exemplo.pt.",
   "Enter a password.": "Introduza uma palavra-passe.",

@@ -7,6 +7,7 @@ import { signOut } from '../data/auth'
 import { AuthForm } from './AuthForm'
 import type { Auth } from '../hooks/useAuth'
 import '../account.css'
+import { SuiteAccountDialog } from './SuiteAccountDialog'
 
 export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
 
@@ -21,20 +22,29 @@ export interface AccountText {
   signOut: string
 }
 
-interface AccountMenuProps {
+interface AccountMenuBase {
   auth: Auth
   client: SupabaseClient | null
+}
+
+type AccountMenuProps = AccountMenuBase & ({
+  scope: 'suite'
+  text: Pick<AccountText, 'intro'>
+} | {
+  scope?: 'app'
   syncState: SyncState
   onSync: () => Promise<boolean>
   text: AccountText
-}
+})
 
 /** Sign in, or see the account and sign out; nothing without a Supabase project or while the session loads. */
-export function AccountMenu({ auth, client, syncState, onSync, text }: AccountMenuProps) {
+export function AccountMenu(props: AccountMenuProps) {
+  const { auth, client, text } = props
   useLocale()
   // The dialog belongs to the state it was opened in: signing in or out closes it.
-  const [openFor, setOpenFor] = useState<Auth['status'] | null>(null)
-  if (openFor !== null && openFor !== auth.status) setOpenFor(null)
+  const identity = auth.status === 'signed-in' ? auth.userId : auth.status
+  const [openFor, setOpenFor] = useState<string | null>(null)
+  if (openFor !== null && openFor !== identity) setOpenFor(null)
   if (!client || (auth.status !== 'signed-in' && auth.status !== 'signed-out')) return null
 
   const close = () => setOpenFor(null)
@@ -60,14 +70,16 @@ export function AccountMenu({ auth, client, syncState, onSync, text }: AccountMe
 
   return (
     <>
-      <button id={BUTTON_ID} type="button" className="ui-icon-button" aria-haspopup="dialog" title={t("Account")} onClick={() => setOpenFor('signed-in')}>
+      <button id={BUTTON_ID} type="button" className="ui-icon-button" aria-haspopup="dialog" title={t("Account")} onClick={() => setOpenFor(identity)}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="7" r="3.25" stroke="currentColor" strokeWidth="1.5" />
           <path d="M3.75 16.5a6.25 6.25 0 0 1 12.5 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
         <span className="visually-hidden">{t("Account")}</span>
       </button>
-      {openFor && <AccountDialog email={auth.email} client={client} syncState={syncState} onSync={onSync} text={text} onClose={close} />}
+      {openFor && (props.scope === 'suite'
+        ? <SuiteAccountDialog email={auth.email} client={client} onClose={close} />
+        : <AccountDialog email={auth.email} client={client} syncState={props.syncState} onSync={props.onSync} text={props.text} onClose={close} />)}
     </>
   )
 }

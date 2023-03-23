@@ -103,7 +103,14 @@ hint; service outages continue to use existing sync-failure feedback.
   | Dictum | `documents` (with an optional `share_id`) |
   | Merces | `transactions`, `budgets`, `recurring_transactions` |
 - Sync: the device copy is the working copy. On sign-in, after changes (once edits pause for a moment), when the page comes back into view and when the browser goes online, the app merges the two copies record by record: the newer `updated_at` wins. Deletions are stamps (`deleted_at`, or a check-in value of 0), never hard deletes, so other devices learn about them. A failed sync keeps the local copy and offers a retry.
-- Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, sign-in is hidden: Virtus and Dictum stay on the device, and Merces shows that it is not set up.
+- The hub reuses the shared client, session hook and account menu. It cannot certify
+  another app’s sync: hub sign-out requires a separate discard confirmation and
+  links to Virtus, Dictum and Merces to check/retry sync first. Device-local sign-out
+  clears account-owned copies across those apps, including unsynced work and
+  Dictum’s device-only versions; unowned work and other devices’ sessions stay.
+- Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the hub shows Account
+  unavailable; app sign-in is hidden, Virtus and Dictum stay on the device, and
+  Merces shows that it is not set up.
 - Ownership and authorization rules: row level security on every table, `user_id = auth.uid()` for every read and write; the anon key alone reads nothing. Table and column grants are narrowed (no `truncate`; Dictum's `share_id` and Merces's recurring `posted` counter cannot be written by clients). Only the publishable (anon) key is in client code, so RLS is the security boundary.
 - Server functions (Postgres, `security definer`, fixed `search_path`):
   - `share_document(document_id)` / `unshare_document(document_id)`: the owner turns a document's read-only link on or off.
@@ -121,12 +128,12 @@ hint; service outages continue to use existing sync-failure feedback.
 | Google Fonts | Instrument Sans, Instrument Serif, JetBrains Mono, Lora | None | System fonts |
 
 ## Configuration
-- Env var names: see `.env.example` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Vite reads them in dev and at build time, from `apps/<app>/.env.local` locally (`apps/virtus`, `apps/dictum`, `apps/aurum` for Merces) or from the Vercel project's env vars.
+- Env var names: see `.env.example` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Vite reads them in dev and at build time, from `apps/<app>/.env.local` locally (`apps/hub`, `apps/virtus`, `apps/dictum`, `apps/aurum` for Merces) or from the Vercel project's env vars. Use the same project configuration in each.
 - Local development: `pnpm dev` runs every app on its own port (5101-5105) and the hub on 5100, which proxies each `/<app>/` so the suite runs on one origin as in production.
 - Staging and production: Vercel builds with `pnpm build` and serves `dist/`. `vercel.json` sets the security headers (CSP, HSTS, X-Frame-Options and others), the Dictum rewrite for share links, and `noindex` on shared documents. The CSP `connect-src` names the Supabase project's origin, so it must change with `VITE_SUPABASE_URL`.
 
 ## Testing and CI
-- Unit and integration: Vitest with jsdom (React rendered with `createRoot` and `act`) in every app except the hub, and in `packages/ui` and `packages/supabase`. Sync is tested against an in-memory fake of the Supabase tables. Accessibility checks run axe-core on each app's main states.
+- Unit and integration: Vitest with jsdom (React rendered with `createRoot` and `act`) in every app except the hub, and in `packages/ui` and `packages/supabase`. The shared Supabase tests also render the hub account adapter and exercise the suite sign-out flow. Sync is tested against an in-memory fake of the Supabase tables. Accessibility checks run axe-core on each app's main states.
 - E2E: none.
 - CI: none; the checks run locally.
 

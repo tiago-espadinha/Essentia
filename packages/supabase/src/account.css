@@ -17,6 +17,9 @@
 
 .account__email { overflow-wrap: anywhere; }
 
+.account__apps { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.account__apps a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-accent-text); }
+
 .account__sync {
   display: flex;
   align-items: center;

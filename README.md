@@ -14,6 +14,10 @@ piece. Live at https://essentia-beta.vercel.app/
 | Dictum | `/dictum/` | Markdown writing with a live preview, versions and read-only share links | This device, synced when signed in |
 | Merces | `/merces/` | Income and expenses, budgets, recurring items and insights | Your account (sign-in required) |
 
+Sign in or open Account from the hub header. Before signing out there, check each
+app’s sync: confirmation discards any unsynced account changes and device-only
+Dictum versions from this browser. Work made while signed out stays.
+
 One sign-in covers Virtus, Dictum and Merces, and the light or dark theme you
 pick in one app applies to all of them.
 
@@ -80,8 +84,8 @@ To run a single app: `pnpm --filter <app> dev` (for example `pnpm --filter acta 
 serves http://localhost:5102/acta/; its link back to the hub needs the full `pnpm dev`).
 
 Without a Supabase project everything except Merces works: Folio, Acta, Virtus
-and Dictum keep their data in the browser, sign-in is hidden, and Merces says it
-is not set up.
+and Dictum keep their data in the browser, app sign-in is hidden, the hub shows
+Account unavailable, and Merces says it is not set up.
 
 ### Supabase (for sync and Merces)
 
@@ -91,9 +95,9 @@ is not set up.
    - `apps/dictum/supabase/migration.sql`: documents and share links
    - `apps/aurum/supabase/migration.sql`: transactions, budgets and recurring items
 3. Under Authentication, URL configuration: set the Site URL to where the suite runs, and add `http://localhost:5100/**` (and your deployed URL followed by `/**`) to the redirect URLs. The confirmation email leads back to the app it was sent from. Merces now requests `/merces/`; keep both `/merces/` and `/aurum/` allowed if using explicit paths rather than the wildcard.
-4. Copy `.env.example` into the three apps that sync, then fill in the project URL and the publishable (anon) key from the project's API settings. These files are ignored by git.
+4. Copy `.env.example` into the hub and the three apps that sync, then fill in the same project URL and publishable (anon) key from the project's API settings. These files are ignored by git.
    ```bash
-   for app in virtus dictum aurum; do cp .env.example apps/$app/.env.local; done
+   for app in hub virtus dictum aurum; do cp .env.example apps/$app/.env.local; done
    ```
 5. Restart `pnpm dev`.
 

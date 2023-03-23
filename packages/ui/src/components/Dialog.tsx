@@ -34,6 +34,19 @@ export function Dialog({ title, titleId, returnFocusId, onClose, children }: Dia
       ref={ref}
       className="ui-dialog"
       aria-labelledby={titleId}
+      onKeyDown={(event) => {
+        if (event.key !== 'Tab') return
+        const controls = [...event.currentTarget.querySelectorAll<HTMLElement>('*')].filter(control => control.matches('button:not(:disabled), a[href], input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'))
+        const first = controls[0]
+        const last = controls[controls.length - 1]
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault()
+          last?.focus()
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault()
+          first?.focus()
+        }
+      }}
       // Chrome lets a repeated Esc through even when cancel is refused; a question then reopens.
       onClose={onClose ?? (() => ref.current?.showModal())}
       onCancel={(event) => {

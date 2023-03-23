@@ -176,6 +176,24 @@ describe('Dialog', () => {
     expect(document.activeElement).toBe(opener)
   })
 
+  it('wraps Tab between the first and last controls, skipping disabled controls', () => {
+    render(<Dialog title="Account" titleId="account" returnFocusId="opener" onClose={vi.fn()}>
+      <a href="/virtus/">Virtus</a>
+      <button disabled>Unavailable</button>
+      <button>Sign out</button>
+    </Dialog>)
+    const buttons = container.querySelectorAll('button')
+    const first = buttons[0]!
+    const last = buttons[2]!
+    act(() => {
+      last.focus()
+      last.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }))
+    })
+    expect(document.activeElement).toBe(first)
+    act(() => first.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true, cancelable: true })))
+    expect(document.activeElement).toBe(last)
+  })
+
   it('without onClose, must be answered: no close button, and Esc is refused', () => {
     render(
       <Dialog title="Keep these?" titleId="keep-title" returnFocusId="opener">

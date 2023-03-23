@@ -20,6 +20,22 @@
   font-size: var(--text-2xl);
 }
 
+.hub__account-status {
+  max-width: 24ch;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.hub__appearance .account__sign-in {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .hub {
   margin: 0 auto;
   padding: var(--space-8) var(--space-4) var(--space-16);

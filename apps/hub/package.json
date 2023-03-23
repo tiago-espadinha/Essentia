@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@essentia/supabase": "workspace:*",
     "@essentia/tokens": "workspace:*",
     "@essentia/ui": "workspace:*",
     "react": "catalog:",

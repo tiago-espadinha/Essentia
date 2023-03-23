@@ -14,7 +14,14 @@ four-app destination is specified separately below; it is not yet delivered.
 6. Recovery if something fails: inline error with retry; local data is never discarded on a sync failure.
 
 ## Secondary journeys
-- Sign in once (Supabase) and stay signed in across Virtus, Dictum and Merces (shared session on one origin).
+- Sign in from the hub or a synced app (Supabase) and stay signed in across
+  Virtus, Dictum and Merces (shared session on one origin). The hub shows account
+  loading or unavailability explicitly. Its Account dialog links to each app to
+  check sync before sign-out. Sign out opens a separate discard warning; Cancel
+  or Escape keeps the session and work. Confirming clears account-owned device
+  copies, including unsynced changes and Dictum versions, while preserving work
+  made signed out and other devices’ sessions. Pending feedback prevents repeated
+  requests; failure keeps the dialog open with retry.
 - Choose Accent in the hub header (Terracotta, Blue or Violet); it applies to every app and open same-origin tab and survives reload when browser storage is available. If saving fails, inline feedback explains the current-page-only choice.
 - Switch theme in any app; the choice applies to every app (`essentia-theme`).
 - Dictum: share a document and open the link at `/dictum/shared/<id>` while signed out.
@@ -78,7 +85,7 @@ four-app destination is specified separately below; it is not yet delivered.
 
 | Surface | Agreed direction | Remaining decision |
 | --- | --- | --- |
-| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Accent select, theme toggle and search implemented; account pending. Separate Dictum access retained; custom app creation excluded |
+| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Account, accent select, theme toggle and search implemented. Separate Dictum access retained; custom app creation excluded |
 | Folio | Dictum writing/preview patterns; collapsible library aside; explicit rich-text/markdown control | Default mode, lossless conversion, folder/tag model, nesting and pane breakpoints |
 | Acta, Virtus, Merces | Use wide desktop space with comfortable reading regions, 24–32 px outer gutters and meaningful list/detail or summary areas; collapse on mobile | Exact density, pane arrangement and breakpoints require rendered review |
 | Virtus Track/Schedule | Track is recommended for check-ins; Schedule for recurrence | Exact copy, target screen and disclosure behavior are TBD |

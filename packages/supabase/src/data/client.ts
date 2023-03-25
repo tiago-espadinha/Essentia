@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { ensureRecoveryCapture } from './recovery'
 
 let client: SupabaseClient | null | undefined
 
@@ -38,6 +39,7 @@ export function getSupabase(): SupabaseClient | null {
     const url = import.meta.env.VITE_SUPABASE_URL
     const key = import.meta.env.VITE_SUPABASE_ANON_KEY
     client = url && key ? createClient(url, key, { auth: { storageKey: sessionKey(url) }, global: { fetch: fetchWithTimeout } }) : null
+    if (client) ensureRecoveryCapture(client)
   }
   return client
 }

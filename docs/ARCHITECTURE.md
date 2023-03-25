@@ -119,6 +119,38 @@ hint; service outages continue to use existing sync-failure feedback.
 - Migrations and seed strategy: one SQL file per app, `apps/{virtus,dictum,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other. No seed data.
 
 ## APIs and integrations
+
+Shared account settings verify a confirmed email identity with `getUser` before
+password changes, then send current/new passwords to Supabase Auth. Email
+identities can also be passwordless. Ordinary changes first verify the current
+password through an isolated password grant for the server-verified email, require
+the returned account to match, and revoke the temporary verification session with
+local scope before the update. Failure or uncertain cleanup stops the update.
+Neither the grant nor cleanup writes or replaces the suite session. A lost grant
+response can leave an unknown temporary server session; there is no automatic
+retry. OAuth-only, SSO-managed, anonymous and phone-only accounts receive an
+unsupported explanation. Reauthentication requests an email nonce explicitly,
+and submits it with the update when required. Server password and verification
+settings remain authoritative; client validation is usability feedback.
+
+Recovery email links return to the same-origin hub root. The hub reacts to the
+SDK `PASSWORD_RECOVERY` event, not a URL flag, and offers new/confirmation fields.
+Invalid or expired links offer another email request with neutral account-existence
+feedback. Recovery retains the SDK’s existing session persistence; closing the
+form leaves that session signed in. Forms discard passwords/codes on close,
+identity change and success. Recovery explicitly explains that it can establish
+a password for an email account that previously used sign-in links. Mutations
+recheck identity and suppress late results
+after an observed account change. Each mutation uses the captured session token
+verified by `getUser(token)`, rather than asking the mutable shared SDK client to
+read its current session again. Bound requests use the existing timeout transport
+against Auth `/user` and `/reauthenticate`; they do not rotate refresh tokens or
+write a replacement session. An already-sent request cannot be undone by
+closing a tab or changing accounts. A lost update response is reported as uncertain
+and never automatically resubmitted. Raw service errors and credentials are not
+written to app logs or persistent app storage. Browser password managers remain
+under the user’s control.
+
 | Route or integration | Purpose | Auth and validation | Failure behavior |
 |---|---|---|---|
 | Supabase Auth (email and password) | One session for the suite | Supabase; password rules set in the dashboard | Plain error in the form; Virtus and Dictum stay usable signed out |

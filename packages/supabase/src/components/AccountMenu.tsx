@@ -8,6 +8,7 @@ import { AuthForm } from './AuthForm'
 import type { Auth } from '../hooks/useAuth'
 import '../account.css'
 import { SuiteAccountDialog } from './SuiteAccountDialog'
+import { PasswordDialog } from './PasswordDialog'
 
 export type SyncState = 'off' | 'syncing' | 'synced' | 'failed'
 
@@ -44,6 +45,7 @@ export function AccountMenu(props: AccountMenuProps) {
   // The dialog belongs to the state it was opened in: signing in or out closes it.
   const identity = auth.status === 'signed-in' ? auth.userId : auth.status
   const [openFor, setOpenFor] = useState<string | null>(null)
+  const [password, setPassword] = useState(false)
   if (openFor !== null && openFor !== identity) setOpenFor(null)
   if (!client || (auth.status !== 'signed-in' && auth.status !== 'signed-out')) return null
 
@@ -70,16 +72,16 @@ export function AccountMenu(props: AccountMenuProps) {
 
   return (
     <>
-      <button id={BUTTON_ID} type="button" className="ui-icon-button" aria-haspopup="dialog" title={t("Account")} onClick={() => setOpenFor(identity)}>
+      <button id={BUTTON_ID} type="button" className="ui-icon-button" aria-haspopup="dialog" title={t("Account")} onClick={() => { setPassword(false); setOpenFor(identity) }}>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <circle cx="10" cy="7" r="3.25" stroke="currentColor" strokeWidth="1.5" />
           <path d="M3.75 16.5a6.25 6.25 0 0 1 12.5 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
         <span className="visually-hidden">{t("Account")}</span>
       </button>
-      {openFor && (props.scope === 'suite'
-        ? <SuiteAccountDialog email={auth.email} client={client} onClose={close} />
-        : <AccountDialog email={auth.email} client={client} syncState={props.syncState} onSync={props.onSync} text={props.text} onClose={close} />)}
+      {openFor && (password ? <PasswordDialog client={client} userId={auth.userId} onClose={close} /> : props.scope === 'suite'
+        ? <SuiteAccountDialog email={auth.email} client={client} onClose={close} onPassword={() => setPassword(true)} />
+        : <AccountDialog email={auth.email} client={client} syncState={props.syncState} onSync={props.onSync} text={props.text} onClose={close} onPassword={() => setPassword(true)} />)}
     </>
   )
 }
@@ -91,9 +93,10 @@ interface AccountDialogProps {
   onSync: () => Promise<boolean>
   text: AccountText
   onClose: () => void
+  onPassword: () => void
 }
 
-function AccountDialog({ email, client, syncState, onSync, text, onClose }: AccountDialogProps) {
+function AccountDialog({ email, client, syncState, onSync, text, onClose, onPassword }: AccountDialogProps) {
   useLocale()
   const [unsynced, setUnsynced] = useState(false)
   const [failure, setFailure] = useState<string | null>(null)
@@ -131,6 +134,7 @@ function AccountDialog({ email, client, syncState, onSync, text, onClose }: Acco
           )}
         </div>
         <p className="account__note">{text.signOut}</p>
+        <button type="button" className="account__close" disabled={pending} onClick={onPassword}>{t('Change password')}</button>
         {unsynced && (
           <p className="account__error" role="alert">
             {t("Your latest changes haven’t reached your account yet. Try again, or sign out anyway and lose them.")}

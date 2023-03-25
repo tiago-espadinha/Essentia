@@ -116,6 +116,7 @@ export function AuthForm({ client, intro }: AuthFormProps) {
           {signingIn ? t("Create one") : t("Sign in")}
         </button>
       </p>
+      <a className="auth__link" href="/?recover=password">{t('Forgot your password?')}</a>
     </form>
   )
 }

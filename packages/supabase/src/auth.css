@@ -22,6 +22,17 @@
 
 .auth__input[aria-invalid='true'] { border-color: var(--color-danger); }
 
+.password-form .label {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.password-form .auth__error,
+.password-form .auth__failure,
+.account__body > .auth__failure { font-size: var(--text-sm); }
+
 .auth__error,
 .auth__failure {
   color: var(--color-danger);
@@ -40,7 +51,7 @@
   transition: opacity var(--duration-fast) var(--ease);
 }
 
-.auth__submit:hover { opacity: 0.9; }
+.auth__submit:hover { text-decoration: underline; text-underline-offset: 2px; }
 
 .auth__submit[aria-disabled='true'] { opacity: 0.7; cursor: default; }
 

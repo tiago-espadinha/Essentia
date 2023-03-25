@@ -41,12 +41,13 @@ describe('actual hub account adapter', () => {
   })
 
   it('shows loading then follows actual shared auth events into sign-in and account access', () => {
-    let emit: Listener = () => {}
+    const listeners = new Set<Listener>()
+    const emit: Listener = (event, session) => { for (const listener of listeners) listener(event, session) }
     const unsubscribe = vi.fn()
     const client = { auth: {
       onAuthStateChange: (listener: Listener) => {
-        emit = listener
-        return { data: { subscription: { unsubscribe } } }
+        listeners.add(listener)
+        return { data: { subscription: { unsubscribe: () => { listeners.delete(listener); unsubscribe() } } } }
       },
     } } as unknown as SupabaseClient
     vi.mocked(getSupabase).mockReturnValue(client)

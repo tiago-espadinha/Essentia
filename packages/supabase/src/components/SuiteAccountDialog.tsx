@@ -9,10 +9,11 @@ interface Props {
   email: string
   client: SupabaseClient
   onClose: () => void
+  onPassword: () => void
 }
 
 /** The hub has no sync engine: confirmation acknowledges uncertainty across all apps. */
-export function SuiteAccountDialog({ email, client, onClose }: Props) {
+export function SuiteAccountDialog({ email, client, onClose, onPassword }: Props) {
   useLocale()
   const [confirm, setConfirm] = useState(false)
   const [pending, setPending] = useState(false)
@@ -43,6 +44,7 @@ export function SuiteAccountDialog({ email, client, onClose }: Props) {
     <Dialog title={t('Account')} titleId="account-title" returnFocusId={BUTTON_ID} onClose={pending ? undefined : onClose}>
       <div className="account__body">
         <p className="account__email">{t('Signed in as ')}<strong>{email}</strong>.</p>
+        <button type="button" className="account__close" disabled={pending} onClick={onPassword}>{t('Change password')}</button>
         <p>{t('One account connects Virtus, Dictum and Merces. Open an app to check or retry its sync.')}</p>
         <nav className="account__apps" aria-label={t('Check app sync')}>
           <a href="/virtus/">Virtus</a>

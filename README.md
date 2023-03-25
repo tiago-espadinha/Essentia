@@ -18,6 +18,11 @@ Sign in or open Account from the hub header. Before signing out there, check eac
 app’s sync: confirmation discards any unsynced account changes and device-only
 Dictum versions from this browser. Work made while signed out stays.
 
+Account also offers password changes for confirmed email accounts. Enter your
+current password and confirm the new one; if the server requests verification,
+send and enter the email code. Forgot your password? The sign-in form links to
+recovery on the hub. Other sign-in providers manage their own passwords.
+
 One sign-in covers Virtus, Dictum and Merces, and the light or dark theme you
 pick in one app applies to all of them.
 
@@ -100,6 +105,14 @@ Account unavailable, and Merces says it is not set up.
    for app in hub virtus dictum aurum; do cp .env.example apps/$app/.env.local; done
    ```
 5. Restart `pnpm dev`.
+
+Password recovery returns to the hub root (`http://localhost:5100/` locally, or
+your deployed origin followed by `/`); allow that exact URL in Supabase Auth.
+Review the email provider’s password policy, **Secure password change** and
+**Require current password** settings. The UI honours server reauthentication
+and policy refusals; it does not change those settings. Test recovery with your
+settings and email delivery before relying on it. If your server requires the
+current password even for recovery, that restriction is shown rather than bypassed.
 
 Only the anon key goes into the apps; row level security in the migrations is
 what keeps each user's data to themselves. Never put the service role key in

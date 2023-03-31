@@ -2,6 +2,9 @@ packages:
   - apps/*
   - packages/*
 
+overrides:
+  minimatch: ^11.0.1
+
 # One version of each shared dependency for the whole suite; apps use "catalog:".
 catalog:
   react: ^19.2.6

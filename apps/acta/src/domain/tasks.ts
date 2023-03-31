@@ -23,6 +23,9 @@ export interface TaskDraft {
 
 export const DEFAULT_CATEGORY = 'General'
 
+/** The longest text and category an account accepts (supabase/migration.sql), counted as the inputs count. */
+export const LIMITS = { text: 500, category: 100 }
+
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/
 
 export function isIsoDay(value: string): boolean {

@@ -126,6 +126,8 @@ describe('useAuth', () => {
       'essentia-aurum-recurring': { items: [], deleted: {} },
       'essentia-folio-notes': [{ id: 'n1' }],
       'essentia-acta-tasks': [{ id: 'a1' }],
+      'essentia-acta-account:u1': { owner: 'u1', operations: [], legacyIds: {} },
+      'essentia-acta-account:u2': { owner: 'u2', operations: [], legacyIds: {} },
       'essentia-theme': 'dark',
     }
     for (const [key, value] of Object.entries(saved)) localStorage.setItem(key, JSON.stringify(value))

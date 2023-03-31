@@ -5,6 +5,9 @@ const ACCOUNT_KEYS = [
   ['essentia-aurum-sync', 'essentia-aurum-transactions', 'essentia-aurum-budgets', 'essentia-aurum-recurring'],
 ]
 
+/** Acta keeps each account's copy under its own key; every key with this prefix belongs to an account. */
+const ACTA_ACCOUNT_PREFIX = 'essentia-acta-account:'
+
 function ownerOf(key: string): string | null {
   try {
     const saved: unknown = JSON.parse(localStorage.getItem(key) ?? 'null')
@@ -27,5 +30,11 @@ export function clearAccountData() {
     } catch {
       // Storage is blocked: each app still clears its own copy when it opens.
     }
+  }
+  try {
+    const owned = Object.keys(localStorage).filter((key) => key.startsWith(ACTA_ACCOUNT_PREFIX))
+    for (const key of owned) localStorage.removeItem(key)
+  } catch {
+    // Storage is blocked: Acta still clears its own copy when it opens.
   }
 }

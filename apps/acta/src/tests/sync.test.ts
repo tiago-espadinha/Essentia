@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   applyResult, change, claim, conflictOf, isSettled, keepMine, mergeRemote, readResult, readRows, syncAccount,
-  useTheirs, visibleTasks, type SyncPort,
+  takeTheirs, visibleTasks, type SyncPort,
 } from '../data/sync'
 import { emptyAccount, type AccountState } from '../data/syncStorage'
 import type { Task } from '../domain/tasks'
@@ -148,7 +148,7 @@ describe('two devices on one account', () => {
   it('Use theirs drops this device’s unsent changes, chained ones included', async () => {
     const { server, phone, id } = await conflicted()
     phone.edit('Mine', { completed: true })
-    phone.state = useTheirs(phone.state, id)
+    phone.state = takeTheirs(phone.state, id)
     expect(await phone.sync()).toBe(true)
     expect(phone.tasks[0]).toMatchObject({ text: 'Theirs', completed: false })
     expect(server.read(A)).toMatchObject([{ version: 2 }])

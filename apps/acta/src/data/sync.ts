@@ -52,17 +52,18 @@ export const isSettled = (state: AccountState) =>
 /**
  * Records a local change to one task as a write to send. A write chains on the
  * task's last unsent one, so several offline edits go up in order.
- * `beforeId` places a task this device isn't showing, as an undone delete.
+ * A task this device isn't placing yet goes on top, or before `beforeId` (at
+ * the end when null), as an undone delete.
  */
-export function change(state: AccountState, id: string, task: Task | null, operationId: string, beforeId: string | null = null): AccountState {
+export function change(state: AccountState, id: string, task: Task | null, operationId: string, beforeId?: string | null): AccountState {
   const content = task && contentOf(task)
   if (!isContent(content) || sameContent(content, localContent(state, id))) return state
   const pending = state.operations.findLast((operation) => operation.taskId === id)
   const expectedVersion = pending ? pending.expectedVersion + 1 : (state.tasks[id]?.version ?? 0)
   let order = state.order
   if (!order.includes(id)) {
-    const index = beforeId === null ? -1 : order.indexOf(beforeId)
-    order = beforeId === null ? [id, ...order] : order.toSpliced(index === -1 ? order.length : index, 0, id)
+    const index = beforeId == null ? -1 : order.indexOf(beforeId)
+    order = beforeId === undefined ? [id, ...order] : order.toSpliced(index === -1 ? order.length : index, 0, id)
   }
   return { ...state, order, operations: [...state.operations, { operationId, taskId: id, expectedVersion, content }] }
 }
@@ -103,7 +104,7 @@ export function keepMine(state: AccountState, id: string, operationId: string): 
 }
 
 /** Use theirs: drops this device's unsent changes to the task. */
-export function useTheirs(state: AccountState, id: string): AccountState {
+export function takeTheirs(state: AccountState, id: string): AccountState {
   return state.conflicts[id] ? { ...state, ...withoutTask(state, id) } : state
 }
 

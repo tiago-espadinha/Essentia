@@ -34,6 +34,20 @@ export const messages = {
   "Write the first thing you want to get done in the field above.": "Escreva a primeira coisa que quer fazer no campo acima.",
   "Nothing matches.": "Sem resultados.",
   "No tasks fit this filter.": "Nenhuma tarefa corresponde a este filtro.",
-  "Show all tasks": "Mostrar todas as tarefas"
+  "Show all tasks": "Mostrar todas as tarefas",
+  "task": "tarefa",
+  "Try again": "Tentar novamente",
+  "Couldn’t sync with your account. Your changes are kept on this device.": "Não foi possível sincronizar com a sua conta. As alterações ficam guardadas neste dispositivo.",
+  "Keep your tasks on every device. If this device already has tasks, you choose whether they join your account.": "Tenha as suas tarefas em todos os dispositivos. Se este dispositivo já tiver tarefas, escolhe se passam para a sua conta.",
+  "Not synced yet.": "Ainda não sincronizado.",
+  "Syncing…": "A sincronizar…",
+  "Synced with your account. A task changed on another device waits on its row for your choice.": "Sincronizado com a sua conta. Uma tarefa alterada noutro dispositivo aguarda a sua escolha na própria linha.",
+  "Signing out removes your account’s tasks from this device. They stay in your account.": "Terminar sessão remove deste dispositivo as tarefas da sua conta. Continuam na sua conta.",
+  "Sync conflict": "Conflito de sincronização",
+  "Changed on another device.": "Alterada noutro dispositivo.",
+  "Deleted on another device.": "Eliminada noutro dispositivo.",
+  "You deleted this, but it changed on another device.": "Eliminou esta tarefa, mas foi alterada noutro dispositivo.",
+  "Keep mine": "Manter a minha",
+  "Use theirs": "Usar a outra"
 }
 export const t = createTranslator(messages)

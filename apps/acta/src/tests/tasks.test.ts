@@ -37,11 +37,11 @@ describe('createTask', () => {
 describe('newId', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('still makes unique ids outside a secure context, where randomUUID is missing', () => {
+  it('still makes unique uuids outside a secure context, where randomUUID is missing', () => {
     vi.stubGlobal('crypto', { getRandomValues: crypto.getRandomValues.bind(crypto) })
     const ids = new Set(Array.from({ length: 100 }, newId))
     expect(ids.size).toBe(100)
-    expect([...ids][0]).toMatch(/^[0-9a-f]{32}$/)
+    for (const id of ids) expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
   })
 })
 

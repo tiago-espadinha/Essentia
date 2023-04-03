@@ -16,8 +16,8 @@ This is the agreed product direction, not a statement of completed implementatio
 - How success is judged: build, lint, typecheck, tests and `pnpm audit` all clean (zero known vulnerabilities); one visual language across apps; WCAG 2.2 AA; live on Vercel.
 
 ## Current user journeys
-1. Open the hub, pick an app, use it immediately (Acta and Folio are local-only; Virtus and Dictum work locally without signing in).
-2. Sign in once (one Supabase project, shared session across the suite) and have Virtus, Dictum and Merces data available across devices.
+1. Open the hub, pick an app, use it immediately (Folio is local-only; Acta, Virtus and Dictum work locally without signing in).
+2. Sign in once (one Supabase project, shared session across the suite) and have Acta, Virtus, Dictum and Merces data available across devices.
 3. Merces: record income and expenses, set budgets, create recurring items that post when the app syncs, review summaries and charts.
 4. Dictum: write markdown with live preview, keep version history, share a read-only link at `/dictum/shared/<id>`.
 

@@ -8,14 +8,14 @@ four-app destination is specified separately below; it is not yet delivered.
 
 1. Entry point: the hub at `/`, or an app URL directly (`/acta/`, `/folio/`, `/virtus/`, `/dictum/`, `/merces/`; former `/aurum/` links still work).
 2. Action: the app opens on its main view with the primary action visible (add task, new note, check in, new document, add transaction).
-3. System feedback: the item appears immediately; saved locally, and synced when signed in (Virtus, Dictum, Merces).
+3. System feedback: the item appears immediately; saved locally, and synced when signed in (Acta, Virtus, Dictum, Merces).
 4. Next decision: continue in the app, or go back to the hub from the header.
 5. Success state: the item persists after reload and, when signed in, on another device.
 6. Recovery if something fails: inline error with retry; local data is never discarded on a sync failure.
 
 ## Secondary journeys
 - Sign in from the hub or a synced app (Supabase) and stay signed in across
-  Virtus, Dictum and Merces (shared session on one origin). The hub shows account
+  Acta, Virtus, Dictum and Merces (shared session on one origin). The hub shows account
   loading or unavailability explicitly. Its Account dialog links to each app to
   check sync before sign-out. Sign out opens a separate discard warning; Cancel
   or Escape keeps the session and work. Confirming clears account-owned device
@@ -32,7 +32,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Screen / route | User goal | Primary action | Key states | Responsive notes |
 |---|---|---|---|---|
 | Hub `/` | Pick an app | Open an app | Populated; empty registry | Four primary entries in two columns from 768 px, one below; separate Dictum link |
-| Acta `/acta/` | Manage tasks | Add task | Empty, list, filtered (none match), completed | 520 px column |
+| Acta `/acta/` | Manage tasks | Add task | Empty, list, filtered (none match), completed; signed in: sync error with retry, keep-or-add question, a task changed on another device (Keep mine / Use theirs) | 520 px column |
 | Folio `/folio/` | Write and find notes | New note | Empty library, list, editor, search no results, save failed | Library, list and editor from 1024 px; list + editor from 768 px (library folds into a filter bar); one pane below 768 px |
 | Virtus `/virtus/` | Track habits | Check in today | Empty, habits, streak milestone, offline | 520 px column |
 | Virtus Streaks, Week, Stats views | See progress | Open a habit's stats | Not enough data | Charts reflow to one column at 375 |
@@ -46,7 +46,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Interaction | Expected behavior | Keyboard / a11y | Failure and recovery |
 |---|---|---|---|
 | Add item (any app) | Appears at once, input clears and keeps focus | Enter submits; labelled input | Inline validation; nothing lost |
-| Delete item | Removed at once with an Undo notice (Acta, Folio, Virtus, Dictum, Merces); in Folio, Undo reopens the note | Undo notice is a status region, so the deletion is announced | Save failure shown as an alert; the change lasts until the page closes |
+| Delete item | Removed at once with an Undo notice (Acta, Folio, Virtus, Dictum, Merces); in Folio, Undo reopens the note; in Acta, deletion and Undo are each synced as a new version | Undo notice is a status region, so the deletion is announced | Save failure shown as an alert; the change lasts until the page closes |
 | Theme toggle | Switches all apps | Button with pressed state | Falls back to system preference |
 | Sign in | One form, session shared across apps | Labelled fields, errors announced | Plain error, retry; local mode still usable (except Merces) |
 | Sync | Background; status in the account dialog | Status text, not only colour | Notice with Try again on the page; local copy kept |

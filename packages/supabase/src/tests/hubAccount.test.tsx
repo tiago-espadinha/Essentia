@@ -102,7 +102,7 @@ describe('hub suite account', () => {
     const before = { ...localStorage }
     await click('Account')
     expect(container.textContent).toContain('including Dictum versions')
-    expect([...container.querySelectorAll('nav a')].map((link) => link.getAttribute('href'))).toEqual(['/virtus/', '/dictum/', '/merces/'])
+    expect([...container.querySelectorAll('nav a')].map((link) => link.getAttribute('href'))).toEqual(['/acta/', '/virtus/', '/dictum/', '/merces/'])
     await click('Sign out')
     expect(container.querySelector('[role="alert"]')?.textContent).toContain('cannot check whether every app has synced')
     expect(server.signOut).not.toHaveBeenCalled()

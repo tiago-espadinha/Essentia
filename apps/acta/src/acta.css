@@ -189,6 +189,22 @@
 
 .undo__button:hover { color: var(--color-ink); }
 
+/* Sync */
+.sync-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-left: var(--space-4);
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+  color: var(--color-mid);
+}
+
+.sync-notice__text { min-width: 0; overflow-wrap: anywhere; }
+
 /* Filters */
 .filters {
   display: grid;
@@ -354,6 +370,40 @@
 .task__tag { color: var(--color-accent-text); }
 
 .task__due--over { color: var(--color-danger); }
+
+/* A change from another device waits on the row it belongs to, always shown. */
+.task__conflict {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 var(--space-3);
+  margin-block: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-accent);
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.task__conflict-text { min-width: 0; overflow-wrap: anywhere; }
+
+.task__conflict-actions { display: flex; margin-right: calc(-1 * var(--space-2)); }
+
+.task__resolve {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--color-accent-text);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.task__resolve:hover { color: var(--color-ink); }
 
 /* With a pointer, the actions float over the row's end so hidden ones take no
    width from the task text. */

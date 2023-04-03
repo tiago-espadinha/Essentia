@@ -10,7 +10,7 @@
 ```text
 apps/
   hub/       /          lists the apps and builds 404.html; in dev it proxies every app onto port 5100
-  acta/      /acta/     tasks, on the device only
+  acta/      /acta/     tasks; synced when signed in
   folio/     /folio/    rich-text notes, on the device only
   virtus/    /virtus/   habits; installable PWA; optional sync
   dictum/    /dictum/   markdown documents; optional sync and share links
@@ -95,28 +95,31 @@ or change existing sync conflict rules. Browser online status is a connectivity
 hint; service outages continue to use existing sync-failure feedback.
 
 ## Data
-- Stores: each app keeps its data in localStorage (`essentia-<app>-*` keys). Virtus, Dictum and Merces also keep a copy in Supabase Postgres for the signed-in user.
+- Stores: each app keeps its data in localStorage (`essentia-<app>-*` keys). Acta, Virtus, Dictum and Merces also keep a copy in Supabase Postgres for the signed-in user.
 - Key entities:
   | App | Tables |
   |---|---|
+  | Acta | `acta_tasks` (versioned; written only through `acta_write_task`), `acta_operation_receipts` |
   | Virtus | `habits`, `check_ins` (one row per habit and day) |
   | Dictum | `documents` (with an optional `share_id`) |
   | Merces | `transactions`, `budgets`, `recurring_transactions` |
 - Sync: the device copy is the working copy. On sign-in, after changes (once edits pause for a moment), when the page comes back into view and when the browser goes online, the app merges the two copies record by record: the newer `updated_at` wins. Deletions are stamps (`deleted_at`, or a check-in value of 0), never hard deletes, so other devices learn about them. A failed sync keeps the local copy and offers a retry.
+- Acta sync is the exception to newer-wins. Each account's copy lives under its own key (`essentia-acta-account:<user>`) with the server's rows as last seen, this device's order, and a queue of unsent writes. Every write names the server version it was based on and carries an operation ID, so a retry after a lost answer is applied once. A write based on an older version comes back as a conflict: the task's row says it changed on another device and offers Keep mine (send it again over the newer version) or Use theirs; the unsent change is kept until the person chooses, and a conflict where both sides already agree settles by itself. Deletion writes an empty version (a tombstone) and Undo writes a new one. Tasks new to a device are ordered by the server's `created_at`, newest first. On first sign-in with tasks made while signed out, the person adds them (each mapped once to an account id, so an interrupted claim never duplicates) or keeps them on the device, where they come back after sign-out. A sync started for one account drops its results once another signs in, and the write function refuses a write whose stated owner isn't the caller.
 - The hub reuses the shared client, session hook and account menu. It cannot certify
   another app’s sync: hub sign-out requires a separate discard confirmation and
-  links to Virtus, Dictum and Merces to check/retry sync first. Device-local sign-out
+  links to Acta, Virtus, Dictum and Merces to check/retry sync first. Device-local sign-out
   clears account-owned copies across those apps, including unsynced work and
   Dictum’s device-only versions; unowned work and other devices’ sessions stay.
 - Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the hub shows Account
-  unavailable; app sign-in is hidden, Virtus and Dictum stay on the device, and
+  unavailable; app sign-in is hidden, Acta, Virtus and Dictum stay on the device, and
   Merces shows that it is not set up.
 - Ownership and authorization rules: row level security on every table, `user_id = auth.uid()` for every read and write; the anon key alone reads nothing. Table and column grants are narrowed (no `truncate`; Dictum's `share_id` and Merces's recurring `posted` counter cannot be written by clients). Only the publishable (anon) key is in client code, so RLS is the security boundary.
 - Server functions (Postgres, `security definer`, fixed `search_path`):
   - `share_document(document_id)` / `unshare_document(document_id)`: the owner turns a document's read-only link on or off.
   - `get_shared_document(link_id)`: anyone with the link reads that one document's title and content.
+  - `acta_write_task(p_owner, p_operation_id, p_task_id, p_expected_version, p_content)`: Acta's only write. It checks the owner and the task's shape, serializes each account's writes, answers a repeated operation ID from its receipt, and applies the write or returns the newer version as a conflict. Receipts older than 30 days are pruned; a retry that late meets the newer version and settles as already done.
   - `process_due_recurring(p_today)`: Merces calls it at the end of each sync; it posts every due occurrence of the caller's recurring items once, skipping paused periods, and catches up missed periods.
-- Migrations and seed strategy: one SQL file per app, `apps/{virtus,dictum,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other. No seed data.
+- Migrations and seed strategy: one SQL file per app, `apps/{acta,virtus,dictum,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other. No seed data.
 
 ## APIs and integrations
 

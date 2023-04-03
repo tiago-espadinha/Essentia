@@ -45,13 +45,14 @@ export function SuiteAccountDialog({ email, client, onClose, onPassword }: Props
       <div className="account__body">
         <p className="account__email">{t('Signed in as ')}<strong>{email}</strong>.</p>
         <button type="button" className="account__close" disabled={pending} onClick={onPassword}>{t('Change password')}</button>
-        <p>{t('One account connects Virtus, Dictum and Merces. Open an app to check or retry its sync.')}</p>
+        <p>{t('One account connects Acta, Virtus, Dictum and Merces. Open an app to check or retry its sync.')}</p>
         <nav className="account__apps" aria-label={t('Check app sync')}>
+          <a href="/acta/">Acta</a>
           <a href="/virtus/">Virtus</a>
           <a href="/dictum/">Dictum</a>
           <a href="/merces/">Merces</a>
         </nav>
-        <p className="account__note">{t('Signing out clears this device’s account data in Virtus, Dictum and Merces, including Dictum versions. Versions are not synced. Work made while signed out stays; other devices stay signed in.')}</p>
+        <p className="account__note">{t('Signing out clears this device’s account data in Acta, Virtus, Dictum and Merces, including Dictum versions. Versions are not synced. Work made while signed out stays; other devices stay signed in.')}</p>
         {confirm && <p className="account__error" role="alert">{t('The hub cannot check whether every app has synced. Signing out will discard any unsynced account changes and device-only versions. Open the apps above to check first, or confirm to discard them.')}</p>}
         {failure && <p className="account__error" role="alert">{t(failure)}</p>}
         {pending && <p role="status">{t('Signing out…')}</p>}

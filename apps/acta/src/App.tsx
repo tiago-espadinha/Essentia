@@ -1,7 +1,9 @@
+import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { Search, formatNumber, useLocale } from '@essentia/ui'
 import { t } from './locale'
 import { useRecordMotion } from '@essentia/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AccountMenu } from './components/AccountMenu'
 import { AddTask } from './components/AddTask'
 import { AppHeader } from './components/AppHeader'
 import { Filters } from './components/Filters'
@@ -19,12 +21,18 @@ import {
   type Task,
   type TaskDraft,
 } from './domain/tasks'
-import { useTasks } from './hooks/useTasks'
+import { SYNC_FAILED, useTasks } from './hooks/useTasks'
+
+const client = getSupabase()
 
 export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Acta · ${t('Your Tasks')} · Essentia` }, [locale])
-  const { tasks, saveFailed, add, toggle, remove, restore, update } = useTasks()
+  const auth = useAuth(client)
+  const {
+    tasks, owner, saveFailed, syncState, sync, unclaimed, answer, conflictOf, keepMine, takeTheirs,
+    add, toggle, remove, restore, update,
+  } = useTasks(client)
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -34,6 +42,16 @@ export default function App() {
   const mainRef = useRef<HTMLElement>(null)
   const motion = useRecordMotion(mainRef)
   const clearFocusRequest = useCallback(() => setFocusRequest(undefined), [])
+  // Another account's list (or the signed-out one) starts clean: no open editor, undo or filter.
+  const [shownOwner, setShownOwner] = useState(owner)
+  if (shownOwner !== owner) {
+    setShownOwner(owner)
+    setEditingId(null)
+    setDeleted(null)
+    setFocusRequest(undefined)
+    setStatus('all')
+    setSelectedCategory(null)
+  }
 
   const today = todayIso()
   const categories = categoriesOf(tasks)
@@ -92,7 +110,8 @@ export default function App() {
 
   return (
     <>
-      <AppHeader search={<Search sourceLabel={t('Your Tasks')}
+      <AppHeader account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />}
+        search={<Search key={owner ?? 'device'} sourceLabel={t('Your Tasks')}
         records={tasks.map((task) => ({ id: task.id, title: task.text, text: task.category }))}
         onSelect={(id) => {
           showAll()
@@ -104,6 +123,12 @@ export default function App() {
         <div className="workspace">
           <AddTask inputRef={addInput} onAdd={(value) => motion(() => add(value))} />
           <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
+          {syncState === 'failed' && (
+            <div className="sync-notice" role="status">
+              <span className="sync-notice__text">{t(SYNC_FAILED)}</span>
+              <button type="button" className="undo__button" onClick={() => void sync()}>{t("Try again")}</button>
+            </div>
+          )}
 
           {saveFailed && (
             <p className="notice" role="alert">
@@ -154,6 +179,8 @@ export default function App() {
                         categories={categories}
                         editing={task.id === editingId}
                         focusRequest={focusRequest?.id === task.id ? focusRequest : undefined}
+                        conflict={conflictOf(task.id)}
+                        onResolve={(id, mine) => (mine ? keepMine(id) : takeTheirs(id))}
                         onToggle={toggle}
                         onDelete={deleteTask}
                         onFocused={clearFocusRequest}
@@ -170,6 +197,9 @@ export default function App() {
 
         </div>
       </main>
+      {unclaimed > 0 && auth.status === 'signed-in' && (
+        <ClaimDialog count={unclaimed} noun={[t('task'), t('tasks')]} email={auth.email} decline="keep" onAnswer={answer} />
+      )}
     </>
   )
 }

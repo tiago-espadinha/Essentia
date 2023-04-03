@@ -2,6 +2,13 @@ import { t } from '../locale'
 import { useEffect, useRef } from 'react'
 import { TaskEditor } from './TaskEditor'
 import { formatDue, isOverdue, type Task, type TaskDraft } from '../domain/tasks'
+import type { ConflictKind } from '../data/sync'
+
+const CONFLICT_TEXT: Record<ConflictKind, string> = {
+  changed: 'Changed on another device.',
+  'deleted-there': 'Deleted on another device.',
+  'deleted-here': 'You deleted this, but it changed on another device.',
+}
 
 /** Asks a row to focus one of its controls; a new object asks again. */
 export interface FocusRequest {
@@ -15,6 +22,9 @@ interface TaskItemProps {
   categories: string[]
   editing: boolean
   focusRequest?: FocusRequest
+  /** Set while this task waits for Keep mine or Use theirs. */
+  conflict?: ConflictKind | null
+  onResolve?: (id: string, keepMine: boolean) => void
   onFocused: () => void
   onToggle: (id: string) => void
   onDelete: (id: string) => void
@@ -29,6 +39,8 @@ export function TaskItem({
   categories,
   editing,
   focusRequest,
+  conflict = null,
+  onResolve = () => {},
   onFocused,
   onToggle,
   onDelete,
@@ -86,6 +98,19 @@ export function TaskItem({
             </span>
           )}
         </p>
+        {conflict && (
+          <div className="task__conflict" role="group" aria-label={t('Sync conflict')}>
+            <p className="task__conflict-text">{t(CONFLICT_TEXT[conflict])}</p>
+            <div className="task__conflict-actions">
+              <button type="button" className="task__resolve" onClick={() => onResolve(task.id, true)}>
+                {t('Keep mine')}<span className="visually-hidden"> “{task.text}”</span>
+              </button>
+              <button type="button" className="task__resolve" onClick={() => onResolve(task.id, false)}>
+                {t('Use theirs')}<span className="visually-hidden"> “{task.text}”</span>
+              </button>
+            </div>
+          </div>
+        )}
         <div className="task__actions">
           <button ref={editRef} type="button" className="task__action" onClick={() => onEdit(task.id)}>
             {t('Edit')}<span className="visually-hidden"> “{task.text}”</span>

@@ -1,6 +1,7 @@
 // An in-memory stand-in for acta_write_task and the acta_tasks table, following
 // supabase/migration.sql step by step: owner check, validation, receipt first,
 // then the version check.
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SyncPort } from '../data/sync'
 import { isContent, type Content, type Operation } from '../data/syncStorage'
 
@@ -80,4 +81,52 @@ export class FakeAccount {
       },
     }
   }
+}
+
+type Listener = (event: string, session: { user: { id: string } } | null) => void
+
+/** The stored session's key for VITE_SUPABASE_URL https://test.supabase.co. */
+export const SESSION_KEY = 'sb-test-auth-token'
+
+/** The few Supabase client calls Acta makes, answered by `server`, with every auth subscriber told. */
+export function fakeClient(server: FakeAccount, network: { down?: boolean } = {}) {
+  let user: string | null = null
+  const listeners = new Set<Listener>()
+  const port = server.port(() => user, network)
+  const answer = async (request: () => Promise<unknown>) => {
+    try {
+      return { data: await request(), error: null }
+    } catch (error) {
+      return { data: null, error }
+    }
+  }
+  const query = { select: () => query, order: () => query, range: () => answer(port.read) }
+  const client = {
+    from: () => query,
+    rpc: (_name: string, args: Record<string, unknown>) => answer(() => port.write(args.p_owner as string, {
+      operationId: args.p_operation_id, taskId: args.p_task_id, expectedVersion: args.p_expected_version, content: args.p_content,
+    } as Operation)),
+    auth: {
+      onAuthStateChange: (callback: Listener) => {
+        listeners.add(callback)
+        queueMicrotask(() => callback('INITIAL_SESSION', user ? { user: { id: user } } : null))
+        return { data: { subscription: { unsubscribe: () => listeners.delete(callback) } } }
+      },
+    },
+  } as unknown as SupabaseClient
+  /** A session already stored on this device, as after a reload. */
+  const restore = (id: string) => {
+    user = id
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ user: { id } }))
+  }
+  /** Signs in or out as Supabase does: the stored session first, then the event. */
+  const signIn = (id: string | null) => {
+    if (id) restore(id)
+    else {
+      user = null
+      localStorage.removeItem(SESSION_KEY)
+    }
+    for (const listener of listeners) listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', id ? { user: { id } } : null)
+  }
+  return { client, restore, signIn }
 }

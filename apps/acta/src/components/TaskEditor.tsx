@@ -1,6 +1,6 @@
 import { t } from '../locale'
 import { useState, type FormEvent, type KeyboardEvent } from 'react'
-import type { Task, TaskDraft } from '../domain/tasks'
+import { LIMITS, type Task, type TaskDraft } from '../domain/tasks'
 
 interface TaskEditorProps {
   task: Task
@@ -36,6 +36,7 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
           id={id('text')}
           className="input"
           value={draft.text}
+          maxLength={LIMITS.text}
           onChange={(event) => {
             setDraft({ ...draft, text: event.target.value })
             setInvalid(false)
@@ -60,6 +61,7 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
             id={id('category')}
             className="input"
             value={draft.category}
+            maxLength={LIMITS.category}
             onChange={(event) => setDraft({ ...draft, category: event.target.value })}
             list={id('categories')}
             autoComplete="off"

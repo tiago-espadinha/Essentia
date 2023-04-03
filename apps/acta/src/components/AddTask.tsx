@@ -1,5 +1,6 @@
 import { t } from '../locale'
 import { useState, type FormEvent, type RefObject } from 'react'
+import { LIMITS } from '../domain/tasks'
 
 interface AddTaskProps {
   inputRef: RefObject<HTMLInputElement | null>
@@ -35,6 +36,7 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
           id="add-task"
           className="add__input"
           value={text}
+          maxLength={LIMITS.text}
           onChange={(event) => {
             setText(event.target.value)
             setRefusals(0)

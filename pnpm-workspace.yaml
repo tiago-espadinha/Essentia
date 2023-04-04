@@ -5,6 +5,13 @@ packages:
 overrides:
   minimatch: ^11.0.1
 
+# picomatch <=4.0.7 (ReDoS, no patched release) reaches only build and lint
+# tooling through vite and typescript-eslint, never the shipped bundle.
+# Remove once a fixed picomatch is published and vite picks it up.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-fc5q-39xc-vjpf
+
 # One version of each shared dependency for the whole suite; apps use "catalog:".
 catalog:
   react: ^19.2.6

@@ -1,6 +1,6 @@
 import { formatNumber } from '@essentia/ui'
 import { t } from '../locale'
-import { formatDate, plainText, type Note } from '../domain/notes'
+import { formatDate, noteText, type Note } from '../domain/notes'
 import { UndoNotice } from './UndoNotice'
 
 interface NoteListProps {
@@ -111,7 +111,7 @@ function NewNoteButton({ onClick }: { onClick: () => void }) {
 }
 
 function NoteRow({ note, selected, onSelect }: { note: Note; selected: boolean; onSelect: (id: string) => void }) {
-  const preview = plainText(note.body)
+  const preview = noteText(note)
   return (
     <button
       type="button"

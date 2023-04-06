@@ -2,7 +2,7 @@ import { formatNumber, isSearchFocus } from '@essentia/ui'
 import { t } from '../locale'
 import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type KeyboardEvent } from 'react'
 import { insertTransfer, placeCaretAt } from '../domain/editing'
-import { countWords, formatDate, parseTags, plainText, type Note, type NoteChanges } from '../domain/notes'
+import { countWords, formatDate, noteText, parseTags, type Note, type NoteChanges } from '../domain/notes'
 import { sanitizeHtml } from '../domain/sanitize'
 import { Toolbar } from './Toolbar'
 
@@ -17,16 +17,21 @@ interface EditorProps {
   onDelete: () => void
 }
 
-/** One note. Remounted per note (keyed by id), so the body is written into the DOM once. */
+/**
+ * One note. Remounted per note (keyed by id), so the body is written into the DOM once.
+ * A markdown note is edited as its source text: the rich editor would turn it into HTML.
+ */
 export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
+  const sourceRef = useRef<HTMLTextAreaElement>(null)
+  const markdown = note.format === 'markdown'
   // Text dragged within the body moves natively; anything from outside is cleaned first.
   const draggingInside = useRef(false)
 
   // Before paint, so switching notes never shows an empty body.
   useLayoutEffect(() => {
-    bodyRef.current!.innerHTML = note.body
+    if (bodyRef.current) bodyRef.current.innerHTML = note.body
     // Only on mount: afterwards the DOM is the source and the note follows it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -53,10 +58,10 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
   function titleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== 'Enter') return
     event.preventDefault()
-    bodyRef.current?.focus()
+    ;(bodyRef.current ?? sourceRef.current)?.focus()
   }
 
-  const text = plainText(note.body)
+  const text = noteText(note)
 
   return (
     <>
@@ -65,7 +70,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>{t("Notes")}</button>
-        <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
+        {markdown ? <span className="editor__format">{t('Markdown source')}</span> : <Toolbar bodyRef={bodyRef} onFormat={saveBody} />}
         <button
           type="button"
           className="button-ghost pin-button"
@@ -106,25 +111,36 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
             <TagsField tags={note.tags} onChange={(tags) => onChange({ tags })} />
           </div>
 
-          <div
-            ref={bodyRef}
-            className="editor__body"
-            contentEditable
-            role="textbox"
-            aria-multiline="true"
-            aria-label={t("Note")}
-            data-placeholder={t("Start writing")}
-            onFocus={() => document.execCommand?.('defaultParagraphSeparator', false, 'p')}
-            onInput={saveBody}
-            onPaste={(event) => {
-              event.preventDefault()
-              insertTransfer(event.clipboardData)
-              saveBody()
-            }}
-            onDragStart={() => (draggingInside.current = true)}
-            onDragEnd={() => (draggingInside.current = false)}
-            onDrop={drop}
-          />
+          {markdown ? (
+            <textarea
+              ref={sourceRef}
+              className="editor__body editor__source"
+              aria-label={t("Note")}
+              placeholder={t("Start writing")}
+              value={note.body}
+              onChange={(event) => onChange({ body: event.target.value })}
+            />
+          ) : (
+            <div
+              ref={bodyRef}
+              className="editor__body"
+              contentEditable
+              role="textbox"
+              aria-multiline="true"
+              aria-label={t("Note")}
+              data-placeholder={t("Start writing")}
+              onFocus={() => document.execCommand?.('defaultParagraphSeparator', false, 'p')}
+              onInput={saveBody}
+              onPaste={(event) => {
+                event.preventDefault()
+                insertTransfer(event.clipboardData)
+                saveBody()
+              }}
+              onDragStart={() => (draggingInside.current = true)}
+              onDragEnd={() => (draggingInside.current = false)}
+              onDrop={drop}
+            />
+          )}
         </article>
       </div>
     </>

@@ -5,7 +5,7 @@ import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
 import { Library } from './components/Library'
 import { NoteList } from './components/NoteList'
-import { filterNotes, plainText, tagsOf, type Note } from './domain/notes'
+import { filterNotes, noteText, tagsOf, type Note } from './domain/notes'
 import { DeleteAnnouncer } from './components/UndoNotice'
 import { useNotes } from './hooks/useNotes'
 
@@ -111,7 +111,7 @@ export default function App() {
   return (
     <>
       <AppHeader search={<Search sourceLabel={t('Your Notes')}
-        records={notes.map((note) => ({ id: note.id, title: note.title || t('Untitled'), text: `${plainText(note.body)} ${note.tags.join(' ')}` }))}
+        records={notes.map((note) => ({ id: note.id, title: note.title || t('Untitled'), text: `${noteText(note)} ${note.tags.join(' ')}` }))}
         onSelect={(id) => {
           clearFilters()
           openNote(id)

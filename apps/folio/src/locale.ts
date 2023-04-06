@@ -16,6 +16,7 @@ export const messages = {
   "Heading 2": "Título 2",
   "Italic": "Itálico",
   "Library": "Biblioteca",
+  "Markdown source": "Fonte Markdown",
   "New note": "Nova nota",
   "No notes fit this search.": "Nenhuma nota corresponde a esta pesquisa.",
   "No notes yet.": "Ainda não há notas.",

@@ -80,7 +80,7 @@ export function tagsOf(notes: Note[]): string[] {
   return [...new Set(notes.flatMap((note) => note.tags))].sort((a, b) => a.localeCompare(b))
 }
 
-/** Notes matching the search (title, body text, tags) and the tag; pinned first, then newest. */
+/** Notes matching the search (title, body text, tags) and the tag; pinned first, then the latest edited. */
 export function filterNotes(notes: Note[], query: string, tag: string | null): Note[] {
   const needle = query.trim().toLowerCase()
   return notes
@@ -91,7 +91,7 @@ export function filterNotes(notes: Note[], query: string, tag: string | null): N
         field.toLowerCase().includes(needle),
       )
     })
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.createdAt.localeCompare(a.createdAt))
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt))
 }
 
 /** The selected locale's short date, in the user's own time zone. */

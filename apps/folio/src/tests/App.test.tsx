@@ -374,8 +374,9 @@ describe('pinning notes', () => {
     unmount()
     renderApp()
     expect(rowTitles()).toEqual(['Old', 'New'])
+    // Unpinning is an edit, so the note now leads as the latest edited.
     click(buttonNamed('Pin'))
-    expect(rowTitles()).toEqual(['New', 'Old'])
+    expect(rowTitles()).toEqual(['Old', 'New'])
     expect(document.querySelector('.group-label')).toBeNull()
   })
 })

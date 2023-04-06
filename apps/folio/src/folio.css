@@ -519,3 +519,23 @@
     padding-left: 0;
   }
 }
+
+/* A markdown note's source, edited as plain text. */
+.editor__format {
+  margin-right: auto;
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.editor__source {
+  display: block;
+  width: 100%;
+  field-sizing: content;
+  border: none;
+  background: transparent;
+  resize: none;
+  color: inherit;
+  white-space: pre-wrap;
+}
+
+.editor__source::placeholder { color: var(--color-mid); }

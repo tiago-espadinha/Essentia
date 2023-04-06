@@ -93,5 +93,5 @@ export function newNote(title?: string) {
 }
 
 export function savedNotes() {
-  return JSON.parse(localStorage.getItem('essentia-folio-notes') ?? '[]')
+  return JSON.parse(localStorage.getItem('essentia-notes') ?? '[]')
 }

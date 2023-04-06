@@ -1,0 +1,72 @@
+{
+  "name": "09-corrupt-and-duplicate",
+  "description": "Malformed and repeated entries are skipped and counted; the raw source string is never modified.",
+  "input": {
+    "essentia-folio-notes": "[{\"id\": \"1b4e28ba-2fa1-4d2a-883f-0016d3cca427\", \"title\": \"Groceries\", \"body\": \"<p>Milk and <strong>bread</strong></p>\", \"tags\": [\"home\"], \"pinned\": true, \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}, {\"id\": 5, \"title\": \"bad\"}, {\"id\": \"1b4e28ba-2fa1-4d2a-883f-0016d3cca427\", \"title\": \"Duplicate id\", \"body\": \"<p>Milk and <strong>bread</strong></p>\", \"tags\": [\"home\"], \"pinned\": true, \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}]",
+    "essentia-dictum-documents": "{not json",
+    "essentia-dictum-sync": "{\"owner\": null, \"deleted\": {}}"
+  },
+  "expected": {
+    "notes": [
+      {
+        "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+        "format": "rich",
+        "title": "Groceries",
+        "body": "<p>Milk and <strong>bread</strong></p>",
+        "folder": "",
+        "tags": [
+          "home"
+        ],
+        "pinned": true,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "folio:1b4e28ba-2fa1-4d2a-883f-0016d3cca427": {
+          "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [],
+      "skipped": {
+        "folio": 2,
+        "dictum": 0
+      }
+    }
+  },
+  "expectedSecondRun": {
+    "notes": [
+      {
+        "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+        "format": "rich",
+        "title": "Groceries",
+        "body": "<p>Milk and <strong>bread</strong></p>",
+        "folder": "",
+        "tags": [
+          "home"
+        ],
+        "pinned": true,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "folio:1b4e28ba-2fa1-4d2a-883f-0016d3cca427": {
+          "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [],
+      "skipped": {
+        "folio": 2,
+        "dictum": 0
+      }
+    }
+  },
+  "note": "skipped.folio counts the malformed entry and the duplicate id; Dictum's unreadable JSON counts as empty and is left as is."
+}

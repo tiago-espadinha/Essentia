@@ -1,16 +1,32 @@
 import { currentLocale } from '@essentia/ui'
-// The note model and the pure rules around it. Bodies are sanitized HTML
-// (see sanitize.ts); dates are ISO timestamps.
+// The note model and the pure rules around it. A note keeps the format it was
+// written in: rich bodies are sanitized HTML (see sanitize.ts), markdown bodies
+// are source text. Dates are ISO timestamps.
+
+export type NoteFormat = 'rich' | 'markdown'
 
 export interface Note {
   id: string
+  format: NoteFormat
   title: string
-  /** Sanitized HTML from the editor. */
+  /** Sanitized HTML when rich, markdown source when markdown. */
   body: string
+  /** '' when the note is in no folder. */
+  folder: string
   tags: string[]
   pinned: boolean
   createdAt: string
   updatedAt: string
+}
+
+/** A saved earlier state of a note, kept on this device only. */
+export interface NoteVersion {
+  id: string
+  noteId: string
+  title: string
+  body: string
+  format: NoteFormat
+  savedAt: string
 }
 
 export type NoteChanges = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned'>>
@@ -26,7 +42,7 @@ export function newId(): string {
 
 export function createNote(now: Date = new Date(), id: string = newId()): Note {
   const stamp = now.toISOString()
-  return { id, title: '', body: '', tags: [], pinned: false, createdAt: stamp, updatedAt: stamp }
+  return { id, format: 'rich', title: '', body: '', folder: '', tags: [], pinned: false, createdAt: stamp, updatedAt: stamp }
 }
 
 export function applyChanges(note: Note, changes: NoteChanges, now: Date = new Date()): Note {
@@ -38,6 +54,16 @@ export function plainText(html: string): string {
   const spaced = html.replace(/<\/(p|div|h1|h2|blockquote|li)>|<br\s*\/?>/gi, '$& ')
   const text = new DOMParser().parseFromString(spaced, 'text/html').body.textContent ?? ''
   return text.replace(/\s+/g, ' ').trim()
+}
+
+/** The words of a note as one line: rich text without its markup, markdown as written. */
+export function noteText(note: Pick<Note, 'format' | 'body'>): string {
+  return note.format === 'rich' ? plainText(note.body) : note.body.replace(/\s+/g, ' ').trim()
+}
+
+/** 'Ideas  2023 ' -> 'Ideas 2023': a folder name with its spacing tidied. */
+export function cleanFolder(name: string): string {
+  return name.trim().replace(/\s+/g, ' ')
 }
 
 export function countWords(text: string): number {
@@ -61,7 +87,7 @@ export function filterNotes(notes: Note[], query: string, tag: string | null): N
     .filter((note) => {
       if (tag !== null && !note.tags.includes(tag)) return false
       if (!needle) return true
-      return [note.title, plainText(note.body), note.tags.join(' ')].some((field) =>
+      return [note.title, noteText(note), note.tags.join(' ')].some((field) =>
         field.toLowerCase().includes(needle),
       )
     })

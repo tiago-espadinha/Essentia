@@ -21,8 +21,10 @@ describe('createNote', () => {
   it('starts blank, unpinned and stamped with the creation time', () => {
     expect(createNote(new Date('2022-06-20T09:30:00Z'), 'a')).toEqual({
       id: 'a',
+      format: 'rich',
       title: '',
       body: '',
+      folder: '',
       tags: [],
       pinned: false,
       createdAt: '2022-06-20T09:30:00.000Z',

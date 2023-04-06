@@ -1,0 +1,53 @@
+{
+  "name": "13-quota-failure",
+  "description": "Writing essentia-notes is refused: no versions or ledger are written, the sources stay intact, and the next load retries.",
+  "input": {
+    "essentia-folio-notes": "[{\"id\": \"1b4e28ba-2fa1-4d2a-883f-0016d3cca427\", \"title\": \"Groceries\", \"body\": \"<p>Milk and <strong>bread</strong></p>\", \"tags\": [\"home\"], \"pinned\": true, \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}]"
+  },
+  "expected": {
+    "notes": [],
+    "versions": [],
+    "ledger": null
+  },
+  "expectedSecondRun": {
+    "notes": [
+      {
+        "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+        "format": "rich",
+        "title": "Groceries",
+        "body": "<p>Milk and <strong>bread</strong></p>",
+        "folder": "",
+        "tags": [
+          "home"
+        ],
+        "pinned": true,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "folio:1b4e28ba-2fa1-4d2a-883f-0016d3cca427": {
+          "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  },
+  "simulate": {
+    "setItemThrowsFor": [
+      "essentia-notes"
+    ]
+  },
+  "expectedAfterFailure": {
+    "written": [],
+    "sourcesUnchanged": true,
+    "ui": "read-only source view with error and Export all"
+  }
+}

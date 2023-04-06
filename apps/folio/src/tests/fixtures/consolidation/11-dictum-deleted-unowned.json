@@ -1,0 +1,33 @@
+{
+  "name": "11-dictum-deleted-unowned",
+  "description": "A deleted unowned document is not imported, and its stamp is ignored because it never reached a server.",
+  "input": {
+    "essentia-dictum-documents": "[]",
+    "essentia-dictum-versions": "[{\"id\": \"5e6f7a8b-9c0d-4e1f-8a2b-3c4d5e6f7a8b\", \"docId\": \"886313e1-3b8a-4372-9b90-0c9aee199e5d\", \"title\": \"Gone\", \"content\": \"x\", \"savedAt\": \"2023-01-10T09:00:00.000Z\"}]",
+    "essentia-dictum-sync": "{\"owner\": null, \"deleted\": {\"886313e1-3b8a-4372-9b90-0c9aee199e5d\": \"2023-02-01T08:15:00.000Z\"}}"
+  },
+  "expected": {
+    "notes": [],
+    "versions": [],
+    "ledger": {
+      "imported": {},
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  },
+  "expectedSecondRun": {
+    "notes": [],
+    "versions": [],
+    "ledger": {
+      "imported": {},
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  }
+}

@@ -8,6 +8,8 @@ import { Toolbar } from './Toolbar'
 
 interface EditorProps {
   note: Note
+  /** Shown for reading only: no formatting, pinning or deleting, and every field is read-only. */
+  readOnly: boolean
   /** Focus the title (a note just created, or opened on a phone). */
   autoFocus: boolean
   onFocused: () => void
@@ -21,7 +23,7 @@ interface EditorProps {
  * One note. Remounted per note (keyed by id), so the body is written into the DOM once.
  * A markdown note is edited as its source text: the rich editor would turn it into HTML.
  */
-export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete }: EditorProps) {
+export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const sourceRef = useRef<HTMLTextAreaElement>(null)
@@ -70,23 +72,33 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>{t("Notes")}</button>
-        {markdown ? <span className="editor__format">{t('Markdown source')}</span> : <Toolbar bodyRef={bodyRef} onFormat={saveBody} />}
-        <button
-          type="button"
-          className="button-ghost pin-button"
-          aria-pressed={note.pinned}
-          onClick={() => onChange({ pinned: !note.pinned })}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path
-              d="M6 2.5h4M7 2.5v4L4.5 9.5h7L9 6.5v-4M8 9.5v4"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>{t("Pin")}</button>
-        <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>{t("Delete")}</button>
+        {markdown || readOnly ? (
+          <span className="editor__format">
+            {[markdown && t('Markdown source'), readOnly && t('Read-only')].filter(Boolean).join(' · ')}
+          </span>
+        ) : (
+          <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
+        )}
+        {!readOnly && (
+          <>
+            <button
+              type="button"
+              className="button-ghost pin-button"
+              aria-pressed={note.pinned}
+              onClick={() => onChange({ pinned: !note.pinned })}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path
+                  d="M6 2.5h4M7 2.5v4L4.5 9.5h7L9 6.5v-4M8 9.5v4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>{t("Pin")}</button>
+            <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>{t("Delete")}</button>
+          </>
+        )}
       </div>
 
       <div className="pane__body">
@@ -98,6 +110,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
             className="editor__title"
             rows={1}
             placeholder={t("Untitled")}
+            readOnly={readOnly}
             value={note.title}
             onChange={(event) => onChange({ title: event.target.value.replace(/\n/g, ' ') })}
             onKeyDown={titleKeyDown}
@@ -108,7 +121,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
             <span className="label">
               {t(countWords(text) === 1 ? '{count} word' : '{count} words', { count: formatNumber(countWords(text)) })} · {t(text.length === 1 ? '{count} character' : '{count} characters', { count: formatNumber(text.length) })}
             </span>
-            <TagsField tags={note.tags} onChange={(tags) => onChange({ tags })} />
+            <TagsField tags={note.tags} readOnly={readOnly} onChange={(tags) => onChange({ tags })} />
           </div>
 
           {markdown ? (
@@ -117,6 +130,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
               className="editor__body editor__source"
               aria-label={t("Note")}
               placeholder={t("Start writing")}
+              readOnly={readOnly}
               value={note.body}
               onChange={(event) => onChange({ body: event.target.value })}
             />
@@ -124,9 +138,10 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
             <div
               ref={bodyRef}
               className="editor__body"
-              contentEditable
+              contentEditable={!readOnly}
               role="textbox"
               aria-multiline="true"
+              aria-readonly={readOnly || undefined}
               aria-label={t("Note")}
               data-placeholder={t("Start writing")}
               onFocus={() => document.execCommand?.('defaultParagraphSeparator', false, 'p')}
@@ -151,7 +166,7 @@ export function Editor({ note, autoFocus, onFocused, onChange, onBack, onDelete 
  * Comma-separated tags, saved when the field is left or Enter is pressed. The
  * draft never re-syncs from props: the editor remounts per note.
  */
-function TagsField({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
+function TagsField({ tags, readOnly, onChange }: { tags: string[]; readOnly: boolean; onChange: (tags: string[]) => void }) {
   const [draft, setDraft] = useState(tags.join(', '))
 
   function commit() {
@@ -166,6 +181,7 @@ function TagsField({ tags, onChange }: { tags: string[]; onChange: (tags: string
       <input
         className="tags-field__input"
         value={draft}
+        readOnly={readOnly}
         placeholder={t("work, ideas")}
         onChange={(event) => setDraft(event.target.value)}
         onBlur={(event) => { if (!isSearchFocus(event.relatedTarget)) commit() }}

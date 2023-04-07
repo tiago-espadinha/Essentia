@@ -169,3 +169,12 @@ describe('moving notes into one store', () => {
     expect(bodies).toEqual(['<p>Hi</p>', 'a <b>b</b> `<script>`'])
   })
 })
+
+describe('when storage refuses every write', () => {
+  afterEach(() => vi.restoreAllMocks())
+
+  it('still opens for editing when there was nothing to move', () => {
+    refuse([NOTES_KEY, VERSIONS_KEY, LEDGER_KEY])
+    expect(openNotes()).toEqual({ notes: [], versions: [], failed: false })
+  })
+})

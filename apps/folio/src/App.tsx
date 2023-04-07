@@ -7,6 +7,7 @@ import { Library } from './components/Library'
 import { NoteList } from './components/NoteList'
 import { filterNotes, noteText, tagsOf, type Note } from './domain/notes'
 import { DeleteAnnouncer } from './components/UndoNotice'
+import { exportAll } from './data/export'
 import { useNotes } from './hooks/useNotes'
 
 /** Matches folio.css: one pane at a time below 768 px. */
@@ -15,7 +16,7 @@ const PHONE = '(width < 768px)'
 export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
-  const { notes, saveFailed, add, update, remove, restore } = useNotes()
+  const { notes, versions, readOnly, saveFailed, add, update, remove, restore } = useNotes()
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // The latest deleted note, until it is restored or another one is deleted.
   const [deleted, setDeleted] = useState<Note | null>(null)
@@ -66,6 +67,7 @@ export default function App() {
 
   // A new note is blank, so the filters are cleared to show it in the list.
   function newNote() {
+    if (readOnly) return
     clearFilters()
     const note = motion(() => add())
     setSelectedId(note.id)
@@ -134,6 +136,8 @@ export default function App() {
           selectedId={selected?.id ?? null}
           filtersOpen={libraryOpen}
           deleted={deleted}
+          readOnly={readOnly}
+          onExport={() => exportAll(notes, versions)}
           onSelect={openNote}
           onToggleFilters={toggleFilters}
           onNew={newNote}
@@ -148,6 +152,7 @@ export default function App() {
             <Editor
               key={selected.id}
               note={selected}
+              readOnly={readOnly}
               autoFocus={selected.id === titleFocusId}
               onFocused={clearTitleFocus}
               onChange={(changes) => {

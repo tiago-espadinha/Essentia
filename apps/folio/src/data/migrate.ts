@@ -186,7 +186,7 @@ function keepUnreadable(raw: string, now: string): boolean {
 /**
  * Reads the notes store and takes in the old stores, writing notes, then
  * versions, then the ledger last, each only when it changed. A refused or
- * unconfirmed write stops the rest, so no step is half done.
+ * unconfirmed write of notes or versions stops the rest and reports failure.
  */
 export function openNotes(now = new Date().toISOString()): Opened {
   const store = { notes: loadNotes(), versions: [] as NoteVersion[] }
@@ -214,6 +214,9 @@ export function openNotes(now = new Date().toISOString()): Opened {
   const versionsChanged = !same(next.versions, readList(VERSIONS_KEY).items)
   if (versionsChanged && !save(VERSIONS_KEY, next.versions)) return { ...result, failed: true }
   const ledgerChanged = !ledger || !same({ ...ledger, lastRun: '' }, { ...next.ledger, lastRun: '' })
-  if (ledgerChanged && !save(LEDGER_KEY, next.ledger)) return { ...result, failed: true }
+  // Without the ledger Dictum keeps showing what was just taken in, so edits there would split the note.
+  // With nothing taken in, a refused ledger loses nothing: a browser that stores nothing still opens for editing.
+  const tookIn = !same(ledger?.imported ?? {}, next.ledger.imported) || !same(ledger?.moved ?? [], next.ledger.moved)
+  if (ledgerChanged && !save(LEDGER_KEY, next.ledger) && tookIn) return { ...result, failed: true }
   return { ...result, failed: false }
 }

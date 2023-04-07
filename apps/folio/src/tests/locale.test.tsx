@@ -65,7 +65,7 @@ describe('Folio locale', () => {
     expect(app.textContent).toContain('Não foi possível guardar neste dispositivo.')
     expect($<HTMLTextAreaElement>('#note-title').value).toBe('Keep me')
     // The second attempted write is only the locale preference, never the note.
-    expect(save.mock.calls.map(([key]) => key)).toEqual(['essentia-folio-notes', 'essentia-locale'])
+    expect(save.mock.calls.map(([key]) => key)).toEqual(['essentia-notes', 'essentia-locale'])
   })
 
   it('uses UK and Portugal display dates without changing the ISO timestamp', () => {

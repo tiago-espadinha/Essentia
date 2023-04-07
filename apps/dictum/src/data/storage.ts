@@ -5,6 +5,8 @@ import type { Version } from '../domain/versions'
 export const DOCS_KEY = 'essentia-dictum-documents'
 export const VERSIONS_KEY = 'essentia-dictum-versions'
 export const SYNC_KEY = 'essentia-dictum-sync'
+/** Written by Folio, which now keeps the documents made here while signed out. */
+export const MOVED_KEY = 'essentia-notes-migration'
 
 const isString = (value: unknown): value is string => typeof value === 'string'
 const isTimestamp = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value))
@@ -70,6 +72,16 @@ export function loadVersions(docIds: string[]): Version[] {
   return unique(readList(VERSIONS_KEY).filter(isVersion))
     .filter((version) => known.has(version.docId))
     .map(({ id, docId, title, content, savedAt }) => ({ id, docId, title, content, savedAt }))
+}
+
+/** Ids of the documents Folio has taken in from this device. Dictum keeps them stored but leaves them to Folio. */
+export function loadMoved(): Set<string> {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(MOVED_KEY) ?? 'null')
+    return new Set(isRecord(saved) && Array.isArray(saved.moved) ? saved.moved.filter(isString) : [])
+  } catch {
+    return new Set()
+  }
 }
 
 function isStamps(value: unknown): value is Stamps {

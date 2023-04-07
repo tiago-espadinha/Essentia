@@ -519,3 +519,47 @@
     padding-left: 0;
   }
 }
+
+/* A markdown note's source, edited as plain text. */
+.editor__format {
+  margin-right: auto;
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.editor__source {
+  display: block;
+  width: 100%;
+  field-sizing: content;
+  border: none;
+  background: transparent;
+  resize: none;
+  color: inherit;
+  white-space: pre-wrap;
+}
+
+.editor__source::placeholder { color: var(--color-mid); }
+
+/* Notes that could not be stored on this device: a strip under the list head, like the undo notice. */
+.read-only {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-faint);
+  background: var(--color-paper);
+}
+
+.read-only__lead {
+  color: var(--color-danger);
+  font-weight: inherit;
+}
+
+.read-only .button-ghost { min-height: 44px; }
+
+/* Read-only fields read as text, not as inputs. */
+.tags-field__input[readonly] {
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}

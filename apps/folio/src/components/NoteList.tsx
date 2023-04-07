@@ -1,6 +1,7 @@
 import { formatNumber } from '@essentia/ui'
 import { t } from '../locale'
-import { formatDate, plainText, type Note } from '../domain/notes'
+import { formatDate, noteText, type Note } from '../domain/notes'
+import { ReadOnlyNotice } from './ReadOnlyNotice'
 import { UndoNotice } from './UndoNotice'
 
 interface NoteListProps {
@@ -13,6 +14,9 @@ interface NoteListProps {
   filtersOpen: boolean
   /** The latest deleted note, offered for undo. */
   deleted: Note | null
+  /** The notes could not be stored here: they show with a notice and an export, and nothing adds to them. */
+  readOnly: boolean
+  onExport: () => void
   onSelect: (id: string) => void
   onToggleFilters: () => void
   onNew: () => void
@@ -26,6 +30,8 @@ export function NoteList({
   selectedId,
   filtersOpen,
   deleted,
+  readOnly,
+  onExport,
   onSelect,
   onToggleFilters,
   onNew,
@@ -62,19 +68,24 @@ export function NoteList({
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M2.5 4h11M4.5 8h7M6.5 12h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>{t("Filter")}</button>
-            <NewNoteButton onClick={onNew} />
+            {!readOnly && <NewNoteButton onClick={onNew} />}
           </div>
         )}
       </div>
 
+      {readOnly && <ReadOnlyNotice onExport={onExport} />}
       <UndoNotice deleted={deleted} onUndo={onUndo} />
 
       <div className="pane__body">
         {total === 0 ? (
           <div className="empty">
             <h3 className="empty__title">{t("No notes yet.")}</h3>
-            <p className="empty__text">{t("Start one and it stays on this device.")}</p>
-            <NewNoteButton onClick={onNew} />
+            {!readOnly && (
+              <>
+                <p className="empty__text">{t("Start one and it stays on this device.")}</p>
+                <NewNoteButton onClick={onNew} />
+              </>
+            )}
           </div>
         ) : notes.length === 0 ? (
           <div className="empty">
@@ -111,7 +122,7 @@ function NewNoteButton({ onClick }: { onClick: () => void }) {
 }
 
 function NoteRow({ note, selected, onSelect }: { note: Note; selected: boolean; onSelect: (id: string) => void }) {
-  const preview = plainText(note.body)
+  const preview = noteText(note)
   return (
     <button
       type="button"

@@ -1,0 +1,29 @@
+{
+  "name": "01-empty",
+  "description": "No source data: nothing imported, ledger records an empty completed run.",
+  "input": {},
+  "expected": {
+    "notes": [],
+    "versions": [],
+    "ledger": {
+      "imported": {},
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  },
+  "expectedSecondRun": {
+    "notes": [],
+    "versions": [],
+    "ledger": {
+      "imported": {},
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  }
+}

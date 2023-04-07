@@ -1,53 +1,117 @@
-import { parseTags, type Note } from '../domain/notes'
+import { cleanFolder, parseTags, type Note, type NoteVersion } from '../domain/notes'
 import { sanitizeHtml } from '../domain/sanitize'
 
-export const STORAGE_KEY = 'essentia-folio-notes'
+// The notes store, shared by everything Folio holds. The keys the apps used
+// before it (see sources.ts) are only ever read.
+export const NOTES_KEY = 'essentia-notes'
+export const VERSIONS_KEY = 'essentia-notes-versions'
+/** A copy of an unreadable notes list, kept before anything is written over it. */
+export const UNREADABLE_KEY = 'essentia-notes-unreadable'
 
-const isString = (value: unknown): value is string => typeof value === 'string'
-const isTimestamp = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value))
+export const isString = (value: unknown): value is string => typeof value === 'string'
+export const isTimestamp = (value: unknown): value is string => isString(value) && !Number.isNaN(Date.parse(value))
+export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+const isFormat = (value: unknown): value is Note['format'] => value === 'rich' || value === 'markdown'
+
+/** The raw value under a key, or null when there is none or storage is unreadable. */
+export function readRaw(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+/** The entries of a stored list; `readable` is false when something is stored but it is not a JSON list. */
+export function readList(key: string): { items: unknown[]; readable: boolean } {
+  const raw = readRaw(key)
+  if (raw === null) return { items: [], readable: true }
+  try {
+    const saved: unknown = JSON.parse(raw)
+    return Array.isArray(saved) ? { items: saved, readable: true } : { items: [], readable: false }
+  } catch {
+    return { items: [], readable: false }
+  }
+}
+
+/** Keeps the first entry of each id. */
+export function unique<T extends { id: string }>(items: T[]): T[] {
+  const byId = new Map<string, T>()
+  for (const item of items) if (!byId.has(item.id)) byId.set(item.id, item)
+  return [...byId.values()]
+}
 
 function isNote(value: unknown): value is Note {
-  if (typeof value !== 'object' || value === null) return false
-  const note = value as Record<string, unknown>
+  if (!isRecord(value)) return false
   return (
-    isString(note.id) &&
-    isString(note.title) &&
-    isString(note.body) &&
-    Array.isArray(note.tags) &&
-    note.tags.every(isString) &&
-    typeof note.pinned === 'boolean' &&
-    isTimestamp(note.createdAt) &&
-    isTimestamp(note.updatedAt)
+    isString(value.id) &&
+    isFormat(value.format) &&
+    isString(value.title) &&
+    isString(value.body) &&
+    isString(value.folder) &&
+    Array.isArray(value.tags) &&
+    value.tags.every(isString) &&
+    typeof value.pinned === 'boolean' &&
+    isTimestamp(value.createdAt) &&
+    isTimestamp(value.updatedAt)
   )
 }
 
-/**
- * Reads the saved notes. Anything unreadable, malformed or repeated is skipped,
- * and every body is sanitized again: saved data is not trusted.
- */
-export function loadNotes(): Note[] {
-  let saved: unknown
-  try {
-    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-  } catch {
-    return []
-  }
-  if (!Array.isArray(saved)) return []
-
-  const seen = new Set<string>()
-  return saved.filter(isNote).flatMap(({ id, title, body, tags, pinned, createdAt, updatedAt }) => {
-    if (seen.has(id)) return []
-    seen.add(id)
-    return [{ id, title, body: sanitizeHtml(body), tags: parseTags(tags.join(',')), pinned, createdAt, updatedAt }]
-  })
+function isVersion(value: unknown): value is NoteVersion {
+  if (!isRecord(value)) return false
+  return (
+    isString(value.id) &&
+    isString(value.noteId) &&
+    isString(value.title) &&
+    isString(value.body) &&
+    isFormat(value.format) &&
+    isTimestamp(value.savedAt)
+  )
 }
 
-/** Returns false when the browser refuses to store the notes (private mode, quota). */
-export function saveNotes(notes: Note[]): boolean {
+/** A note in its stored shape, with saved data not trusted: rich bodies are sanitized again. */
+export function cleanNote({ id, format, title, body, folder, tags, pinned, createdAt, updatedAt }: Note): Note {
+  return {
+    id,
+    format,
+    title,
+    body: format === 'rich' ? sanitizeHtml(body) : body,
+    folder: cleanFolder(folder),
+    tags: parseTags(tags.join(',')),
+    pinned,
+    createdAt,
+    updatedAt,
+  }
+}
+
+/** Reads the saved notes. Anything malformed or repeated is skipped. */
+export function loadNotes(): Note[] {
+  return unique(readList(NOTES_KEY).items.filter(isNote)).map(cleanNote)
+}
+
+/** Reads the saved versions of the given notes; versions of notes that are gone are dropped. */
+export function loadVersions(noteIds: string[]): NoteVersion[] {
+  const known = new Set(noteIds)
+  return unique(readList(VERSIONS_KEY).items.filter(isVersion))
+    .filter((version) => known.has(version.noteId))
+    .map(({ id, noteId, title, body, format, savedAt }) => ({
+      id,
+      noteId,
+      title,
+      body: format === 'rich' ? sanitizeHtml(body) : body,
+      format,
+      savedAt,
+    }))
+}
+
+/** Returns false when the browser refuses to store the value (private mode, quota). */
+export function save(key: string, value: unknown): boolean {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes))
+    localStorage.setItem(key, JSON.stringify(value))
     return true
   } catch {
     return false
   }
 }
+
+export const saveNotes = (notes: Note[]) => save(NOTES_KEY, notes)

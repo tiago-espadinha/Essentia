@@ -6,6 +6,7 @@ import {
   filterNotes,
   formatDate,
   newId,
+  noteText,
   parseTags,
   plainText,
   tagsOf,
@@ -21,8 +22,10 @@ describe('createNote', () => {
   it('starts blank, unpinned and stamped with the creation time', () => {
     expect(createNote(new Date('2022-06-20T09:30:00Z'), 'a')).toEqual({
       id: 'a',
+      format: 'rich',
       title: '',
       body: '',
+      folder: '',
       tags: [],
       pinned: false,
       createdAt: '2022-06-20T09:30:00.000Z',
@@ -83,8 +86,17 @@ describe('filterNotes', () => {
   ]
   const ids = (list: Note[]) => list.map((n) => n.id)
 
-  it('puts pinned notes first, then the newest', () => {
+  it('puts pinned notes first, then the latest edited', () => {
     expect(ids(filterNotes(notes, '', null))).toEqual(['2', '3', '1'])
+    const edited = notes.map((n) => (n.id === '1' ? { ...n, updatedAt: '2022-07-01T10:00:00.000Z' } : n))
+    expect(ids(filterNotes(edited, '', null))).toEqual(['2', '1', '3'])
+  })
+
+  it('searches markdown notes by their source text', () => {
+    const md = note('4', { format: 'markdown', body: '# Plan\n\n- <b>bold</b> item' })
+    expect(ids(filterNotes([md], 'bold', null))).toEqual(['4'])
+    expect(noteText(md)).toBe('# Plan - <b>bold</b> item')
+    expect(noteText(notes[0])).toBe('Phase one')
   })
 
   it('searches title, body text and tags, ignoring case', () => {

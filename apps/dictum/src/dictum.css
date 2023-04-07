@@ -750,3 +750,22 @@
   .shared > .shared__note,
   .shared .prose { padding-inline: var(--space-4); }
 }
+
+/* Documents Folio now keeps: links below the list, after the documents still edited here. */
+.moved__title { padding: var(--space-4) var(--space-4) var(--space-1); }
+
+.moved__note {
+  padding: 0 var(--space-4) var(--space-2);
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.moved__open {
+  color: var(--color-accent-text);
+  font-size: var(--text-sm);
+}
+
+a.doc-row {
+  color: inherit;
+  text-decoration: none;
+}

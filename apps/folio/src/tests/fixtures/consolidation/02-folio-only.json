@@ -1,0 +1,99 @@
+{
+  "name": "02-folio-only",
+  "description": "Folio notes become rich notes; a non-UUID id gets a deterministic derived id.",
+  "input": {
+    "essentia-folio-notes": "[{\"id\": \"1b4e28ba-2fa1-4d2a-883f-0016d3cca427\", \"title\": \"Groceries\", \"body\": \"<p>Milk and <strong>bread</strong></p>\", \"tags\": [\"home\"], \"pinned\": true, \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}, {\"id\": \"0f8fad5bd9cb469fa16570867728950e\", \"title\": \"Old LAN note\", \"body\": \"<ul><li>one</li><li>two</li></ul>\", \"tags\": [], \"pinned\": false, \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}]"
+  },
+  "expected": {
+    "notes": [
+      {
+        "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+        "format": "rich",
+        "title": "Groceries",
+        "body": "<p>Milk and <strong>bread</strong></p>",
+        "folder": "",
+        "tags": [
+          "home"
+        ],
+        "pinned": true,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      },
+      {
+        "id": "fa735e75-573e-4f7e-8ae1-dc081571d8a4",
+        "format": "rich",
+        "title": "Old LAN note",
+        "body": "<ul><li>one</li><li>two</li></ul>",
+        "folder": "",
+        "tags": [],
+        "pinned": false,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "folio:1b4e28ba-2fa1-4d2a-883f-0016d3cca427": {
+          "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        },
+        "folio:0f8fad5bd9cb469fa16570867728950e": {
+          "id": "fa735e75-573e-4f7e-8ae1-dc081571d8a4",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  },
+  "expectedSecondRun": {
+    "notes": [
+      {
+        "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+        "format": "rich",
+        "title": "Groceries",
+        "body": "<p>Milk and <strong>bread</strong></p>",
+        "folder": "",
+        "tags": [
+          "home"
+        ],
+        "pinned": true,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      },
+      {
+        "id": "fa735e75-573e-4f7e-8ae1-dc081571d8a4",
+        "format": "rich",
+        "title": "Old LAN note",
+        "body": "<ul><li>one</li><li>two</li></ul>",
+        "folder": "",
+        "tags": [],
+        "pinned": false,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "folio:1b4e28ba-2fa1-4d2a-883f-0016d3cca427": {
+          "id": "1b4e28ba-2fa1-4d2a-883f-0016d3cca427",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        },
+        "folio:0f8fad5bd9cb469fa16570867728950e": {
+          "id": "fa735e75-573e-4f7e-8ae1-dc081571d8a4",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  }
+}

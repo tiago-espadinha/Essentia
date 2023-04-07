@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createNote, type Note } from '../domain/notes'
-import { loadNotes, saveNotes, STORAGE_KEY } from '../data/storage'
+import { loadNotes, loadVersions, NOTES_KEY, saveNotes, VERSIONS_KEY } from '../data/storage'
 
 const valid: Note = {
   ...createNote(new Date('2022-06-20T10:00:00Z'), 'a'),
@@ -9,7 +9,7 @@ const valid: Note = {
   tags: ['work'],
 }
 
-const store = (value: unknown) => localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+const store = (value: unknown) => localStorage.setItem(NOTES_KEY, JSON.stringify(value))
 
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.restoreAllMocks())
@@ -19,9 +19,9 @@ describe('note storage', () => {
     expect(loadNotes()).toEqual([])
   })
 
-  it('round-trips the notes under the prefixed key', () => {
+  it('round-trips the notes under the shared key', () => {
     expect(saveNotes([valid])).toBe(true)
-    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual([valid])
+    expect(JSON.parse(localStorage.getItem(NOTES_KEY)!)).toEqual([valid])
     expect(loadNotes()).toEqual([valid])
   })
 
@@ -31,7 +31,7 @@ describe('note storage', () => {
   })
 
   it('ignores corrupt or non-list data', () => {
-    localStorage.setItem(STORAGE_KEY, '{not json')
+    localStorage.setItem(NOTES_KEY, '{not json')
     expect(loadNotes()).toEqual([])
     store({ id: 'a' })
     expect(loadNotes()).toEqual([])
@@ -46,18 +46,32 @@ describe('note storage', () => {
       { ...valid, tags: [1] },
       { ...valid, pinned: 'yes' },
       { ...valid, updatedAt: 'May 26' },
+      { ...valid, format: 'html' },
+      { ...valid, folder: null },
     ])
     expect(loadNotes()).toEqual([valid])
   })
 
-  it('drops repeated ids and unknown fields, and cleans the tags', () => {
-    store([valid, { ...valid, title: 'Copy' }, { ...valid, id: 'b', tags: [' Work ', 'work', ''], extra: 1 }])
-    expect(loadNotes()).toEqual([valid, { ...valid, id: 'b', tags: ['work'] }])
+  it('drops repeated ids and unknown fields, and cleans the tags and folder', () => {
+    store([valid, { ...valid, title: 'Copy' }, { ...valid, id: 'b', folder: '  Work  notes ', tags: [' Work ', 'work', ''], extra: 1 }])
+    expect(loadNotes()).toEqual([valid, { ...valid, id: 'b', folder: 'Work notes', tags: ['work'] }])
   })
 
-  it('sanitizes saved bodies, which may have been tampered with', () => {
+  it('sanitizes saved rich bodies, which may have been tampered with', () => {
     store([{ ...valid, body: '<p onclick="alert(1)">Write</p><script>alert(1)</script><img src=x onerror=alert(1)>' }])
     expect(loadNotes()[0].body).toBe('<p>Write</p>')
+  })
+
+  it('keeps markdown bodies exactly as written', () => {
+    const markdown = { ...valid, format: 'markdown' as const, body: '# Plan\n\n<b>raw</b> `code`\n' }
+    store([markdown])
+    expect(loadNotes()).toEqual([markdown])
+  })
+
+  it('keeps versions only for notes that still exist', () => {
+    const version = { id: 'v', noteId: 'a', title: 'Plan', body: '# Plan', format: 'markdown', savedAt: valid.createdAt }
+    localStorage.setItem(VERSIONS_KEY, JSON.stringify([version, { ...version, id: 'w', noteId: 'gone' }, { ...version, id: 'x', format: 1 }]))
+    expect(loadVersions(['a'])).toEqual([version])
   })
 
   it('reports a failed save instead of throwing', () => {

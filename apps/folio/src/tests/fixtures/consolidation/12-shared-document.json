@@ -1,0 +1,84 @@
+{
+  "name": "12-shared-document",
+  "description": "A shared document's local data has no share_id; its id is kept so the remote share_id and RPC still resolve.",
+  "input": {
+    "essentia-dictum-documents": "[{\"id\": \"16fd2706-8baf-433b-82eb-8c7fada847da\", \"title\": \"Essay draft\", \"content\": \"# Essay\\n\\nFirst *draft*.\", \"folder\": \"Writing\", \"tags\": [\"essay\"], \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}]",
+    "essentia-dictum-sync": "{\"owner\": null, \"deleted\": {}}"
+  },
+  "expected": {
+    "notes": [
+      {
+        "id": "16fd2706-8baf-433b-82eb-8c7fada847da",
+        "format": "markdown",
+        "title": "Essay draft",
+        "body": "# Essay\n\nFirst *draft*.",
+        "folder": "Writing",
+        "tags": [
+          "essay"
+        ],
+        "pinned": false,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "dictum:16fd2706-8baf-433b-82eb-8c7fada847da": {
+          "id": "16fd2706-8baf-433b-82eb-8c7fada847da",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [
+        "16fd2706-8baf-433b-82eb-8c7fada847da"
+      ],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  },
+  "expectedSecondRun": {
+    "notes": [
+      {
+        "id": "16fd2706-8baf-433b-82eb-8c7fada847da",
+        "format": "markdown",
+        "title": "Essay draft",
+        "body": "# Essay\n\nFirst *draft*.",
+        "folder": "Writing",
+        "tags": [
+          "essay"
+        ],
+        "pinned": false,
+        "createdAt": "2023-01-10T09:00:00.000Z",
+        "updatedAt": "2023-01-12T10:30:00.000Z"
+      }
+    ],
+    "versions": [],
+    "ledger": {
+      "imported": {
+        "dictum:16fd2706-8baf-433b-82eb-8c7fada847da": {
+          "id": "16fd2706-8baf-433b-82eb-8c7fada847da",
+          "sourceUpdatedAt": "2023-01-12T10:30:00.000Z"
+        }
+      },
+      "moved": [
+        "16fd2706-8baf-433b-82eb-8c7fada847da"
+      ],
+      "skipped": {
+        "folio": 0,
+        "dictum": 0
+      }
+    }
+  },
+  "remoteFixtureForT052": {
+    "documents": [
+      {
+        "id": "16fd2706-8baf-433b-82eb-8c7fada847da",
+        "share_id": "c56a4180-65aa-42ec-a945-5fd21dec0538",
+        "deleted_at": null
+      }
+    ],
+    "expect": "/dictum/shared/c56a4180-65aa-42ec-a945-5fd21dec0538 resolves anonymously before and after the migration; once revoked it shows 'This document isn't shared any more.'"
+  }
+}

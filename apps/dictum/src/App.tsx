@@ -29,7 +29,7 @@ const client = getSupabase()
 export default function App() {
   useLocale()
   const auth = useAuth(client)
-  const { docs, unclaimed, answer, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
+  const { docs, moved, unclaimed, answer, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // What in which document takes focus when its editor mounts or shows.
   const [focusRequest, setFocusRequest] = useState<{ docId: string; target: FocusTarget } | null>(null)
@@ -157,6 +157,7 @@ export default function App() {
       <main className="dictum" ref={mainRef} data-view={selected && view === 'doc' ? 'doc' : 'list'}>
         <h1 className="visually-hidden">{t("Dictum documents")}</h1>
         <DocList
+          moved={moved}
           notice={
             <>
               <UndoNotice

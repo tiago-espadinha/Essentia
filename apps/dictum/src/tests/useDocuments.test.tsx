@@ -3,7 +3,7 @@ import { act, useEffect } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { fakeServer, settle } from './fakeServer'
-import { DOCS_KEY, VERSIONS_KEY } from '../data/storage'
+import { DOCS_KEY, MOVED_KEY, VERSIONS_KEY } from '../data/storage'
 import './testing'
 import { useDocuments } from '../hooks/useDocuments'
 
@@ -92,6 +92,54 @@ describe('syncing documents with the account', () => {
     expect(titles()).toEqual(['Essay'])
     expect(hook().docs[0].content).toBe('# Essay')
     expect(hook().versions).toEqual([])
+  })
+
+  it('leaves documents moved to Folio out of the question and the upload, and keeps them stored', async () => {
+    const stamp = '2022-10-20T09:00:00.000Z'
+    const moved = { id: '16fd2706-8baf-433b-82eb-8c7fada847da', title: 'Moved essay', content: '', folder: '', tags: [], createdAt: stamp, updatedAt: stamp }
+    localStorage.setItem(DOCS_KEY, JSON.stringify([moved]))
+    localStorage.setItem(MOVED_KEY, JSON.stringify({ moved: [moved.id] }))
+    const server = fakeServer()
+    const laptop = server.client(null)
+    await open(laptop.client)
+    write('Kept here')
+    expect(hook().moved.map((doc) => doc.title)).toEqual(['Moved essay'])
+
+    await laptop.signInAs('ana')
+    expect(hook().unclaimed).toBe(1)
+    await settle(() => hook().answer(true))
+    expect(server.documents.map((row) => row.title)).toEqual(['Kept here'])
+    expect(titles()).toEqual(['Kept here'])
+    expect(JSON.parse(localStorage.getItem(DOCS_KEY)!)).toContainEqual(moved)
+  })
+
+  it('stops showing a document Folio takes in while the page is open, and leaves it out of the upload', async () => {
+    const server = fakeServer()
+    const laptop = server.client(null)
+    await open(laptop.client)
+    const essay = write('Essay')
+    write('Kept here')
+    localStorage.setItem(MOVED_KEY, JSON.stringify({ moved: [essay] }))
+
+    await laptop.signInAs('ana')
+    expect(hook().moved.map((doc) => doc.title)).toEqual(['Essay'])
+    expect(hook().unclaimed).toBe(1)
+    await settle(() => hook().answer(true))
+    expect(server.documents.map((row) => row.title)).toEqual(['Kept here'])
+    expect(JSON.parse(localStorage.getItem(DOCS_KEY)!).map((doc: { title: string }) => doc.title)).toEqual(['Kept here', 'Essay'])
+  })
+
+  it('clears moved documents with the account’s copy on signing out', async () => {
+    const server = fakeServer()
+    const laptop = server.client(null)
+    await open(laptop.client)
+    localStorage.setItem(MOVED_KEY, JSON.stringify({ moved: [write('Essay')] }))
+    await laptop.signInAs('ana')
+    await settle()
+
+    await laptop.signInAs(null)
+    expect(hook().moved).toEqual([])
+    expect(JSON.parse(localStorage.getItem(DOCS_KEY)!)).toEqual([])
   })
 
   it('removes documents written before signing in when told to, versions included, and shows the account’s own', async () => {

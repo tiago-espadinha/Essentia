@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { applyChanges, createDoc, type Doc, type DocChanges } from '../domain/documents'
 import { fetchRemote, pushChanges } from '../data/remote'
-import { DOCS_KEY, loadDocs, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from '../data/storage'
+import { DOCS_KEY, loadDocs, loadMoved, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from '../data/storage'
 import { merge, NO_STAMPS, readRemote, stampDeletions, type Stamps } from '../data/sync'
 import { addVersion, type Version } from '../domain/versions'
 
@@ -21,13 +21,40 @@ const EMPTY: Saved = { docs: [], versions: [], stamps: NO_STAMPS }
 /** A pause in typing sends the document up in one sync. */
 const SYNC_DELAY = 2000
 
-function load(): Saved {
+/** Documents Folio has taken in: stored as they were, but not shown, synced or claimed here. */
+interface Moved {
+  docs: Doc[]
+  versions: Version[]
+}
+
+const NO_MOVED: Moved = { docs: [], versions: [] }
+
+/** Takes out of `saved` the documents Folio has taken in by now; they join `moved`. */
+function split(saved: Saved, moved: Moved): { saved: Saved; moved: Moved } {
+  const ids = loadMoved()
+  if (!saved.docs.some((doc) => ids.has(doc.id))) return { saved, moved }
+  return {
+    saved: {
+      ...saved,
+      docs: saved.docs.filter((doc) => !ids.has(doc.id)),
+      versions: saved.versions.filter((version) => !ids.has(version.docId)),
+    },
+    moved: {
+      docs: [...moved.docs, ...saved.docs.filter((doc) => ids.has(doc.id))],
+      versions: [...moved.versions, ...saved.versions.filter((version) => ids.has(version.docId))],
+    },
+  }
+}
+
+function load(): { saved: Saved; moved: Moved } {
   const stamps = loadStamps()
   // Another account's documents, or ones whose session has gone, never paint; the auth event then clears them.
   // New arrays, not EMPTY's: clearing then writes them over the stored copy.
-  if (stamps.owner !== null && stamps.owner !== storedUserId()) return { docs: [], versions: [], stamps }
+  if (stamps.owner !== null && stamps.owner !== storedUserId()) {
+    return { saved: { docs: [], versions: [], stamps }, moved: NO_MOVED }
+  }
   const docs = loadDocs()
-  return { docs, versions: loadVersions(docs.map((doc) => doc.id)), stamps }
+  return split({ docs, versions: loadVersions(docs.map((doc) => doc.id)), stamps }, NO_MOVED)
 }
 
 /**
@@ -38,7 +65,11 @@ function load(): Saved {
  * another app) removes it.
  */
 export function useDocuments(client: SupabaseClient | null = null) {
-  const [saved, setSaved] = useState<Saved>(load)
+  const [initial] = useState(load)
+  const [saved, setSaved] = useState<Saved>(initial.saved)
+  // Folio can take documents in while this page is open, so each store looks again.
+  const [moved, setMoved] = useState(initial.moved)
+  const movedRef = useRef(moved)
   // Whether the last write of each list failed; the alert shows while any did.
   const [failed, setFailed] = useState({ docs: false, versions: false, stamps: false })
   // Several changes can land in one event (a restore saves a version, then the text),
@@ -53,14 +84,19 @@ export function useDocuments(client: SupabaseClient | null = null) {
   // Set by Supabase's auth events, which can come from another app or tab.
   const userId = useRef<string | null>(null)
 
-  function store(next: Saved) {
+  function setMovedDocs(next: Moved) {
+    movedRef.current = next
+    setMoved(next)
+  }
+
+  function store(requested: Saved) {
     const current = latest.current
-    // Only what changed is written, so only it updates its flag.
-    const written = (key: typeof DOCS_KEY | typeof VERSIONS_KEY | typeof SYNC_KEY, before: unknown, after: Doc[] | Version[] | Stamps) =>
-      before === after ? null : !save(key, after)
-    const docsFailed = written(DOCS_KEY, current.docs, next.docs)
-    const versionsFailed = written(VERSIONS_KEY, current.versions, next.versions)
-    const stampsFailed = written(SYNC_KEY, current.stamps, next.stamps)
+    const { saved: next, moved: nowMoved } = split(requested, movedRef.current)
+    if (nowMoved !== movedRef.current) setMovedDocs(nowMoved)
+    // Only what changed is written, so only it updates its flag. Moved documents are written back as they were.
+    const docsFailed = current.docs === next.docs ? null : !save(DOCS_KEY, [...next.docs, ...nowMoved.docs])
+    const versionsFailed = current.versions === next.versions ? null : !save(VERSIONS_KEY, [...next.versions, ...nowMoved.versions])
+    const stampsFailed = current.stamps === next.stamps ? null : !save(SYNC_KEY, next.stamps)
     latest.current = next
     setSaved(next)
     setFailed((flags) => ({
@@ -134,11 +170,17 @@ export function useDocuments(client: SupabaseClient | null = null) {
     setAsking(false)
     const { owner } = latest.current.stamps
     // Offline with an expired token, Supabase reports no session yet keeps it: the copy stays until the session goes.
-    if (owner !== null && owner !== (user ?? storedUserId())) store(EMPTY)
+    if (owner !== null && owner !== (user ?? storedUserId())) {
+      // Folio already keeps the moved documents: clearing the account's copy takes them too.
+      setMovedDocs(NO_MOVED)
+      store(EMPTY)
+    }
     if (!user) {
       setSyncState('off')
       return
     }
+    // Documents Folio took in since the page opened are neither asked about nor claimed.
+    store(latest.current)
     if (latest.current.stamps.owner === null && latest.current.docs.length > 0) {
       setAsking(true)
       return
@@ -192,6 +234,8 @@ export function useDocuments(client: SupabaseClient | null = null) {
 
   return {
     docs: saved.docs,
+    /** Documents Folio now keeps; listed here only as links. */
+    moved: moved.docs,
     /** How many documents made while signed out wait for `answer`; 0 when there is no question. */
     unclaimed: asking ? saved.docs.length : 0,
     /** Adds the waiting documents to the account, or removes them (and their versions) from this device. */

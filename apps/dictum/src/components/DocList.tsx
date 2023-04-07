@@ -9,6 +9,8 @@ interface DocListProps {
   docs: Doc[]
   /** How many documents exist at all. */
   total: number
+  /** Documents Folio now keeps, listed as links to it. */
+  moved: Doc[]
   selectedId: string | null
   /** Search and filters, shown once there is something to filter. */
   filters: ReactNode
@@ -19,7 +21,7 @@ interface DocListProps {
   onNew: () => void
 }
 
-export function DocList({ docs, total, selectedId, filters, onClearFilters, notice, onSelect, onNew }: DocListProps) {
+export function DocList({ docs, total, moved, selectedId, filters, onClearFilters, notice, onSelect, onNew }: DocListProps) {
   return (
     <section className="pane list-pane" aria-labelledby="list-title">
       <div className="pane__head">
@@ -66,7 +68,32 @@ export function DocList({ docs, total, selectedId, filters, onClearFilters, noti
             ))}
           </ul>
         )}
+        {moved.length > 0 && <MovedDocs docs={moved} />}
       </div>
+    </section>
+  )
+}
+
+/** Folio is served beside Dictum on the same site. */
+const FOLIO_PATH = '/folio/'
+
+function MovedDocs({ docs }: { docs: Doc[] }) {
+  return (
+    <section className="moved" aria-labelledby="moved-title">
+      <h3 id="moved-title" className="label moved__title">{t('Moved to Folio')}</h3>
+      <p className="moved__note">{t('Folio keeps these now; edit them there.')}</p>
+      <ul className="docs">
+        {docs.map((doc) => (
+          <li key={doc.id}>
+            <a className="doc-row" href={FOLIO_PATH}>
+              <span className="doc-row__title">{displayTitle(doc)}</span>
+              <span className="moved__open">
+                {t('Open in Folio')} <span aria-hidden="true">→</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }

@@ -176,11 +176,15 @@ export interface Opened extends Store {
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
 
-/** Keeps an unreadable notes list before it is written over; an earlier, different copy is never replaced. */
-function keepUnreadable(raw: string, now: string): boolean {
+/**
+ * Keeps an unreadable notes list before anything is written over it. An earlier,
+ * different copy is never replaced: the next one is keyed by its content, so the
+ * same value is kept once however often loading fails.
+ */
+function keepUnreadable(raw: string): boolean {
   const kept = readRaw(UNREADABLE_KEY)
-  if (kept === JSON.stringify(raw)) return true
-  return save(kept === null ? UNREADABLE_KEY : `${UNREADABLE_KEY}:${now}`, raw)
+  const key = kept === null ? UNREADABLE_KEY : `${UNREADABLE_KEY}:${uuidFromHash(raw)}`
+  return readRaw(key) === JSON.stringify(raw) || save(key, raw)
 }
 
 /**
@@ -203,9 +207,10 @@ export function openNotes(now = new Date().toISOString()): Opened {
   }, now)
   const result = { notes: next.notes, versions: next.versions }
 
+  // Before any write, here or by the first edit: an unreadable list can be one that only failed to parse.
+  const raw = readRaw(NOTES_KEY)
+  if (raw !== null && !readList(NOTES_KEY).readable && !keepUnreadable(raw)) return { ...result, failed: true }
   if (!same(next.notes, store.notes)) {
-    const raw = readRaw(NOTES_KEY)
-    if (raw !== null && !readList(NOTES_KEY).readable && !keepUnreadable(raw, now)) return { ...result, failed: true }
     if (!save(NOTES_KEY, next.notes) || !same(loadNotes().map((note) => note.id), next.notes.map((note) => note.id))) {
       return { ...result, failed: true }
     }

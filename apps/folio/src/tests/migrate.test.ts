@@ -109,9 +109,25 @@ describe('moving notes into one store', () => {
     seed(fixtures.find((fixture) => fixture.name === '02-folio-only')!.input)
     localStorage.setItem(UNREADABLE_KEY, JSON.stringify('first'))
     localStorage.setItem(NOTES_KEY, '{second')
-    expect(openNotes('2023-04-06T09:00:00.000Z').failed).toBe(false)
+    expect(openNotes().failed).toBe(false)
     expect(read(UNREADABLE_KEY)).toBe('first')
-    expect(read(`${UNREADABLE_KEY}:2023-04-06T09:00:00.000Z`)).toBe('{second')
+    const copies = () => Object.keys(localStorage).filter((key) => key.startsWith(`${UNREADABLE_KEY}:`))
+    expect(copies().map(read)).toEqual(['{second'])
+
+    localStorage.setItem(NOTES_KEY, '{second')
+    localStorage.removeItem(LEDGER_KEY)
+    refuse([NOTES_KEY, LEDGER_KEY])
+    openNotes('2023-04-06T10:00:00.000Z')
+    openNotes('2023-04-06T11:00:00.000Z')
+    expect(copies()).toHaveLength(1)
+  })
+
+  it('keeps an unreadable notes list once the move has already run', () => {
+    seed(fixtures.find((fixture) => fixture.name === '02-folio-only')!.input)
+    openNotes()
+    localStorage.setItem(NOTES_KEY, '{garbled')
+    expect(openNotes().failed).toBe(false)
+    expect(read(UNREADABLE_KEY)).toBe('{garbled')
   })
 
   it('keeps an unreadable notes list before writing over it', () => {

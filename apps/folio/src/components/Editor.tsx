@@ -20,6 +20,7 @@ interface EditorProps {
   /** Back to the note list, shown below 768 px. */
   onBack: () => void
   onVersions: () => void
+  onConvert: () => void
   onDelete: () => void
 }
 
@@ -28,7 +29,7 @@ interface EditorProps {
  * A markdown note is edited as its source text, with a preview beside it: the
  * rich editor would turn it into HTML.
  */
-export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack, onVersions, onDelete }: EditorProps) {
+export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack, onVersions, onConvert, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const sourceRef = useRef<HTMLTextAreaElement>(null)
@@ -106,6 +107,9 @@ export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack,
                   strokeLinejoin="round"
                 />
               </svg>{t("Pin")}</button>
+            <button type="button" id="convert-button" className="button-ghost" onClick={onConvert}>
+              {t(markdown ? 'Convert to rich text' : 'Convert to markdown')}
+            </button>
             <button type="button" id="versions-button" className="button-ghost" onClick={onVersions}>{t("Versions")}</button>
             <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>{t("Delete")}</button>
           </>

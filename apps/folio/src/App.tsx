@@ -7,6 +7,7 @@ import { Library } from './components/Library'
 import { NoteList } from './components/NoteList'
 import { filterNotes, noteText, tagsOf, type Note } from './domain/notes'
 import { DeleteAnnouncer } from './components/UndoNotice'
+import { ConvertDialog } from './components/ConvertDialog'
 import { VersionsDialog } from './components/VersionsDialog'
 import { versionsOf } from './domain/versions'
 import { useAutoVersion } from './hooks/useAutoVersion'
@@ -19,11 +20,12 @@ const PHONE = '(width < 768px)'
 export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
-  const { notes, versions, readOnly, saveFailed, add, update, saveVersion, restoreVersion, remove, restore } = useNotes()
+  const { notes, versions, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore } = useNotes()
   const autoVersion = useAutoVersion(saveVersion)
-  // The note whose versions are open; the dialog closes if the note goes.
-  const [versionsFor, setVersionsFor] = useState<string | null>(null)
-  // Bumped when a restore replaces the open note's body, which the editor writes into the DOM only on mount.
+  // The open dialog and the note it is for; it closes if the note goes.
+  const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string } | null>(null)
+  // Bumped when a restore or conversion replaces the open note's body, which the editor writes into the DOM only on mount.
+  // The editor's key also holds the note's format, so a conversion made in another tab remounts it too.
   const [revision, setRevision] = useState(0)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // The latest deleted note, until it is restored or another one is deleted.
@@ -58,8 +60,16 @@ export default function App() {
   const visible = filterNotes(notes, query, activeTag)
   // With nothing chosen yet, or the chosen note gone, the first note in the list is open.
   const selected = notes.find((note) => note.id === selectedId) ?? visible[0] ?? null
-  const versionsNote = notes.find((note) => note.id === versionsFor) ?? null
-  if (versionsFor !== null && !versionsNote) setVersionsFor(null)
+  const dialogNote = dialog && notes.find((note) => note.id === dialog.noteId)
+  if (dialog && !dialogNote) setDialog(null)
+
+  // A restore or conversion saves the note first, so an autosave pending for it would only repeat that.
+  function replaceBody(id: string, change: () => void) {
+    autoVersion.cancel(id)
+    change()
+    setRevision(revision + 1)
+    setDialog(null)
+  }
 
   // An active filter keeps the bar open, so the list is never narrowed out of sight.
   const libraryOpen = filtersOpen || query !== '' || activeTag !== null
@@ -161,7 +171,7 @@ export default function App() {
           )}
           {selected ? (
             <Editor
-              key={`${selected.id}:${revision}`}
+              key={`${selected.id}:${selected.format}:${revision}`}
               note={selected}
               readOnly={readOnly}
               autoFocus={selected.id === titleFocusId}
@@ -173,7 +183,8 @@ export default function App() {
                 if ('title' in changes || 'body' in changes) autoVersion.schedule(selected.id)
               }}
               onBack={() => backToList(selected.id)}
-              onVersions={() => setVersionsFor(selected.id)}
+              onVersions={() => setDialog({ kind: 'versions', noteId: selected.id })}
+              onConvert={() => setDialog({ kind: 'convert', noteId: selected.id })}
               onDelete={() => deleteNote(selected.id)}
             />
           ) : (
@@ -181,18 +192,20 @@ export default function App() {
           )}
         </section>
       </main>
-      {versionsNote && (
+      {dialog?.kind === 'versions' && dialogNote && (
         <VersionsDialog
-          note={versionsNote}
-          versions={versionsOf(versions, versionsNote.id)}
-          onSave={() => saveVersion(versionsNote.id)}
-          onRestore={(version) => {
-            autoVersion.cancel(versionsNote.id)
-            restoreVersion(versionsNote.id, version)
-            setRevision(revision + 1)
-            setVersionsFor(null)
-          }}
-          onClose={() => setVersionsFor(null)}
+          note={dialogNote}
+          versions={versionsOf(versions, dialogNote.id)}
+          onSave={() => saveVersion(dialogNote.id)}
+          onRestore={(version) => replaceBody(dialogNote.id, () => restoreVersion(dialogNote.id, version))}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog?.kind === 'convert' && dialogNote && (
+        <ConvertDialog
+          note={dialogNote}
+          onConvert={() => replaceBody(dialogNote.id, () => convert(dialogNote.id))}
+          onClose={() => setDialog(null)}
         />
       )}
     </>

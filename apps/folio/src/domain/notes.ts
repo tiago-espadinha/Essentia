@@ -29,7 +29,7 @@ export interface NoteVersion {
   savedAt: string
 }
 
-export type NoteChanges = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned'>>
+export type NoteChanges = Partial<Pick<Note, 'format' | 'title' | 'body' | 'tags' | 'pinned'>>
 
 /**
  * A random id. `crypto.randomUUID` exists only in secure contexts (https or

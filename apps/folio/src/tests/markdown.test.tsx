@@ -18,6 +18,7 @@ describe('markdown notes in Folio', () => {
     seedDictum()
     const app = renderApp()
     expect(rowTitles()).toEqual(['Essay draft'])
+    expect($('.note-row__preview').textContent).toBe('Essay First draft with <b>tags</b> and code.')
     expect($<HTMLTextAreaElement>('#note-source').value).toBe(source)
     expect(app.querySelector('.editor__body[contenteditable]')).toBeNull()
     expect(buttonNamed('Code block')).toBeTruthy()

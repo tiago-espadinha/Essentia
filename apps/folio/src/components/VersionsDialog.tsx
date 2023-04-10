@@ -1,6 +1,6 @@
 import { currentLocale, Dialog, formatNumber } from '@essentia/ui'
 import { t } from '../locale'
-import { noteText, type Note, type NoteVersion } from '../domain/notes'
+import { excerptText, type Note, type NoteVersion } from '../domain/notes'
 import { holds, MAX_VERSIONS } from '../domain/versions'
 
 interface VersionsDialogProps {
@@ -17,7 +17,7 @@ const time = (iso: string) =>
 
 /** A short plain preview of a version's text. */
 function excerpt(version: NoteVersion, length = 80): string {
-  const text = noteText(version)
+  const text = excerptText(version)
   return text.length > length ? `${text.slice(0, length).trimEnd()}…` : text
 }
 

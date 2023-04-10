@@ -284,6 +284,15 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.3.1(react@19.3.1)
+      react-markdown:
+        specifier: 'catalog:'
+        version: 10.1.0(@types/react@19.3.0)(react@19.3.1)
+      rehype-highlight:
+        specifier: 'catalog:'
+        version: 7.0.2
+      remark-gfm:
+        specifier: 'catalog:'
+        version: 4.0.1
     devDependencies:
       '@essentia/config':
         specifier: workspace:*

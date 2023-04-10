@@ -16,7 +16,10 @@
     "@essentia/ui": "workspace:*",
     "dompurify": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-markdown": "catalog:",
+    "rehype-highlight": "catalog:",
+    "remark-gfm": "catalog:"
   },
   "devDependencies": {
     "@essentia/config": "workspace:*",

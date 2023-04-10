@@ -4,6 +4,9 @@ import { useEffect, useLayoutEffect, useRef, useState, type DragEvent, type Keyb
 import { insertTransfer, placeCaretAt } from '../domain/editing'
 import { countWords, formatDate, noteText, parseTags, type Note, type NoteChanges } from '../domain/notes'
 import { sanitizeHtml } from '../domain/sanitize'
+import { useMarkdownFormat } from '../hooks/useMarkdownFormat'
+import { MarkdownBody, ModeSwitch, type Mode } from './MarkdownBody'
+import { MarkdownToolbar } from './MarkdownToolbar'
 import { Toolbar } from './Toolbar'
 
 interface EditorProps {
@@ -21,7 +24,8 @@ interface EditorProps {
 
 /**
  * One note. Remounted per note (keyed by id), so the body is written into the DOM once.
- * A markdown note is edited as its source text: the rich editor would turn it into HTML.
+ * A markdown note is edited as its source text, with a preview beside it: the
+ * rich editor would turn it into HTML.
  */
 export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
@@ -30,6 +34,8 @@ export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack,
   const markdown = note.format === 'markdown'
   // Text dragged within the body moves natively; anything from outside is cleaned first.
   const draggingInside = useRef(false)
+  const [mode, setMode] = useState<Mode>('write')
+  const markdownFormat = useMarkdownFormat(sourceRef, (body) => onChange({ body }))
 
   // Before paint, so switching notes never shows an empty body.
   useLayoutEffect(() => {
@@ -67,18 +73,21 @@ export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack,
 
   return (
     <>
-      <div className="editor__bar">
+      <div className="editor__bar" data-mode={markdown ? mode : undefined}>
         <button type="button" className="button-ghost back-button" onClick={onBack}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M10 3.5 5.5 8l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>{t("Notes")}</button>
-        {markdown || readOnly ? (
+        {readOnly ? (
           <span className="editor__format">
-            {[markdown && t('Markdown source'), readOnly && t('Read-only')].filter(Boolean).join(' · ')}
+            {[markdown && t('Markdown'), t('Read-only')].filter(Boolean).join(' · ')}
           </span>
+        ) : markdown ? (
+          <MarkdownToolbar onFormat={markdownFormat.applyFormat} />
         ) : (
           <Toolbar bodyRef={bodyRef} onFormat={saveBody} />
         )}
+        {markdown && <ModeSwitch mode={mode} onChange={setMode} />}
         {!readOnly && (
           <>
             <button
@@ -102,7 +111,7 @@ export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack,
       </div>
 
       <div className="pane__body">
-        <article className="editor">
+        <article className={markdown ? 'editor editor--markdown' : 'editor'}>
           <label htmlFor="note-title" className="visually-hidden">{t("Title")}</label>
           <textarea
             id="note-title"
@@ -125,14 +134,13 @@ export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack,
           </div>
 
           {markdown ? (
-            <textarea
-              ref={sourceRef}
-              className="editor__body editor__source"
-              aria-label={t("Note")}
-              placeholder={t("Start writing")}
+            <MarkdownBody
+              body={note.body}
+              mode={mode}
               readOnly={readOnly}
-              value={note.body}
-              onChange={(event) => onChange({ body: event.target.value })}
+              textRef={sourceRef}
+              onChange={(body) => onChange({ body })}
+              onShortcut={markdownFormat.shortcut}
             />
           ) : (
             <div

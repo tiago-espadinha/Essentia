@@ -322,6 +322,8 @@
 .editor__bar .toolbar { margin-right: auto; }
 
 .toolbar {
+  /* Contains its buttons' visually hidden labels, so a scrolling toolbar clips them too. */
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -520,7 +522,8 @@
   }
 }
 
-/* A markdown note's source, edited as plain text. */
+/* A markdown note: its source in the mono face, as in Dictum, and the preview in
+   Folio's reading face; side by side from 1280 px, one at a time below. */
 .editor__format {
   margin-right: auto;
   color: var(--color-mid);
@@ -535,10 +538,197 @@
   background: transparent;
   resize: none;
   color: inherit;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   white-space: pre-wrap;
 }
 
 .editor__source::placeholder { color: var(--color-mid); }
+
+.mode-switch {
+  display: flex;
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+}
+
+.mode-switch__button {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-mid);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.mode-switch__button + .mode-switch__button { border-left: 1px solid var(--color-line-strong); }
+.mode-switch__button:hover { color: var(--color-ink); }
+
+.mode-switch__button[aria-pressed='true'] {
+  background: var(--color-paper);
+  color: var(--color-accent-text);
+  font-weight: 500;
+}
+
+/* A markdown note's toolbar is too long to share a row with the note actions:
+   it takes its own row under them at every width, scrolling sideways if it must. */
+.editor__bar[data-mode] { flex-wrap: wrap; }
+
+.editor__bar[data-mode] .toolbar {
+  order: 1;
+  flex-basis: 100%;
+  flex-wrap: nowrap;
+  min-width: 0;
+  margin-right: 0;
+  overflow-x: auto;
+}
+
+.editor__bar[data-mode] .mode-switch { margin-right: auto; }
+
+/* The formatting buttons act on the source, so they leave with it. */
+.editor__bar[data-mode='preview'] .toolbar { display: none; }
+
+.md-panes[data-mode='write'] .md-preview,
+.md-panes[data-mode='preview'] .md-write { display: none; }
+
+.md-preview .preview__idle {
+  margin-top: var(--space-6);
+  color: var(--color-mid);
+}
+
+@media (width >= 1280px) {
+  .editor--markdown { max-width: 1200px; }
+  .mode-switch { display: none; }
+  .editor__bar[data-mode='preview'] .toolbar { display: flex; }
+
+  .md-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+
+  .md-panes[data-mode] .md-write,
+  .md-panes[data-mode] .md-preview { display: block; }
+
+  .md-preview {
+    padding-left: var(--space-8);
+    border-left: 1px solid var(--color-faint);
+  }
+}
+
+/* Rendered markdown, in the reading face that rich notes use. */
+.prose {
+  margin-top: var(--space-6);
+  font-family: var(--font-reading);
+  font-size: var(--text-md);
+  line-height: var(--leading-reading);
+  overflow-wrap: anywhere;
+}
+
+.prose > * + * { margin-top: var(--space-4); }
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: var(--leading-tight);
+}
+
+.prose h1 { font-size: var(--text-2xl); }
+.prose h2 { font-size: var(--text-xl); }
+.prose h3 { font-size: var(--text-lg); }
+.prose * + :is(h1, h2, h3) { margin-top: var(--space-8); }
+
+.prose h4,
+.prose h5,
+.prose h6 { font-size: var(--text-md); }
+
+.prose ul,
+.prose ol { padding-left: var(--space-6); }
+
+.prose li + li { margin-top: var(--space-1); }
+
+.prose blockquote {
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-terracotta);
+  font-style: italic;
+  color: var(--color-mid);
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-faint);
+}
+
+.prose img { max-width: 100%; }
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+.prose :not(pre) > code {
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--color-paper);
+}
+
+.prose pre {
+  padding: var(--space-4);
+  overflow-x: auto;
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+  line-height: var(--leading-normal);
+}
+
+.prose table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.prose th,
+.prose td {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-faint);
+  text-align: left;
+}
+
+.prose th {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-mid);
+}
+
+.prose input[type='checkbox'] { margin-right: var(--space-2); }
+.prose li:has(> input[type='checkbox']) { list-style: none; }
+
+/* Code highlighting from the tokens, not a highlight.js theme. */
+.hljs-comment,
+.hljs-quote { color: var(--color-mid); font-style: italic; }
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-type { color: var(--color-accent-text); }
+
+.hljs-string,
+.hljs-regexp,
+.hljs-attr,
+.hljs-symbol { color: var(--color-success); }
+
+.hljs-title,
+.hljs-section { font-weight: 600; }
+
+.hljs-number,
+.hljs-literal,
+.hljs-meta { color: var(--color-mid); }
 
 /* Notes that could not be stored on this device: a strip under the list head, like the undo notice. */
 .read-only {

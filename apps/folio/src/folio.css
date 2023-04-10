@@ -753,3 +753,48 @@
   border-color: transparent;
   background: transparent;
 }
+
+/* Dialogs: the versions list wants a wider panel than the shared default. */
+.ui-dialog { width: min(100% - 2 * var(--space-4), 520px); }
+
+.dialog__text {
+  margin: var(--space-1) 0 var(--space-4);
+  color: var(--color-mid);
+}
+
+.versions {
+  margin-top: var(--space-4);
+  list-style: none;
+  border-top: 1px solid var(--color-faint);
+}
+
+.version {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-faint);
+}
+
+.version__text {
+  display: grid;
+  flex: 1;
+  gap: var(--space-0-5);
+  min-width: 0;
+}
+
+.version__title { font-weight: 500; }
+
+.version__title,
+.version__excerpt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.version__excerpt { color: var(--color-mid); }
+
+.versions__empty {
+  margin-top: var(--space-4);
+  color: var(--color-mid);
+}

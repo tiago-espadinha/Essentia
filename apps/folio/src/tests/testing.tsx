@@ -9,6 +9,11 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
+// jsdom has no modal dialogs.
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+  this.open = true
+}
+
 let container: HTMLElement
 let root: Root | null = null
 
@@ -20,6 +25,7 @@ export function setupApp() {
   afterEach(() => {
     unmount()
     vi.unstubAllGlobals()
+    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 }

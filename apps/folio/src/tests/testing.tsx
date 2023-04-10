@@ -9,6 +9,11 @@ declare global {
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
+// jsdom has no modal dialogs.
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+  this.open = true
+}
+
 let container: HTMLElement
 let root: Root | null = null
 
@@ -20,6 +25,7 @@ export function setupApp() {
   afterEach(() => {
     unmount()
     vi.unstubAllGlobals()
+    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 }
@@ -44,13 +50,15 @@ export function $<T extends Element = HTMLElement>(selector: string): T {
   return element
 }
 
-export function buttonNamed(name: string | RegExp): HTMLButtonElement {
-  const match = [...container.querySelectorAll('button')].find((button) => {
+export function buttonNamed(name: string | RegExp): HTMLButtonElement
+export function buttonNamed(name: string | RegExp, options: { optional: true }): HTMLButtonElement | null
+export function buttonNamed(name: string | RegExp, { optional = false } = {}): HTMLButtonElement | null {
+  const match = [...document.body.querySelectorAll('button')].find((button) => {
     const label = button.getAttribute('aria-label') ?? button.textContent?.trim() ?? ''
     return typeof name === 'string' ? label === name : name.test(label)
   })
-  if (!match) throw new Error(`No button named ${name}`)
-  return match
+  if (!match && !optional) throw new Error(`No button named ${name}`)
+  return match ?? null
 }
 
 export function type(field: HTMLInputElement | HTMLTextAreaElement, value: string) {
@@ -75,8 +83,8 @@ export function click(element: HTMLElement) {
   act(() => element.click())
 }
 
-export function press(element: HTMLElement, key: string) {
-  act(() => element.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })))
+export function press(element: HTMLElement, key: string, modifiers: KeyboardEventInit = {}) {
+  act(() => element.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...modifiers })))
 }
 
 export function blur(element: HTMLElement) {

@@ -30,6 +30,7 @@ describe('notes that cannot be stored on this device', () => {
     expect(() => buttonNamed('New note')).toThrow()
     expect(app.querySelector('.pin-button')).toBeNull()
     expect(app.querySelector('.toolbar')).toBeNull()
+    expect(app.querySelector('#convert-button, #versions-button')).toBeNull()
     expect(localStorage.getItem('essentia-folio-notes')).toBe(folioNotes)
     expect(localStorage.getItem('essentia-notes-migration')).toBeNull()
   })

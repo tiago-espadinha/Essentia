@@ -29,7 +29,7 @@ export interface NoteVersion {
   savedAt: string
 }
 
-export type NoteChanges = Partial<Pick<Note, 'title' | 'body' | 'tags' | 'pinned'>>
+export type NoteChanges = Partial<Pick<Note, 'format' | 'title' | 'body' | 'tags' | 'pinned'>>
 
 /**
  * A random id. `crypto.randomUUID` exists only in secure contexts (https or
@@ -59,6 +59,31 @@ export function plainText(html: string): string {
 /** The words of a note as one line: rich text without its markup, markdown as written. */
 export function noteText(note: Pick<Note, 'format' | 'body'>): string {
   return note.format === 'rich' ? plainText(note.body) : note.body.replace(/\s+/g, ' ').trim()
+}
+
+/**
+ * Markdown read as plain words, for a short excerpt: markers, fences, rules and
+ * table rows go, links and images leave their text, emphasis its words.
+ */
+export function markdownText(source: string): string {
+  return source
+    .replace(/^ {0,3}(`{3,}|~{3,}).*$/gm, '')
+    .replace(/^ {0,3}([-*_])( *\1){2,} *$/gm, '')
+    .replace(/^ *\|?[ :|-]*-[ :|-]*$/gm, '')
+    .replace(/^ *(?:(?:#{1,6}|>|[-*+]|\d+[.)])(?: +|$))+(?:\[[ xX]\] +)?/gm, '')
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/(?<![\\\w])(\*{1,3}|_{1,3}|~~)(?=\S)([\s\S]*?[^\s\\])\1(?!\w)/g, '$2')
+    .replace(/`+/g, '')
+    .replace(/\|/g, ' ')
+    .replace(/\\([!-/:-@[-`{-~])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/** The words of a note for an excerpt: rich text without its markup, markdown without its syntax. */
+export function excerptText(note: Pick<Note, 'format' | 'body'>): string {
+  // An excerpt shows a line or two, so a long markdown note is read only as far as that.
+  return note.format === 'rich' ? plainText(note.body) : markdownText(note.body.slice(0, 500))
 }
 
 /** 'Ideas  2023 ' -> 'Ideas 2023': a folder name with its spacing tidied. */

@@ -3,6 +3,7 @@ import {
   applyChanges,
   countWords,
   createNote,
+  excerptText,
   filterNotes,
   formatDate,
   newId,
@@ -119,5 +120,26 @@ describe('filterNotes', () => {
 describe('formatDate', () => {
   it('shows a short calendar date', () => {
     expect(formatDate('2022-06-20T12:00:00Z')).toBe('20 Jun 2022')
+  })
+})
+
+describe('excerptText', () => {
+  it('reads markdown as plain words for the list', () => {
+    const body = [
+      '# Plan',
+      '> - [x] **done** _well_ and ~~old~~',
+      '1. See [docs](https://example.com) ![chart](c.png) `npm test` \\*literal\\*',
+      '```js\nconst a = 1\n```',
+      '| a | b |\n| - | - |',
+      '---',
+      'snake_case_name stays',
+    ].join('\n\n')
+    expect(excerptText({ format: 'markdown', body })).toBe(
+      'Plan done well and old See docs chart npm test *literal* const a = 1 a b snake_case_name stays',
+    )
+  })
+
+  it('reads rich text without its markup', () => {
+    expect(excerptText({ format: 'rich', body: '<h1>Plan</h1><p>a <strong>b</strong></p>' })).toBe('Plan a b')
   })
 })

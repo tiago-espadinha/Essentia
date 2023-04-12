@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createNote, type Note } from '../domain/notes'
-import { loadNotes, loadVersions, NOTES_KEY, saveNotes, VERSIONS_KEY } from '../data/storage'
+import { FOLDERS_KEY, loadFolders, loadNotes, loadVersions, NOTES_KEY, saveFolders, saveNotes, VERSIONS_KEY } from '../data/storage'
 
 const valid: Note = {
   ...createNote(new Date('2022-06-20T10:00:00Z'), 'a'),
@@ -86,5 +86,36 @@ describe('note storage', () => {
       throw new DOMException('Denied', 'SecurityError')
     })
     expect(loadNotes()).toEqual([])
+  })
+})
+
+describe('folder storage', () => {
+  const keep = (value: unknown) => localStorage.setItem(FOLDERS_KEY, JSON.stringify(value))
+
+  it('starts with no folders kept', () => {
+    expect(loadFolders()).toEqual([])
+  })
+
+  it('round-trips the folders under their own key', () => {
+    expect(saveFolders(['Home', 'Work'])).toBe(true)
+    expect(loadFolders()).toEqual(['Home', 'Work'])
+  })
+
+  it('cleans names and skips blank, overlong, repeated and non-string entries', () => {
+    keep([' Work  plans ', 'Work plans', '', '   ', 7, null, 'a'.repeat(101), 'a'.repeat(100), 'Home'])
+    expect(loadFolders()).toEqual(['Work plans', 'a'.repeat(100), 'Home'])
+  })
+
+  it.each([['{"Work":1}'], ['"Work"'], ['42'], ['null'], ['not json']])('reads %s as no folders and leaves it stored', (raw) => {
+    localStorage.setItem(FOLDERS_KEY, raw)
+    expect(loadFolders()).toEqual([])
+    expect(localStorage.getItem(FOLDERS_KEY)).toBe(raw)
+  })
+
+  it('reports a refused write', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError')
+    })
+    expect(saveFolders(['Work'])).toBe(false)
   })
 })

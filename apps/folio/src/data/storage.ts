@@ -1,10 +1,12 @@
-import { cleanFolder, parseTags, type Note, type NoteVersion } from '../domain/notes'
+import { cleanFolder, FOLDER_LIMIT, parseTags, type Note, type NoteVersion } from '../domain/notes'
 import { sanitizeHtml } from '../domain/sanitize'
 
 // The notes store, shared by everything Folio holds. The keys the apps used
 // before it (see sources.ts) are only ever read.
 export const NOTES_KEY = 'essentia-notes'
 export const VERSIONS_KEY = 'essentia-notes-versions'
+/** Folders kept on their own, so a folder stays while it holds no notes. */
+export const FOLDERS_KEY = 'essentia-notes-folders'
 /** A copy of an unreadable notes list, kept before anything is written over it. */
 export const UNREADABLE_KEY = 'essentia-notes-unreadable'
 
@@ -115,3 +117,15 @@ export function save(key: string, value: unknown): boolean {
 }
 
 export const saveNotes = (notes: Note[]) => save(NOTES_KEY, notes)
+
+/**
+ * Reads the folders kept on their own: names cleaned, blank, overlong and
+ * repeated ones skipped. Anything unreadable reads as none, and is left as it
+ * is until a folder change writes the list again.
+ */
+export function loadFolders(): string[] {
+  const names = readList(FOLDERS_KEY).items.filter(isString).map(cleanFolder)
+  return [...new Set(names.filter((name) => name && name.length <= FOLDER_LIMIT))]
+}
+
+export const saveFolders = (folders: string[]) => save(FOLDERS_KEY, folders)

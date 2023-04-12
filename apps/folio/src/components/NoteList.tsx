@@ -9,6 +9,10 @@ interface NoteListProps {
   notes: Note[]
   /** How many notes exist at all. */
   total: number
+  /** Whether there is anything for the Filter bar to narrow by: notes, or folders kept on their own. */
+  canFilter: boolean
+  /** Only a folder narrows the list, so an empty list means an empty folder. */
+  emptyFolder: boolean
   selectedId: string | null
   /** Whether the Filter bar (the Library, below 1024 px) is open. */
   filtersOpen: boolean
@@ -27,6 +31,8 @@ interface NoteListProps {
 export function NoteList({
   notes,
   total,
+  canFilter,
+  emptyFolder,
   selectedId,
   filtersOpen,
   deleted,
@@ -56,7 +62,7 @@ export function NoteList({
         <h2 id="list-title" className="label">
           {t('Notes · {count}', { count: formatNumber(notes.length) })}
         </h2>
-        {total > 0 && (
+        {canFilter && (
           <div className="pane__actions">
             <button
               type="button"
@@ -68,7 +74,7 @@ export function NoteList({
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M2.5 4h11M4.5 8h7M6.5 12h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>{t("Filter")}</button>
-            {!readOnly && <NewNoteButton onClick={onNew} />}
+            {!readOnly && total > 0 && <NewNoteButton onClick={onNew} />}
           </div>
         )}
       </div>
@@ -86,6 +92,11 @@ export function NoteList({
                 <NewNoteButton onClick={onNew} />
               </>
             )}
+          </div>
+        ) : notes.length === 0 && emptyFolder ? (
+          <div className="empty">
+            <h3 className="empty__title">{t("No notes in this folder.")}</h3>
+            {!readOnly && <NewNoteButton onClick={onNew} />}
           </div>
         ) : notes.length === 0 ? (
           <div className="empty">

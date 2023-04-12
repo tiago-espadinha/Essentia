@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { $, buttonNamed, click, newNote, renderApp, rowTitles, setupApp, type, unmount } from './testing'
+import { $, buttonNamed, click, newNote, renderApp, rowTitles, setupApp, type, unmount, rowNamed } from './testing'
 
 setupApp()
 
@@ -65,7 +65,7 @@ describe('one pane at a time on a phone', () => {
     newNote('A')
     newNote('B')
     click(buttonNamed('Notes'))
-    click(buttonNamed(/^A/))
+    click(rowNamed('A'))
     expect(view()).toBe('editor')
     expect($<HTMLTextAreaElement>('#note-title').value).toBe('A')
     expect(document.activeElement).toBe($('#note-title'))
@@ -76,10 +76,10 @@ describe('one pane at a time on a phone', () => {
     newNote('A')
     newNote('B')
     click(buttonNamed('Notes'))
-    click(buttonNamed(/^A/))
+    click(rowNamed('A'))
     click(buttonNamed('Notes'))
     expect(view()).toBe('list')
-    expect(document.activeElement).toBe(buttonNamed(/^A/))
+    expect(document.activeElement).toBe(rowNamed('A'))
   })
 
   it('opens a new note straight in the editor', () => {
@@ -95,7 +95,7 @@ describe('one pane at a time on a phone', () => {
     newNote('B')
     click(buttonNamed('Delete'))
     expect(view()).toBe('list')
-    expect(document.activeElement).toBe(buttonNamed(/^A/))
+    expect(document.activeElement).toBe(rowNamed('A'))
   })
   it('reopens a restored note in the editor with its title focused', () => {
     renderApp()
@@ -112,7 +112,7 @@ describe('opening a note on a wider screen', () => {
     renderApp()
     newNote('A')
     newNote('B')
-    const row = buttonNamed(/^A/)
+    const row = rowNamed('A')
     row.focus()
     click(row)
     expect($<HTMLTextAreaElement>('#note-title').value).toBe('A')

@@ -386,6 +386,8 @@
 
 .tag-list {
   display: grid;
+  /* A long folder name shortens with an ellipsis instead of widening the pane. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-0-5);
   margin-top: var(--space-3);
   list-style: none;
@@ -413,6 +415,28 @@
   background: var(--color-paper);
   color: var(--color-accent-text);
   font-weight: 500;
+}
+
+.library__section { margin-top: var(--space-6); }
+
+/* A folder's name, cut short when long, with its note count at the end. */
+.folder-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.folder-button__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-button__count {
+  margin-left: auto;
+  color: var(--color-mid);
+  font-variant-numeric: tabular-nums;
 }
 
 .group-label {
@@ -468,6 +492,9 @@
     width: auto;
     min-height: 44px;
   }
+
+  .library__section { margin-top: var(--space-4); }
+  .folder-button__name { max-width: 16ch; }
 
   .toolbar__button {
     min-width: 44px;

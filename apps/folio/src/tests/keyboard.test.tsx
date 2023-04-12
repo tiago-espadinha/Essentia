@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { $, buttonNamed, click, newNote, press, renderApp, setupApp } from './testing'
+import { $, buttonNamed, click, newNote, press, renderApp, setupApp, rowNamed } from './testing'
 
 setupApp()
 
@@ -61,9 +61,9 @@ describe('focus after a delete', () => {
     renderApp()
     newNote('A')
     newNote('B')
-    click(buttonNamed(/^B/))
+    click(rowNamed('B'))
     click(buttonNamed('Delete'))
-    expect(document.activeElement).toBe(buttonNamed(/^A/))
+    expect(document.activeElement).toBe(rowNamed('A'))
   })
 
   it('goes to New note once the last note is gone', () => {

@@ -5,7 +5,7 @@ import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
 import { Library } from './components/Library'
 import { NoteList } from './components/NoteList'
-import { filterNotes, noteText, tagsOf, type Note } from './domain/notes'
+import { countByFolder, filterNotes, noteText, tagsOf, type Note } from './domain/notes'
 import { DeleteAnnouncer } from './components/UndoNotice'
 import { ConvertDialog } from './components/ConvertDialog'
 import { VersionsDialog } from './components/VersionsDialog'
@@ -20,7 +20,7 @@ const PHONE = '(width < 768px)'
 export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
-  const { notes, versions, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore } = useNotes()
+  const { notes, versions, folders, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore } = useNotes()
   const autoVersion = useAutoVersion(saveVersion)
   // The open dialog and the note it is for; it closes if the note goes.
   const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string } | null>(null)
@@ -36,6 +36,8 @@ export default function App() {
   const [view, setView] = useState<'list' | 'editor'>('list')
   const [query, setQuery] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
+  // null is every folder, '' the unfiled notes.
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
   // Below 1024 px the search and tags fold into a Filter bar above the list.
   const [filtersOpen, setFiltersOpen] = useState(false)
   const clearTitleFocus = useCallback(() => setTitleFocusId(null), [])
@@ -57,7 +59,10 @@ export default function App() {
   // A tag filter lapses once no note carries the tag any more.
   const activeTag = selectedTag !== null && tags.includes(selectedTag) ? selectedTag : null
   if (activeTag === null && selectedTag !== null) setSelectedTag(null)
-  const visible = filterNotes(notes, query, activeTag)
+  // So does a folder filter once the folder is gone.
+  const activeFolder = selectedFolder === '' || (selectedFolder !== null && folders.includes(selectedFolder)) ? selectedFolder : null
+  if (activeFolder === null && selectedFolder !== null) setSelectedFolder(null)
+  const visible = filterNotes(notes, query, activeTag, activeFolder)
   // With nothing chosen yet, or the chosen note gone, the first note in the list is open.
   const selected = notes.find((note) => note.id === selectedId) ?? visible[0] ?? null
   const dialogNote = dialog && notes.find((note) => note.id === dialog.noteId)
@@ -72,11 +77,12 @@ export default function App() {
   }
 
   // An active filter keeps the bar open, so the list is never narrowed out of sight.
-  const libraryOpen = filtersOpen || query !== '' || activeTag !== null
+  const libraryOpen = filtersOpen || query !== '' || activeTag !== null || activeFolder !== null
 
   function clearFilters() {
     setQuery('')
     setSelectedTag(null)
+    setSelectedFolder(null)
   }
 
   // Closing the bar also clears what it filtered.
@@ -85,11 +91,13 @@ export default function App() {
     setFiltersOpen(!libraryOpen)
   }
 
-  // A new note is blank, so the filters are cleared to show it in the list.
+  // A new note is blank, so the search and tag are cleared to show it; it goes
+  // into the folder being shown.
   function newNote() {
     if (readOnly) return
-    clearFilters()
-    const note = motion(() => add())
+    setQuery('')
+    setSelectedTag(null)
+    const note = motion(() => add(activeFolder ?? ''))
     setSelectedId(note.id)
     setTitleFocusId(note.id)
     setView('editor')
@@ -123,7 +131,7 @@ export default function App() {
   // a new note, filters that would hide it are cleared.
   function undoDelete() {
     if (!deleted) return
-    if (filterNotes([deleted], query, activeTag).length === 0) clearFilters()
+    if (filterNotes([deleted], query, activeTag, activeFolder).length === 0) clearFilters()
     motion(() => restore(deleted))
     setDeleted(null)
     setSelectedId(deleted.id)
@@ -145,15 +153,22 @@ export default function App() {
         <DeleteAnnouncer deleted={deleted} />
         <Library
           query={query}
+          folders={folders}
+          counts={countByFolder(notes)}
+          total={notes.length}
+          activeFolder={activeFolder}
           tags={tags}
           activeTag={activeTag}
           open={libraryOpen}
           onQueryChange={setQuery}
+          onFolderChange={setSelectedFolder}
           onTagChange={setSelectedTag}
         />
         <NoteList
           notes={visible}
           total={notes.length}
+          canFilter={notes.length > 0 || folders.length > 0}
+          emptyFolder={activeFolder !== null && query === '' && activeTag === null}
           selectedId={selected?.id ?? null}
           filtersOpen={libraryOpen}
           deleted={deleted}

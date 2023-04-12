@@ -334,7 +334,7 @@ describe('finding notes', () => {
     click(buttonNamed('#home'))
     expect(buttonNamed('#home').getAttribute('aria-pressed')).toBe('true')
     expect(rowTitles()).toEqual(['Recipes'])
-    click(buttonNamed('All notes'))
+    click(buttonNamed('Any tag'))
     expect(rowTitles()).toEqual(['Recipes', 'Roadmap'])
   })
 
@@ -356,7 +356,7 @@ describe('finding notes', () => {
     type(tags, '')
     blur(tags)
     expect(rowTitles()).toEqual(['Recipes', 'Roadmap'])
-    expect(document.body.querySelector('.tag-list')).toBeNull()
+    expect(document.getElementById('tags-title')).toBeNull()
   })
 })
 

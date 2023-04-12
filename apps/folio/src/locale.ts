@@ -1,6 +1,12 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "Any tag": "Qualquer etiqueta",
+  "Folders": "Pastas",
+  "Unfiled": "Sem pasta",
+  "{name}, {count} note": "{name}, {count} nota",
+  "{name}, {count} notes": "{name}, {count} notas",
+  "No notes in this folder.": "Não há notas nesta pasta.",
   "A version is saved after 30 seconds without typing, and before a conversion or restore. The newest {count} are kept on this device.": "É guardada uma versão após 30 segundos sem escrever e antes de uma conversão ou restauro. São mantidas neste dispositivo as {count} mais recentes.",
   "All notes": "Todas as notas",
   "Bold": "Negrito",

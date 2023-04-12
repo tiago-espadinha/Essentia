@@ -5,9 +5,10 @@ import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
 import { Library } from './components/Library'
 import { NoteList } from './components/NoteList'
-import { countByFolder, filterNotes, noteText, tagsOf, type Note } from './domain/notes'
+import { countByFolder, existingFolder, filterNotes, noteText, tagsOf, type Note } from './domain/notes'
 import { DeleteAnnouncer } from './components/UndoNotice'
 import { ConvertDialog } from './components/ConvertDialog'
+import { DeleteFolderDialog } from './components/DeleteFolderDialog'
 import { VersionsDialog } from './components/VersionsDialog'
 import { versionsOf } from './domain/versions'
 import { useAutoVersion } from './hooks/useAutoVersion'
@@ -20,7 +21,10 @@ const PHONE = '(width < 768px)'
 export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
-  const { notes, versions, folders, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore } = useNotes()
+  const {
+    notes, versions, folders, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore,
+    createFolder, renameFolder, deleteFolder,
+  } = useNotes()
   const autoVersion = useAutoVersion(saveVersion)
   // The open dialog and the note it is for; it closes if the note goes.
   const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string } | null>(null)
@@ -38,11 +42,17 @@ export default function App() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
   // null is every folder, '' the unfiled notes.
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+  // The folder whose deletion is being confirmed.
+  const [folderToDelete, setFolderToDelete] = useState<string | null>(null)
+  // The latest folder change, announced to screen readers.
+  const [folderNotice, setFolderNotice] = useState('')
   // Below 1024 px the search and tags fold into a Filter bar above the list.
   const [filtersOpen, setFiltersOpen] = useState(false)
   const clearTitleFocus = useCallback(() => setTitleFocusId(null), [])
   // A row to focus once the list has rendered; `id: null` means New note.
   const rowToFocus = useRef<{ id: string | null } | null>(null)
+  // All notes takes focus once a deleted folder's dialog has closed.
+  const allNotesToFocus = useRef(false)
   const mainRef = useRef<HTMLElement>(null)
   const motion = useRecordMotion(mainRef)
 
@@ -55,6 +65,13 @@ export default function App() {
     ;(row ?? main.querySelector<HTMLElement>('.list-pane .button-primary'))?.focus()
   })
 
+  useEffect(() => {
+    if (!allNotesToFocus.current) return
+    allNotesToFocus.current = false
+    document.getElementById('folder-all')?.focus()
+  })
+
+  const counts = countByFolder(notes)
   const tags = tagsOf(notes)
   // A tag filter lapses once no note carries the tag any more.
   const activeTag = selectedTag !== null && tags.includes(selectedTag) ? selectedTag : null
@@ -89,6 +106,33 @@ export default function App() {
   function toggleFilters() {
     if (libraryOpen) clearFilters()
     setFiltersOpen(!libraryOpen)
+  }
+
+  // A name already in use, in any case, picks that folder instead of making another.
+  function addFolder(name: string): string {
+    const existing = existingFolder(folders, name)
+    if (!existing) {
+      createFolder(name)
+      setFolderNotice(t('Added the folder “{name}”.', { name }))
+    }
+    setSelectedFolder(existing ?? name)
+    return existing ?? name
+  }
+
+  // Submitting the name unchanged leaves the folder and its notes' dates alone.
+  function renameShownFolder(from: string, to: string) {
+    if (to === from) return
+    renameFolder(from, to)
+    setSelectedFolder(to)
+    setFolderNotice(t('Renamed the folder to “{name}”.', { name: to }))
+  }
+
+  function confirmDeleteFolder(folder: string) {
+    deleteFolder(folder)
+    setSelectedFolder(null)
+    setFolderToDelete(null)
+    allNotesToFocus.current = true
+    setFolderNotice(t('Deleted the folder “{name}”.', { name: folder }))
   }
 
   // A new note is blank, so the search and tag are cleared to show it; it goes
@@ -151,18 +195,23 @@ export default function App() {
       <main className="folio" ref={mainRef} data-view={selected && view === 'editor' ? 'editor' : 'list'}>
         <h1 className="visually-hidden">{t("Folio notes")}</h1>
         <DeleteAnnouncer deleted={deleted} />
+        <p className="visually-hidden" role="status">{folderNotice}</p>
         <Library
           query={query}
           folders={folders}
-          counts={countByFolder(notes)}
+          counts={counts}
           total={notes.length}
           activeFolder={activeFolder}
           tags={tags}
           activeTag={activeTag}
           open={libraryOpen}
+          readOnly={readOnly}
           onQueryChange={setQuery}
           onFolderChange={setSelectedFolder}
           onTagChange={setSelectedTag}
+          onCreateFolder={addFolder}
+          onRenameFolder={renameShownFolder}
+          onDeleteFolder={setFolderToDelete}
         />
         <NoteList
           notes={visible}
@@ -214,6 +263,14 @@ export default function App() {
           onSave={() => saveVersion(dialogNote.id)}
           onRestore={(version) => replaceBody(dialogNote.id, () => restoreVersion(dialogNote.id, version))}
           onClose={() => setDialog(null)}
+        />
+      )}
+      {folderToDelete !== null && (
+        <DeleteFolderDialog
+          folder={folderToDelete}
+          count={counts.get(folderToDelete) ?? 0}
+          onDelete={() => confirmDeleteFolder(folderToDelete)}
+          onClose={() => setFolderToDelete(null)}
         />
       )}
       {dialog?.kind === 'convert' && dialogNote && (

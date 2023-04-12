@@ -44,6 +44,27 @@ describe('accessibility', () => {
     expect(await seriousViolations(container)).toEqual([])
   })
 
+  it('has no serious violations with a refused folder name and a chosen folder', async () => {
+    const container = renderApp()
+    newNote('Sourdough')
+    click(buttonNamed('New folder'))
+    type($<HTMLInputElement>('.folder-form input'), 'Baking')
+    click(buttonNamed('Add'))
+    click(buttonNamed('Rename folder'))
+    type($<HTMLInputElement>('.folder-form input'), ' ')
+    click(buttonNamed('Rename'))
+    expect(await seriousViolations(container)).toEqual([])
+  })
+
+  it('has no serious violations while a folder deletion is confirmed', async () => {
+    renderApp()
+    click(buttonNamed('New folder'))
+    type($<HTMLInputElement>('.folder-form input'), 'Baking')
+    click(buttonNamed('Add'))
+    click(buttonNamed('Delete folder'))
+    expect(await seriousViolations(document.body)).toEqual([])
+  })
+
   it('has no serious violations with the undo notice shown', async () => {
     const container = renderApp()
     newNote('Sourdough')

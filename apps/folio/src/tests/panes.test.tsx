@@ -119,3 +119,63 @@ describe('opening a note on a wider screen', () => {
     expect(document.activeElement).toBe(row)
   })
 })
+
+describe('hiding the folder sidebar from 1024 px', () => {
+  const toggle = () => $<HTMLButtonElement>('.sidebar-toggle')
+  const hidden = () => $('main').dataset.sidebar === 'hidden'
+
+  it('hides and restores the sidebar, keeping focus on the toggle', () => {
+    renderApp()
+    expect(toggle().getAttribute('aria-expanded')).toBe('true')
+    expect(document.getElementById(toggle().getAttribute('aria-controls')!)).toBe($('#library'))
+    toggle().focus()
+    click(toggle())
+    expect(hidden()).toBe(true)
+    expect(toggle().getAttribute('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(toggle())
+    click(toggle())
+    expect(hidden()).toBe(false)
+    expect(document.activeElement).toBe(toggle())
+  })
+
+  it('remembers the choice on this device', () => {
+    renderApp()
+    click(toggle())
+    expect(localStorage.getItem('essentia-folio-sidebar')).toBe('hidden')
+    unmount()
+    renderApp()
+    expect(hidden()).toBe(true)
+    click(toggle())
+    unmount()
+    renderApp()
+    expect(hidden()).toBe(false)
+  })
+
+  it('shows the sidebar when the stored choice is unknown or storage refuses', () => {
+    localStorage.setItem('essentia-folio-sidebar', 'sideways')
+    renderApp()
+    expect(hidden()).toBe(false)
+    unmount()
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError')
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError')
+    })
+    renderApp()
+    expect(hidden()).toBe(false)
+    click(toggle())
+    expect(hidden()).toBe(true)
+  })
+
+  it('keeps a folder filter while the sidebar is hidden', () => {
+    renderApp()
+    newNote('A')
+    click(buttonNamed('New folder'))
+    type($<HTMLInputElement>('.folder-form input'), 'Work')
+    click(buttonNamed('Add'))
+    newNote('B')
+    click(toggle())
+    expect(rowTitles()).toEqual(['B'])
+  })
+})

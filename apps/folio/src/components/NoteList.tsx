@@ -16,6 +16,8 @@ interface NoteListProps {
   selectedId: string | null
   /** Whether the Filter bar (the Library, below 1024 px) is open. */
   filtersOpen: boolean
+  /** Whether the folder sidebar (the Library, from 1024 px) is hidden. */
+  sidebarHidden: boolean
   /** The latest deleted note, offered for undo. */
   deleted: Note | null
   /** The notes could not be stored here: they show with a notice and an export, and nothing adds to them. */
@@ -23,6 +25,7 @@ interface NoteListProps {
   onExport: () => void
   onSelect: (id: string) => void
   onToggleFilters: () => void
+  onToggleSidebar: () => void
   onNew: () => void
   onClearFilters: () => void
   onUndo: () => void
@@ -35,11 +38,13 @@ export function NoteList({
   emptyFolder,
   selectedId,
   filtersOpen,
+  sidebarHidden,
   deleted,
   readOnly,
   onExport,
   onSelect,
   onToggleFilters,
+  onToggleSidebar,
   onNew,
   onClearFilters,
   onUndo,
@@ -62,8 +67,22 @@ export function NoteList({
         <h2 id="list-title" className="label">
           {t('Notes · {count}', { count: formatNumber(notes.length) })}
         </h2>
-        {canFilter && (
-          <div className="pane__actions">
+        <div className="pane__actions">
+          <button
+            type="button"
+            className="button-ghost sidebar-toggle"
+            aria-expanded={!sidebarHidden}
+            aria-controls="library"
+            aria-label={t('Folders')}
+            title={t(sidebarHidden ? 'Show folders' : 'Hide folders')}
+            onClick={onToggleSidebar}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="2" y="2.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M6 2.5v11" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </button>
+          {canFilter && (
             <button
               type="button"
               className="button-ghost filter-toggle"
@@ -74,9 +93,9 @@ export function NoteList({
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path d="M2.5 4h11M4.5 8h7M6.5 12h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>{t("Filter")}</button>
-            {!readOnly && total > 0 && <NewNoteButton onClick={onNew} />}
-          </div>
-        )}
+          )}
+          {!readOnly && total > 0 && <NewNoteButton onClick={onNew} />}
+        </div>
       </div>
 
       {readOnly && <ReadOnlyNotice onExport={onExport} />}

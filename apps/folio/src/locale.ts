@@ -1,6 +1,8 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "Hide folders": "Ocultar pastas",
+  "Show folders": "Mostrar pastas",
   "Folder": "Pasta",
   "Moved to “{name}”.": "Movida para “{name}”.",
   "Moved to Unfiled.": "Movida para Sem pasta.",

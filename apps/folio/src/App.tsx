@@ -14,6 +14,7 @@ import { versionsOf } from './domain/versions'
 import { useAutoVersion } from './hooks/useAutoVersion'
 import { exportAll } from './data/export'
 import { useNotes } from './hooks/useNotes'
+import { useSidebar } from './hooks/useSidebar'
 
 /** Matches folio.css: one pane at a time below 768 px. */
 const PHONE = '(width < 768px)'
@@ -26,6 +27,7 @@ export default function App() {
     createFolder, renameFolder, deleteFolder, moveNote,
   } = useNotes()
   const autoVersion = useAutoVersion(saveVersion)
+  const sidebar = useSidebar()
   // The open dialog and the note it is for; it closes if the note goes.
   const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string } | null>(null)
   // Bumped when a restore or conversion replaces the open note's body, which the editor writes into the DOM only on mount.
@@ -202,7 +204,12 @@ export default function App() {
           openNote(id)
           setTitleFocusId(id)
         }} />} />
-      <main className="folio" ref={mainRef} data-view={selected && view === 'editor' ? 'editor' : 'list'}>
+      <main
+        className="folio"
+        ref={mainRef}
+        data-view={selected && view === 'editor' ? 'editor' : 'list'}
+        data-sidebar={sidebar.hidden ? 'hidden' : undefined}
+      >
         <h1 className="visually-hidden">{t("Folio notes")}</h1>
         <DeleteAnnouncer deleted={deleted} />
         <p className="visually-hidden" role="status">{folderNotice}</p>
@@ -230,11 +237,13 @@ export default function App() {
           emptyFolder={activeFolder !== null && query === '' && activeTag === null}
           selectedId={selected?.id ?? null}
           filtersOpen={libraryOpen}
+          sidebarHidden={sidebar.hidden}
           deleted={deleted}
           readOnly={readOnly}
           onExport={() => exportAll(notes, versions)}
           onSelect={openNote}
           onToggleFilters={toggleFilters}
+          onToggleSidebar={sidebar.toggle}
           onNew={newNote}
           onClearFilters={clearFilters}
           onUndo={undoDelete}

@@ -29,7 +29,7 @@ export interface NoteVersion {
   savedAt: string
 }
 
-export type NoteChanges = Partial<Pick<Note, 'format' | 'title' | 'body' | 'tags' | 'pinned'>>
+export type NoteChanges = Partial<Pick<Note, 'format' | 'title' | 'body' | 'folder' | 'tags' | 'pinned'>>
 
 /**
  * A random id. `crypto.randomUUID` exists only in secure contexts (https or
@@ -91,6 +91,59 @@ export function cleanFolder(name: string): string {
   return name.trim().replace(/\s+/g, ' ')
 }
 
+/** The longest folder name, matching what an account can hold. */
+export const FOLDER_LIMIT = 100
+
+export type FolderError = 'blank' | 'long' | 'taken'
+
+/** Folder names are compared without regard to case: 'Work' and 'work' are one folder. */
+export function sameFolder(a: string, b: string): boolean {
+  return a.toLocaleLowerCase() === b.toLocaleLowerCase()
+}
+
+/**
+ * A typed folder name, cleaned, or why it cannot be used. When `renaming` is
+ * given, that folder may keep its name or change only its case; any other
+ * existing name is taken. Without it, an existing name is not an error: the
+ * caller reuses that folder (see `existingFolder`).
+ */
+export function checkFolderName(
+  input: string,
+  folders: string[],
+  renaming?: string,
+): { name: string; error?: undefined } | { name?: undefined; error: FolderError } {
+  const name = cleanFolder(input)
+  if (!name) return { error: 'blank' }
+  if (name.length > FOLDER_LIMIT) return { error: 'long' }
+  if (renaming !== undefined && folders.some((folder) => folder !== renaming && sameFolder(folder, name))) {
+    return { error: 'taken' }
+  }
+  return { name }
+}
+
+/** The existing folder a name refers to, in its saved spelling. */
+export function existingFolder(folders: string[], name: string): string | undefined {
+  return folders.find((folder) => folder === name) ?? folders.find((folder) => sameFolder(folder, name))
+}
+
+/** Every folder: those kept on their own and those notes are in, sorted, without Unfiled. */
+export function foldersOf(notes: Note[], kept: string[] = []): string[] {
+  const names = new Set([...kept, ...notes.map((note) => note.folder)].filter(Boolean))
+  return [...names].sort((a, b) => a.localeCompare(b))
+}
+
+/** How many notes each folder holds; '' counts the unfiled ones. */
+export function countByFolder(notes: Note[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const note of notes) counts.set(note.folder, (counts.get(note.folder) ?? 0) + 1)
+  return counts
+}
+
+/** Moves every note in `from` to `to` (to '' to unfile them). Other notes are returned as they were. */
+export function refileNotes(notes: Note[], from: string, to: string, now: Date = new Date()): Note[] {
+  return notes.map((note) => (note.folder === from ? applyChanges(note, { folder: to }, now) : note))
+}
+
 export function countWords(text: string): number {
   return text ? text.split(' ').length : 0
 }
@@ -105,11 +158,16 @@ export function tagsOf(notes: Note[]): string[] {
   return [...new Set(notes.flatMap((note) => note.tags))].sort((a, b) => a.localeCompare(b))
 }
 
-/** Notes matching the search (title, body text, tags) and the tag; pinned first, then the latest edited. */
-export function filterNotes(notes: Note[], query: string, tag: string | null): Note[] {
+/**
+ * Notes matching the search (title, body text, tags), the tag and the folder;
+ * pinned first, then the latest edited. A `null` tag or folder means any; the
+ * folder '' means unfiled.
+ */
+export function filterNotes(notes: Note[], query: string, tag: string | null, folder: string | null = null): Note[] {
   const needle = query.trim().toLowerCase()
   return notes
     .filter((note) => {
+      if (folder !== null && note.folder !== folder) return false
       if (tag !== null && !note.tags.includes(tag)) return false
       if (!needle) return true
       return [note.title, noteText(note), note.tags.join(' ')].some((field) =>

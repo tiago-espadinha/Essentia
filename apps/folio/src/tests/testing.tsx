@@ -61,6 +61,15 @@ export function buttonNamed(name: string | RegExp, { optional = false } = {}): H
   return match ?? null
 }
 
+/** The list row of the note with this title. */
+export function rowNamed(title: string): HTMLButtonElement {
+  const row = [...container.querySelectorAll<HTMLButtonElement>('.note-row')].find(
+    (element) => element.querySelector('.note-row__title')?.textContent === title,
+  )
+  if (!row) throw new Error(`No row for ${title}`)
+  return row
+}
+
 export function type(field: HTMLInputElement | HTMLTextAreaElement, value: string) {
   const prototype = field instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype
   const setValue = Object.getOwnPropertyDescriptor(prototype, 'value')!.set!

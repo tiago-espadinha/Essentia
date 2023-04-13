@@ -93,8 +93,11 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
   icon, name, catchphrase and one open action per entry; keep shared account,
   appearance and search controls in the header.
 - Folio: Dictum-inspired writing/preview workspace and collapsible library aside;
-  rich-text/markdown mode control. Default mode, conversion and folder/tag mapping
-  need review before implementation. Keep separate Dictum discoverable until safe.
+  rich-text/markdown mode control. The aside holds search, All notes, Unfiled and
+  single-level folders with counts, then the tag filter; from 1024 px a list-header
+  toggle hides it and the choice is remembered on the device. Below 1024 px it folds
+  into the Filter bar. A note's folder is picked in the editor's details row.
+  Keep separate Dictum discoverable until safe.
 - Navigation: retain the header’s back-to-hub link at every width. Validate exact
   breakpoints, density, reading order and pane controls in the implementation’s
   rendered review; the historical centred-column screenshots do not prove this target.

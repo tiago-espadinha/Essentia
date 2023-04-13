@@ -280,6 +280,26 @@
 
 .tags-field__input::placeholder { color: var(--color-mid); }
 
+.folder-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.folder-field--naming { align-items: flex-start; flex-basis: 100%; }
+.folder-field--naming > .label { padding-top: var(--space-3); }
+.folder-field--naming .folder-form { flex: 1; margin-top: 0; }
+
+.folder-field__select {
+  max-width: 220px;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+  color: var(--color-ink);
+}
+
 /* The reading face: Lora, Folio's editor body only. */
 .editor__body {
   min-height: 240px;
@@ -386,6 +406,8 @@
 
 .tag-list {
   display: grid;
+  /* A long folder name shortens with an ellipsis instead of widening the pane. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-0-5);
   margin-top: var(--space-3);
   list-style: none;
@@ -415,6 +437,62 @@
   font-weight: 500;
 }
 
+.library__section { margin-top: var(--space-6); }
+
+.library__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.library__add { margin-right: calc(-1 * var(--space-3)); }
+
+.folder-form { margin-top: var(--space-2); }
+.folder-form__input { width: 100%; }
+
+.folder-form__input[aria-invalid='true'] { border-color: var(--color-danger); }
+
+.folder-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+.field-error {
+  margin-top: var(--space-1);
+  color: var(--color-danger);
+  font-size: var(--text-xs);
+}
+
+.folder-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+/* A folder's name, cut short when long, with its note count at the end. */
+.folder-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.folder-button__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-button__count {
+  margin-left: auto;
+  color: var(--color-mid);
+  font-variant-numeric: tabular-nums;
+}
+
 .group-label {
   padding: var(--space-4) var(--space-4) var(--space-2);
   border-bottom: 1px solid var(--color-faint);
@@ -422,6 +500,19 @@
 
 /* The Filter toggle exists for the folded Library, 768 to 1023 px. */
 .filter-toggle { display: none; }
+
+/* From 1024 px the sidebar toggle hides the Library and gives its width to the editor. */
+.sidebar-toggle { padding: 0 var(--space-3); }
+
+.sidebar-toggle[aria-expanded='true'] {
+  background: var(--color-paper);
+  color: var(--color-accent-text);
+}
+
+@media (width >= 1024px) {
+  .folio[data-sidebar='hidden'] { grid-template-columns: 300px minmax(0, 1fr); }
+  .folio[data-sidebar='hidden'] .library-pane { display: none; }
+}
 
 /* Back to the list exists for one-pane phones. */
 .back-button { display: none; }
@@ -451,6 +542,7 @@
   .list-pane { grid-area: list; }
   .editor-pane { grid-area: editor; }
   .filter-toggle { display: inline-flex; }
+  .sidebar-toggle { display: none; }
   .list-pane .pane__head { gap: var(--space-2); }
   .list-pane .pane__head > .label { white-space: nowrap; }
 
@@ -469,12 +561,16 @@
     min-height: 44px;
   }
 
+  .library__section { margin-top: var(--space-4); }
+  .folder-button__name { max-width: 16ch; }
+
   .toolbar__button {
     min-width: 44px;
     min-height: 44px;
   }
 
-  .tags-field__input { min-height: 44px; }
+  .tags-field__input,
+  .folder-field__select { min-height: 44px; }
 
   /* Pin and Delete on the first row, the toolbar on its own row below. */
   .editor__bar { flex-wrap: wrap; }

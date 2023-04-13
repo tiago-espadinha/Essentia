@@ -33,7 +33,7 @@ four-app destination is specified separately below; it is not yet delivered.
 |---|---|---|---|---|
 | Hub `/` | Pick an app | Open an app | Populated; empty registry | Four primary entries in two columns from 768 px, one below; separate Dictum link |
 | Acta `/acta/` | Manage tasks | Add task | Empty, list, filtered (none match), completed; signed in: sync error with retry, keep-or-add question, a task changed on another device (Keep mine / Use theirs) | 520 px column |
-| Folio `/folio/` | Write and find notes | New note | Empty library, list, editor (rich text, or markdown edited as source), search no results, save failed, read-only with Export all when notes can't be stored | Library, list and editor from 1024 px; list + editor from 768 px (library folds into a filter bar); one pane below 768 px |
+| Folio `/folio/` | Write and find notes | New note | Empty library, list, editor (rich text, or markdown edited as source), search no results, empty folder, folder name refused, delete-folder confirmation, save failed, read-only with Export all when notes can't be stored | Library (folders and tags), list and editor from 1024 px, the library hideable; list + editor from 768 px (library folds into a filter bar); one pane below 768 px |
 | Virtus `/virtus/` | Track habits | Check in today | Empty, habits, streak milestone, offline | 520 px column |
 | Virtus Streaks, Week, Stats views | See progress | Open a habit's stats | Not enough data | Charts reflow to one column at 375 |
 | Dictum `/dictum/` | Write markdown | New document | Empty, editing, preview, version history, zen mode, sync error, documents moved to Folio listed as links | Editor + preview from 1280 px; editor/preview toggle from 768 px; one pane below 768 px |
@@ -86,7 +86,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Surface | Agreed direction | Remaining decision |
 | --- | --- | --- |
 | Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Account, accent select, theme toggle and search implemented. Separate Dictum access retained; custom app creation excluded |
-| Folio | Dictum writing/preview patterns; collapsible library aside; explicit rich-text/markdown control | Default mode, lossless conversion, folder/tag model, nesting and pane breakpoints |
+| Folio | Dictum writing/preview patterns; collapsible library aside with single-level folders above the tag filter; explicit rich-text/markdown control | Syncing folders and notes to the account |
 | Acta, Virtus, Merces | Use wide desktop space with comfortable reading regions, 24–32 px outer gutters and meaningful list/detail or summary areas; collapse on mobile | Exact density, pane arrangement and breakpoints require rendered review |
 | Virtus Track/Schedule | Track is recommended for check-ins; Schedule for recurrence | Exact copy, target screen and disclosure behavior are TBD |
 | Virtus categories | Recommend a color marker accompanied by readable category text | Assignment, affected views and interaction with accent preference are TBD |

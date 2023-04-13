@@ -7,16 +7,20 @@ import { sanitizeHtml } from '../domain/sanitize'
 import { useMarkdownFormat } from '../hooks/useMarkdownFormat'
 import { MarkdownBody, ModeSwitch, type Mode } from './MarkdownBody'
 import { MarkdownToolbar } from './MarkdownToolbar'
+import { FolderField } from './FolderField'
 import { Toolbar } from './Toolbar'
 
 interface EditorProps {
   note: Note
+  /** Every folder, for the folder picker. */
+  folders: string[]
   /** Shown for reading only: no formatting, pinning or deleting, and every field is read-only. */
   readOnly: boolean
   /** Focus the title (a note just created, or opened on a phone). */
   autoFocus: boolean
   onFocused: () => void
   onChange: (changes: NoteChanges) => void
+  onMove: (folder: string) => void
   /** Back to the note list, shown below 768 px. */
   onBack: () => void
   onVersions: () => void
@@ -29,7 +33,7 @@ interface EditorProps {
  * A markdown note is edited as its source text, with a preview beside it: the
  * rich editor would turn it into HTML.
  */
-export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack, onVersions, onConvert, onDelete }: EditorProps) {
+export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange, onMove, onBack, onVersions, onConvert, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const sourceRef = useRef<HTMLTextAreaElement>(null)
@@ -136,6 +140,7 @@ export function Editor({ note, readOnly, autoFocus, onFocused, onChange, onBack,
             <span className="label">
               {t(countWords(text) === 1 ? '{count} word' : '{count} words', { count: formatNumber(countWords(text)) })} · {t(text.length === 1 ? '{count} character' : '{count} characters', { count: formatNumber(text.length) })}
             </span>
+            <FolderField folder={note.folder} folders={folders} readOnly={readOnly} onMove={onMove} />
             <TagsField tags={note.tags} readOnly={readOnly} onChange={(tags) => onChange({ tags })} />
           </div>
 

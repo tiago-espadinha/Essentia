@@ -58,7 +58,9 @@ Dictum remains discoverable until unified Folio is usable and migration is safe.
 Folio adopts Dictum’s writing workspace with a collapsible library aside and an
 explicit rich-text/markdown mode control. The existing Folio editor is rich text;
 plain text, rich text and markdown are not interchangeable storage formats.
-Default mode, conversion rules, folders versus tags and hierarchy remain TBD.
+New notes are rich text; converting a note is an explicit, confirmed action.
+A note sits in at most one folder and keeps its tags: folders do not nest, and
+tags and folders are never converted into each other. Empty folders persist.
 Switching modes must not silently overwrite or convert content.
 
 Acta, Virtus and Merces use available desktop width while keeping reading and

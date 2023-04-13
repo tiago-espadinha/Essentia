@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { $, buttonNamed, click, newNote, renderApp, rowTitles, setupApp, type, unmount } from './testing'
+import { $, buttonNamed, click, newNote, renderApp, rowTitles, setupApp, type, unmount, rowNamed } from './testing'
 
 setupApp()
 
@@ -65,7 +65,7 @@ describe('one pane at a time on a phone', () => {
     newNote('A')
     newNote('B')
     click(buttonNamed('Notes'))
-    click(buttonNamed(/^A/))
+    click(rowNamed('A'))
     expect(view()).toBe('editor')
     expect($<HTMLTextAreaElement>('#note-title').value).toBe('A')
     expect(document.activeElement).toBe($('#note-title'))
@@ -76,10 +76,10 @@ describe('one pane at a time on a phone', () => {
     newNote('A')
     newNote('B')
     click(buttonNamed('Notes'))
-    click(buttonNamed(/^A/))
+    click(rowNamed('A'))
     click(buttonNamed('Notes'))
     expect(view()).toBe('list')
-    expect(document.activeElement).toBe(buttonNamed(/^A/))
+    expect(document.activeElement).toBe(rowNamed('A'))
   })
 
   it('opens a new note straight in the editor', () => {
@@ -95,7 +95,7 @@ describe('one pane at a time on a phone', () => {
     newNote('B')
     click(buttonNamed('Delete'))
     expect(view()).toBe('list')
-    expect(document.activeElement).toBe(buttonNamed(/^A/))
+    expect(document.activeElement).toBe(rowNamed('A'))
   })
   it('reopens a restored note in the editor with its title focused', () => {
     renderApp()
@@ -112,10 +112,70 @@ describe('opening a note on a wider screen', () => {
     renderApp()
     newNote('A')
     newNote('B')
-    const row = buttonNamed(/^A/)
+    const row = rowNamed('A')
     row.focus()
     click(row)
     expect($<HTMLTextAreaElement>('#note-title').value).toBe('A')
     expect(document.activeElement).toBe(row)
+  })
+})
+
+describe('hiding the folder sidebar from 1024 px', () => {
+  const toggle = () => $<HTMLButtonElement>('.sidebar-toggle')
+  const hidden = () => $('main').dataset.sidebar === 'hidden'
+
+  it('hides and restores the sidebar, keeping focus on the toggle', () => {
+    renderApp()
+    expect(toggle().getAttribute('aria-expanded')).toBe('true')
+    expect(document.getElementById(toggle().getAttribute('aria-controls')!)).toBe($('#library'))
+    toggle().focus()
+    click(toggle())
+    expect(hidden()).toBe(true)
+    expect(toggle().getAttribute('aria-expanded')).toBe('false')
+    expect(document.activeElement).toBe(toggle())
+    click(toggle())
+    expect(hidden()).toBe(false)
+    expect(document.activeElement).toBe(toggle())
+  })
+
+  it('remembers the choice on this device', () => {
+    renderApp()
+    click(toggle())
+    expect(localStorage.getItem('essentia-folio-sidebar')).toBe('hidden')
+    unmount()
+    renderApp()
+    expect(hidden()).toBe(true)
+    click(toggle())
+    unmount()
+    renderApp()
+    expect(hidden()).toBe(false)
+  })
+
+  it('shows the sidebar when the stored choice is unknown or storage refuses', () => {
+    localStorage.setItem('essentia-folio-sidebar', 'sideways')
+    renderApp()
+    expect(hidden()).toBe(false)
+    unmount()
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError')
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Denied', 'SecurityError')
+    })
+    renderApp()
+    expect(hidden()).toBe(false)
+    click(toggle())
+    expect(hidden()).toBe(true)
+  })
+
+  it('keeps a folder filter while the sidebar is hidden', () => {
+    renderApp()
+    newNote('A')
+    click(buttonNamed('New folder'))
+    type($<HTMLInputElement>('.folder-form input'), 'Work')
+    click(buttonNamed('Add'))
+    newNote('B')
+    click(toggle())
+    expect(rowTitles()).toEqual(['B'])
   })
 })

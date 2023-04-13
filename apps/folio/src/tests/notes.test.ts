@@ -1,15 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   applyChanges,
+  checkFolderName,
+  countByFolder,
   countWords,
   createNote,
   excerptText,
+  existingFolder,
   filterNotes,
+  foldersOf,
   formatDate,
   newId,
   noteText,
   parseTags,
   plainText,
+  refileNotes,
   tagsOf,
   type Note,
 } from '../domain/notes'
@@ -114,6 +119,91 @@ describe('filterNotes', () => {
     expect(ids(filterNotes(notes, '', 'home'))).toEqual(['2', '3'])
     expect(ids(filterNotes(notes, 'alfama', 'home'))).toEqual(['3'])
     expect(filterNotes(notes, 'roadmap', 'home')).toEqual([])
+  })
+})
+
+describe('filterNotes by folder', () => {
+  const notes = [
+    note('1', { title: 'Plan', folder: 'Work', tags: ['q2'] }),
+    note('2', { title: 'Plan B', folder: 'Work' }),
+    note('3', { title: 'Loose plan', tags: ['q2'] }),
+    note('4', { title: 'Trip', folder: 'Home', pinned: true }),
+  ]
+  const ids = (list: Note[]) => list.map((n) => n.id)
+
+  it('keeps any folder for null, only unfiled notes for the empty folder', () => {
+    expect(ids(filterNotes(notes, '', null, null))).toEqual(['4', '3', '2', '1'])
+    expect(ids(filterNotes(notes, '', null, ''))).toEqual(['3'])
+    expect(ids(filterNotes(notes, '', null, 'Work'))).toEqual(['2', '1'])
+  })
+
+  it('combines the folder with the tag and the search', () => {
+    expect(ids(filterNotes(notes, '', 'q2', 'Work'))).toEqual(['1'])
+    expect(ids(filterNotes(notes, 'plan b', null, 'Work'))).toEqual(['2'])
+    expect(ids(filterNotes(notes, 'plan', 'q2', ''))).toEqual(['3'])
+    expect(filterNotes(notes, 'trip', null, 'Work')).toEqual([])
+  })
+
+  it('matches the folder name exactly', () => {
+    expect(filterNotes(notes, '', null, 'work')).toEqual([])
+  })
+})
+
+describe('foldersOf and countByFolder', () => {
+  it('joins kept folders and the ones notes are in, sorted, without unfiled', () => {
+    const notes = [note('1', { folder: 'b' }), note('2'), note('3', { folder: 'A' })]
+    expect(foldersOf(notes, ['é', 'b', 'Empty'])).toEqual(['A', 'b', 'é', 'Empty'].sort((x, y) => x.localeCompare(y)))
+    expect(foldersOf(notes)).not.toContain('')
+  })
+
+  it('counts each folder, with unfiled under the empty name', () => {
+    const counts = countByFolder([note('1', { folder: 'Work' }), note('2', { folder: 'Work' }), note('3')])
+    expect(counts.get('Work')).toBe(2)
+    expect(counts.get('')).toBe(1)
+    expect(counts.get('Empty')).toBeUndefined()
+  })
+})
+
+describe('checkFolderName', () => {
+  const folders = ['Work', 'Home']
+
+  it('tidies the spacing', () => {
+    expect(checkFolderName('  Ideas   2023 ', folders)).toEqual({ name: 'Ideas 2023' })
+  })
+
+  it('refuses a blank name and one over 100 characters', () => {
+    expect(checkFolderName('   ', folders)).toEqual({ error: 'blank' })
+    expect(checkFolderName('a'.repeat(100), folders)).toEqual({ name: 'a'.repeat(100) })
+    expect(checkFolderName('a'.repeat(101), folders)).toEqual({ error: 'long' })
+    expect(checkFolderName(`${'a'.repeat(50)}    ${'a'.repeat(49)}`, folders).name).toHaveLength(100)
+  })
+
+  it('refuses renaming onto another folder, ignoring case, but not onto itself', () => {
+    expect(checkFolderName('work', folders, 'Home')).toEqual({ error: 'taken' })
+    expect(checkFolderName('work', folders, 'Work')).toEqual({ name: 'work' })
+    expect(checkFolderName('Work', folders, 'Work')).toEqual({ name: 'Work' })
+  })
+
+  it('leaves an existing name for the caller to reuse when not renaming', () => {
+    expect(checkFolderName('work', folders)).toEqual({ name: 'work' })
+    expect(existingFolder(folders, 'work')).toBe('Work')
+    expect(existingFolder(folders, 'Garden')).toBeUndefined()
+  })
+})
+
+describe('refileNotes', () => {
+  const now = new Date('2023-04-12T10:00:00Z')
+
+  it('moves the folder\'s notes, stamping them, and leaves the rest as they were', () => {
+    const inside = note('1', { folder: 'Work', tags: ['q2'], body: '<p>x</p>' })
+    const outside = note('2', { folder: 'Home' })
+    const [moved, untouched] = refileNotes([inside, outside], 'Work', 'Jobs', now)
+    expect(moved).toEqual({ ...inside, folder: 'Jobs', updatedAt: now.toISOString() })
+    expect(untouched).toBe(outside)
+  })
+
+  it('unfiles them when moved to the empty folder', () => {
+    expect(refileNotes([note('1', { folder: 'Work' })], 'Work', '', now)[0].folder).toBe('')
   })
 })
 

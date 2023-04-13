@@ -280,6 +280,26 @@
 
 .tags-field__input::placeholder { color: var(--color-mid); }
 
+.folder-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.folder-field--naming { align-items: flex-start; flex-basis: 100%; }
+.folder-field--naming > .label { padding-top: var(--space-3); }
+.folder-field--naming .folder-form { flex: 1; margin-top: 0; }
+
+.folder-field__select {
+  max-width: 220px;
+  min-height: 36px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+  color: var(--color-ink);
+}
+
 /* The reading face: Lora, Folio's editor body only. */
 .editor__body {
   min-height: 240px;
@@ -535,7 +555,8 @@
     min-height: 44px;
   }
 
-  .tags-field__input { min-height: 44px; }
+  .tags-field__input,
+  .folder-field__select { min-height: 44px; }
 
   /* Pin and Delete on the first row, the toolbar on its own row below. */
   .editor__bar { flex-wrap: wrap; }

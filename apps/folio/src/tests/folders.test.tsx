@@ -1,3 +1,4 @@
+import { act } from 'react'
 import { describe, expect, it } from 'vitest'
 import { FOLDERS_KEY, NOTES_KEY } from '../data/storage'
 import { createNote, type Note } from '../domain/notes'
@@ -272,5 +273,96 @@ describe('creating, renaming and deleting folders', () => {
     expect($('dialog').textContent).toContain('It holds no notes.')
     click($('dialog .button-primary'))
     expect(keptFolders()).not.toContain('Empty')
+  })
+})
+
+const picker = () => $<HTMLSelectElement>('.folder-field select')
+
+function choose(value: string) {
+  const select = picker()
+  act(() => {
+    select.value = value
+    select.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+}
+
+const chooseNew = () => choose([...picker().options].find((option) => option.text === 'New folder…')!.value)
+const savedFolder = (title: string) => savedNotes().find((saved: Note) => saved.title === title).folder
+
+describe('moving a note to a folder', () => {
+  setupApp()
+
+  it('offers Unfiled, every folder and a new one, on the open note\'s folder', () => {
+    seed(['Empty'])
+    renderApp()
+    expect([...picker().options].map((option) => option.text)).toEqual(['Unfiled', 'Empty', 'Home', 'Work', 'New folder…'])
+    expect($<HTMLTextAreaElement>('#note-title').value).toBe('Trip')
+    expect(picker().value).toBe('Home')
+  })
+
+  it('moves the note to an existing folder or to Unfiled, updating the counts', () => {
+    seed()
+    renderApp()
+    choose('Work')
+    expect(savedFolder('Trip')).toBe('Work')
+    expect(buttonNamed('Work, 2 notes')).toBeTruthy()
+    expect($('[role="status"]:not(:empty)').textContent).toBe('Moved to “Work”.')
+    choose('')
+    expect(savedFolder('Trip')).toBe('')
+    expect(buttonNamed('Unfiled, 2 notes')).toBeTruthy()
+  })
+
+  it('keeps the note open when it leaves the folder shown', () => {
+    seed()
+    renderApp()
+    click(buttonNamed('Home, 1 note'))
+    choose('Work')
+    expect(rowTitles()).toEqual([])
+    expect($<HTMLTextAreaElement>('#note-title').value).toBe('Trip')
+    expect(picker().value).toBe('Work')
+  })
+
+  it('moves the note to a new folder named on the spot, and focus returns to the picker', () => {
+    seed()
+    renderApp()
+    chooseNew()
+    expect(document.activeElement).toBe(nameField())
+    type(nameField(), 'Garden')
+    submit()
+    expect(savedFolder('Trip')).toBe('Garden')
+    expect(keptFolders()).toContain('Garden')
+    expect(document.activeElement).toBe(picker())
+    expect(picker().value).toBe('Garden')
+  })
+
+  it('reuses an existing folder for a new name in another case', () => {
+    seed()
+    renderApp()
+    chooseNew()
+    type(nameField(), 'WORK')
+    submit()
+    expect(savedFolder('Trip')).toBe('Work')
+    expect(folderButtons()).toHaveLength(4)
+  })
+
+  it('leaves the note alone when named into the folder it is in', () => {
+    seed()
+    renderApp()
+    const before = localStorage.getItem(NOTES_KEY)
+    chooseNew()
+    type(nameField(), 'home')
+    submit()
+    expect(localStorage.getItem(NOTES_KEY)).toBe(before)
+  })
+
+  it('refuses a blank name, and Escape leaves the note where it was', () => {
+    seed()
+    renderApp()
+    chooseNew()
+    submit()
+    expect(errorOf(nameField())).toBe('Give the folder a name.')
+    press(nameField(), 'Escape')
+    expect(document.activeElement).toBe(picker())
+    expect(savedFolder('Trip')).toBe('Home')
   })
 })

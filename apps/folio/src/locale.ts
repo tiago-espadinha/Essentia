@@ -1,6 +1,10 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "Folder": "Pasta",
+  "Moved to “{name}”.": "Movida para “{name}”.",
+  "Moved to Unfiled.": "Movida para Sem pasta.",
+  "New folder…": "Nova pasta…",
   "Add": "Adicionar",
   "Added the folder “{name}”.": "Pasta “{name}” adicionada.",
   "Another folder has this name.": "Já existe uma pasta com este nome.",

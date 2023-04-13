@@ -23,7 +23,7 @@ export default function App() {
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
   const {
     notes, versions, folders, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore,
-    createFolder, renameFolder, deleteFolder,
+    createFolder, renameFolder, deleteFolder, moveNote,
   } = useNotes()
   const autoVersion = useAutoVersion(saveVersion)
   // The open dialog and the note it is for; it closes if the note goes.
@@ -135,6 +135,16 @@ export default function App() {
     setFolderNotice(t('Deleted the folder “{name}”.', { name: folder }))
   }
 
+  // The note stays open even when it leaves the folder shown, as it does while edited.
+  function moveOpenNote(note: Note, name: string) {
+    const folder = name && (existingFolder(folders, name) ?? name)
+    if (folder === note.folder) return
+    const id = note.id
+    setSelectedId(id)
+    moveNote(id, folder)
+    setFolderNotice(folder ? t('Moved to “{name}”.', { name: folder }) : t('Moved to Unfiled.'))
+  }
+
   // A new note is blank, so the search and tag are cleared to show it; it goes
   // into the folder being shown.
   function newNote() {
@@ -237,6 +247,7 @@ export default function App() {
             <Editor
               key={`${selected.id}:${selected.format}:${revision}`}
               note={selected}
+              folders={folders}
               readOnly={readOnly}
               autoFocus={selected.id === titleFocusId}
               onFocused={clearTitleFocus}
@@ -246,6 +257,7 @@ export default function App() {
                 update(selected.id, changes)
                 if ('title' in changes || 'body' in changes) autoVersion.schedule(selected.id)
               }}
+              onMove={(folder) => moveOpenNote(selected, folder)}
               onBack={() => backToList(selected.id)}
               onVersions={() => setDialog({ kind: 'versions', noteId: selected.id })}
               onConvert={() => setDialog({ kind: 'convert', noteId: selected.id })}

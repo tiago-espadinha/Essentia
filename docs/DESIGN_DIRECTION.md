@@ -97,6 +97,9 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
   single-level folders with counts, then the tag filter; from 1024 px a list-header
   toggle hides it and the choice is remembered on the device. Below 1024 px it folds
   into the Filter bar. A note's folder is picked in the editor's details row.
+  Below 1024 px the editor bar keeps to two rows: Convert, Versions and Delete fold
+  into a More menu beside Pin, the formatting toolbar sits below, and on phones Pin
+  and More show only their icons.
   Keep separate Dictum discoverable until safe.
 - Navigation: retain the header’s back-to-hub link at every width. Validate exact
   breakpoints, density, reading order and pane controls in the implementation’s

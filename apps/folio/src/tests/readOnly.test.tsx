@@ -30,7 +30,7 @@ describe('notes that cannot be stored on this device', () => {
     expect(() => buttonNamed('New note')).toThrow()
     expect(app.querySelector('.pin-button')).toBeNull()
     expect(app.querySelector('.toolbar')).toBeNull()
-    expect(app.querySelector('#convert-button, #versions-button')).toBeNull()
+    expect(app.querySelector('#convert-button, #versions-button, #more-button')).toBeNull()
     expect(app.querySelector('#new-folder, #rename-folder, #delete-folder')).toBeNull()
     expect($<HTMLSelectElement>('.folder-field select').disabled).toBe(true)
     expect(localStorage.getItem('essentia-folio-notes')).toBe(folioNotes)

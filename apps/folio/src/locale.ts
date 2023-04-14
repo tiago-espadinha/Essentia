@@ -6,6 +6,8 @@ export const messages = {
   "Folder": "Pasta",
   "Moved to “{name}”.": "Movida para “{name}”.",
   "Moved to Unfiled.": "Movida para Sem pasta.",
+  "More": "Mais",
+  "More actions": "Mais ações",
   "New folder…": "Nova pasta…",
   "Add": "Adicionar",
   "Added the folder “{name}”.": "Pasta “{name}” adicionada.",

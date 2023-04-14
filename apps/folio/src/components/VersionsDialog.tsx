@@ -7,6 +7,8 @@ interface VersionsDialogProps {
   note: Note
   /** This note's versions, newest first. */
   versions: NoteVersion[]
+  /** The control that opened the dialog: the bar button or the More menu. */
+  returnFocusId: string
   onSave: () => void
   onRestore: (version: NoteVersion) => void
   onClose: () => void
@@ -22,11 +24,11 @@ function excerpt(version: NoteVersion, length = 80): string {
 }
 
 /** Saved versions of the open note, to look back at and restore. */
-export function VersionsDialog({ note, versions, onSave, onRestore, onClose }: VersionsDialogProps) {
+export function VersionsDialog({ note, versions, returnFocusId, onSave, onRestore, onClose }: VersionsDialogProps) {
   const unchanged = holds(versions[0], note)
 
   return (
-    <Dialog title={t('Versions')} titleId="versions-title" returnFocusId="versions-button" onClose={onClose}>
+    <Dialog title={t('Versions')} titleId="versions-title" returnFocusId={returnFocusId} onClose={onClose}>
       <p className="dialog__text">
         {t('A version is saved after 30 seconds without typing, and before a conversion or restore. The newest {count} are kept on this device.', { count: formatNumber(MAX_VERSIONS) })}
       </p>

@@ -28,8 +28,8 @@ export default function App() {
   } = useNotes()
   const autoVersion = useAutoVersion(saveVersion)
   const sidebar = useSidebar()
-  // The open dialog and the note it is for; it closes if the note goes.
-  const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string } | null>(null)
+  // The open dialog, the note it is for and the control that opened it; it closes if the note goes.
+  const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string; returnFocusId: string } | null>(null)
   // Bumped when a restore or conversion replaces the open note's body, which the editor writes into the DOM only on mount.
   // The editor's key also holds the note's format, so a conversion made in another tab remounts it too.
   const [revision, setRevision] = useState(0)
@@ -268,8 +268,8 @@ export default function App() {
               }}
               onMove={(folder) => moveOpenNote(selected, folder)}
               onBack={() => backToList(selected.id)}
-              onVersions={() => setDialog({ kind: 'versions', noteId: selected.id })}
-              onConvert={() => setDialog({ kind: 'convert', noteId: selected.id })}
+              onVersions={(returnFocusId) => setDialog({ kind: 'versions', noteId: selected.id, returnFocusId })}
+              onConvert={(returnFocusId) => setDialog({ kind: 'convert', noteId: selected.id, returnFocusId })}
               onDelete={() => deleteNote(selected.id)}
             />
           ) : (
@@ -281,6 +281,7 @@ export default function App() {
         <VersionsDialog
           note={dialogNote}
           versions={versionsOf(versions, dialogNote.id)}
+          returnFocusId={dialog.returnFocusId}
           onSave={() => saveVersion(dialogNote.id)}
           onRestore={(version) => replaceBody(dialogNote.id, () => restoreVersion(dialogNote.id, version))}
           onClose={() => setDialog(null)}
@@ -297,6 +298,7 @@ export default function App() {
       {dialog?.kind === 'convert' && dialogNote && (
         <ConvertDialog
           note={dialogNote}
+          returnFocusId={dialog.returnFocusId}
           onConvert={() => replaceBody(dialogNote.id, () => convert(dialogNote.id))}
           onClose={() => setDialog(null)}
         />

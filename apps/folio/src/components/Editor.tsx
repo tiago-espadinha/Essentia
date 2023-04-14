@@ -8,6 +8,7 @@ import { useMarkdownFormat } from '../hooks/useMarkdownFormat'
 import { MarkdownBody, ModeSwitch, type Mode } from './MarkdownBody'
 import { MarkdownToolbar } from './MarkdownToolbar'
 import { FolderField } from './FolderField'
+import { MORE_BUTTON_ID, MoreMenu } from './MoreMenu'
 import { Toolbar } from './Toolbar'
 
 interface EditorProps {
@@ -23,10 +24,15 @@ interface EditorProps {
   onMove: (folder: string) => void
   /** Back to the note list, shown below 768 px. */
   onBack: () => void
-  onVersions: () => void
-  onConvert: () => void
+  /** Opens Versions; its dialog returns focus to the control with this id. */
+  onVersions: (returnFocusId: string) => void
+  /** Opens Convert; its dialog returns focus to the control with this id. */
+  onConvert: (returnFocusId: string) => void
   onDelete: () => void
 }
+
+const CONVERT_BUTTON_ID = 'convert-button'
+const VERSIONS_BUTTON_ID = 'versions-button'
 
 /**
  * One note. Remounted per note (keyed by id), so the body is written into the DOM once.
@@ -76,6 +82,7 @@ export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange
   }
 
   const text = noteText(note)
+  const convertLabel = t(markdown ? 'Convert to rich text' : 'Convert to markdown')
 
   return (
     <>
@@ -110,12 +117,22 @@ export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
-              </svg>{t("Pin")}</button>
-            <button type="button" id="convert-button" className="button-ghost" onClick={onConvert}>
-              {t(markdown ? 'Convert to rich text' : 'Convert to markdown')}
+              </svg>
+              <span className="pin-button__label">{t("Pin")}</span>
             </button>
-            <button type="button" id="versions-button" className="button-ghost" onClick={onVersions}>{t("Versions")}</button>
-            <button type="button" className="button-ghost button-ghost--danger" onClick={onDelete}>{t("Delete")}</button>
+            {/* From 1024 px the actions sit in the bar; below, they fold into More. */}
+            <button type="button" id={CONVERT_BUTTON_ID} className="button-ghost note-action" onClick={() => onConvert(CONVERT_BUTTON_ID)}>
+              {convertLabel}
+            </button>
+            <button type="button" id={VERSIONS_BUTTON_ID} className="button-ghost note-action" onClick={() => onVersions(VERSIONS_BUTTON_ID)}>{t("Versions")}</button>
+            <button type="button" className="button-ghost button-ghost--danger note-action" onClick={onDelete}>{t("Delete")}</button>
+            <MoreMenu
+              items={[
+                { label: convertLabel, onSelect: () => onConvert(MORE_BUTTON_ID) },
+                { label: t('Versions'), onSelect: () => onVersions(MORE_BUTTON_ID) },
+                { label: t('Delete'), onSelect: onDelete, danger: true },
+              ]}
+            />
           </>
         )}
       </div>

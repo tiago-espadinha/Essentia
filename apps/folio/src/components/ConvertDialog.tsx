@@ -31,18 +31,20 @@ function lossLines(losses: Loss[]): string[] {
 
 interface ConvertDialogProps {
   note: Note
+  /** The control that opened the dialog: the bar button or the More menu. */
+  returnFocusId: string
   onConvert: () => void
   onClose: () => void
 }
 
 /** Asks before a note changes format, saying what carries over and what does not. */
-export function ConvertDialog({ note, onConvert, onClose }: ConvertDialogProps) {
+export function ConvertDialog({ note, returnFocusId, onConvert, onClose }: ConvertDialogProps) {
   const toMarkdown = note.format === 'rich'
   return (
     <Dialog
       title={t(toMarkdown ? 'Convert to markdown?' : 'Convert to rich text?')}
       titleId="convert-title"
-      returnFocusId="convert-button"
+      returnFocusId={returnFocusId}
       onClose={onClose}
     >
       <div className="dialog__text convert">

@@ -1,7 +1,7 @@
 import axe from 'axe-core'
 import { act } from 'react'
 import { describe, expect, it } from 'vitest'
-import { $, buttonNamed, click, newNote, press, renderApp, savedNotes, setupApp, writeBody } from './testing'
+import { $, blur, buttonNamed, click, newNote, press, renderApp, savedNotes, setupApp, writeBody } from './testing'
 
 // jsdom applies no media queries, so the More menu and the bar buttons are both
 // present here; which one shows at a width is checked in the browser.
@@ -60,7 +60,7 @@ describe('the More menu in the Folio editor bar', () => {
     expect(focused()).toBe('Delete')
   })
 
-  it('closes on Tab and on a click outside it', () => {
+  it('closes on Tab, on a click outside it and when focus leaves it', () => {
     renderApp()
     newNote('Plan')
     click(trigger())
@@ -71,6 +71,10 @@ describe('the More menu in the Folio editor bar', () => {
     act(() => document.body.dispatchEvent(new Event('pointerdown', { bubbles: true })))
     expect(menu()).toBeNull()
     expect(trigger().getAttribute('aria-expanded')).toBe('false')
+
+    click(trigger())
+    blur(items()[0])
+    expect(menu()).toBeNull()
   })
 
   it('opens Versions, whose dialog returns focus to More', () => {

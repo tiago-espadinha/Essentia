@@ -13,8 +13,8 @@ export interface MoreMenuItem {
 /**
  * The note actions that do not fit the editor bar below 1024 px, as a menu
  * button: it opens on the first item (the last with ArrowUp), arrows and
- * Home/End move, Escape closes back to the trigger, Tab or a click outside
- * closes it where focus goes.
+ * Home/End move, Escape closes back to the trigger, and Tab, a click outside or
+ * focus leaving it closes it where focus goes.
  */
 export function MoreMenu({ items }: { items: MoreMenuItem[] }) {
   const [open, setOpen] = useState<'first' | 'last' | null>(null)
@@ -86,7 +86,17 @@ export function MoreMenu({ items }: { items: MoreMenuItem[] }) {
         <span className="more-menu__label">{t('More')}</span>
       </button>
       {open && (
-        <div id={MENU_ID} className="more-menu__list" role="menu" aria-labelledby={MORE_BUTTON_ID} onKeyDown={menuKeyDown}>
+        <div
+          id={MENU_ID}
+          className="more-menu__list"
+          role="menu"
+          aria-labelledby={MORE_BUTTON_ID}
+          onKeyDown={menuKeyDown}
+          // Focus leaving by any other route (a screen reader, a script) closes it too.
+          onBlur={(event) => {
+            if (!wrapper.current?.contains(event.relatedTarget as Node | null)) setOpen(null)
+          }}
+        >
           {items.map((item) => (
             <button
               key={item.label}

@@ -95,9 +95,10 @@ Account unavailable, and Merces says it is not set up.
 ### Supabase (for sync and Merces)
 
 1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
-2. In the project's SQL editor, run each of these files once. They are independent, so the order does not matter:
+2. In the project's SQL editor, run each of these files once. Only Folio's depends on another, so run it after Dictum's:
    - `apps/virtus/supabase/migration.sql`: habits and check-ins
    - `apps/dictum/supabase/migration.sql`: documents and share links
+   - `apps/folio/supabase/migration.sql`: note format, pinning and kept folders, added to Dictum's documents
    - `apps/aurum/supabase/migration.sql`: transactions, budgets and recurring items
 3. Under Authentication, URL configuration: set the Site URL to where the suite runs, and add `http://localhost:5100/**` (and your deployed URL followed by `/**`) to the redirect URLs. The confirmation email leads back to the app it was sent from. Merces now requests `/merces/`; keep both `/merces/` and `/aurum/` allowed if using explicit paths rather than the wildcard.
 4. Copy `.env.example` into the hub and the three apps that sync, then fill in the same project URL and publishable (anon) key from the project's API settings. These files are ignored by git.

@@ -120,7 +120,7 @@ hint; service outages continue to use existing sync-failure feedback.
   - `get_shared_document(link_id)`: anyone with the link reads that one document's title and content.
   - `acta_write_task(p_owner, p_operation_id, p_task_id, p_expected_version, p_content)`: Acta's only write. It checks the owner and the task's shape, serializes each account's writes, answers a repeated operation ID from its receipt, and applies the write or returns the newer version as a conflict. Receipts older than 30 days are pruned; a retry that late meets the newer version and settles as already done.
   - `process_due_recurring(p_today)`: Merces calls it at the end of each sync; it posts every due occurrence of the caller's recurring items once, skipping paused periods, and catches up missed periods.
-- Migrations and seed strategy: one SQL file per app, `apps/{acta,virtus,dictum,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other. No seed data.
+- Migrations and seed strategy: one SQL file per app, `apps/{acta,virtus,dictum,folio,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other, except Folio's: it adds `format` and `pinned` to Dictum's `documents` table and a `note_folders` table for kept folders, so it runs after Dictum's. No seed data.
 
 ## APIs and integrations
 

@@ -1,6 +1,6 @@
 {
   "name": "10-dictum-owned-waits",
-  "description": "Dictum's account copy (owner set) is not moved; it moves with account sync later.",
+  "description": "Dictum's account copy (owner set) is not moved while the notes belong to no account; it joins them once they belong to the same account.",
   "input": {
     "essentia-folio-notes": "[{\"id\": \"1b4e28ba-2fa1-4d2a-883f-0016d3cca427\", \"title\": \"Groceries\", \"body\": \"<p>Milk and <strong>bread</strong></p>\", \"tags\": [\"home\"], \"pinned\": true, \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}]",
     "essentia-dictum-documents": "[{\"id\": \"16fd2706-8baf-433b-82eb-8c7fada847da\", \"title\": \"Essay draft\", \"content\": \"# Essay\\n\\nFirst *draft*.\", \"folder\": \"Writing\", \"tags\": [\"essay\"], \"createdAt\": \"2023-01-10T09:00:00.000Z\", \"updatedAt\": \"2023-01-12T10:30:00.000Z\"}]",

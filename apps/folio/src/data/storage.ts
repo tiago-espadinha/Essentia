@@ -1,5 +1,6 @@
 import { cleanFolder, FOLDER_LIMIT, parseTags, type Note, type NoteVersion } from '../domain/notes'
 import { sanitizeHtml } from '../domain/sanitize'
+import { NO_STAMPS, type Stamps } from './sync'
 
 // The notes store, shared by everything Folio holds. The keys the apps used
 // before it (see sources.ts) are only ever read.
@@ -7,6 +8,13 @@ export const NOTES_KEY = 'essentia-notes'
 export const VERSIONS_KEY = 'essentia-notes-versions'
 /** Folders kept on their own, so a folder stays while it holds no notes. */
 export const FOLDERS_KEY = 'essentia-notes-folders'
+/** Which account the notes belong to, and the deletions and folder changes not yet synced. */
+export const SYNC_KEY = 'essentia-notes-sync'
+/**
+ * Notes, versions and folders set aside with "Keep on this device only". Not an
+ * account's, so signing out keeps them; they come back once no account owns the notes.
+ */
+export const DEVICE_KEY = 'essentia-notes-device'
 /** A copy of an unreadable notes list, kept before anything is written over it. */
 export const UNREADABLE_KEY = 'essentia-notes-unreadable'
 
@@ -129,3 +137,75 @@ export function loadFolders(): string[] {
 }
 
 export const saveFolders = (folders: string[]) => save(FOLDERS_KEY, folders)
+
+const isStampMap = (value: unknown): value is Record<string, string> =>
+  isRecord(value) && !Array.isArray(value) && Object.values(value).every(isTimestamp)
+
+/**
+ * Reads which account the notes belong to and the changes not yet synced.
+ * Unreadable stamps start over, as in Dictum: the notes then count as never
+ * synced, so they join an account only through the claim dialog.
+ */
+export function loadStamps(): Stamps {
+  try {
+    const saved: unknown = JSON.parse(readRaw(SYNC_KEY) ?? 'null')
+    if (!isRecord(saved) || !(saved.owner === null || isString(saved.owner)) || !isStampMap(saved.deleted)) return NO_STAMPS
+    // Stamps from before folders synced have none.
+    const folders = saved.folders === undefined ? {} : isStampMap(saved.folders) ? saved.folders : null
+    return folders ? { owner: saved.owner, deleted: { ...saved.deleted }, folders: { ...folders } } : NO_STAMPS
+  } catch {
+    return NO_STAMPS
+  }
+}
+
+export const saveStamps = (stamps: Stamps) => save(SYNC_KEY, stamps)
+
+/** What the device keeps apart from an account. */
+export interface Kept {
+  notes: Note[]
+  versions: NoteVersion[]
+  folders: string[]
+}
+
+export const NOTHING_KEPT: Kept = { notes: [], versions: [], folders: [] }
+
+/** Reads what was set aside; anything malformed is skipped, and an unreadable value reads as nothing. */
+export function loadKept(): Kept {
+  try {
+    const saved: unknown = JSON.parse(readRaw(DEVICE_KEY) ?? 'null')
+    if (!isRecord(saved)) return NOTHING_KEPT
+    const notes = unique(Array.isArray(saved.notes) ? saved.notes.filter(isNote) : []).map(cleanNote)
+    const ids = new Set(notes.map((note) => note.id))
+    const versions = unique(Array.isArray(saved.versions) ? saved.versions.filter(isVersion) : [])
+      .filter((version) => ids.has(version.noteId))
+      .map((version) => ({ ...version, body: version.format === 'rich' ? sanitizeHtml(version.body) : version.body }))
+    const names = Array.isArray(saved.folders) ? saved.folders.filter(isString).map(cleanFolder) : []
+    return { notes, versions, folders: [...new Set(names.filter((name) => name && name.length <= FOLDER_LIMIT))] }
+  } catch {
+    return NOTHING_KEPT
+  }
+}
+
+/** Both sets together; where both hold an id, the first wins. */
+export function joinKept(first: Kept, second: Kept): Kept {
+  return {
+    notes: unique([...first.notes, ...second.notes]),
+    versions: unique([...first.versions, ...second.versions]),
+    folders: [...new Set([...first.folders, ...second.folders])],
+  }
+}
+
+/**
+ * Adds to what is already set aside, the newer copy of a note winning; false
+ * when it could not be stored, and then nothing is set aside.
+ */
+export const setAside = (kept: Kept) => save(DEVICE_KEY, joinKept(kept, loadKept()))
+
+/** Forgets what was set aside, once it is back in the notes store. */
+export function clearKept(): void {
+  try {
+    localStorage.removeItem(DEVICE_KEY)
+  } catch {
+    // Blocked storage: it is set aside still, and comes back again (ids keep it from doubling).
+  }
+}

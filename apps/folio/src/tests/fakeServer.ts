@@ -5,7 +5,7 @@ import { act } from 'react'
 import { vi } from 'vitest'
 
 export type Row = Record<string, unknown> & { user_id: string }
-type Session = { user: { id: string } } | null
+type Session = { user: { id: string; email?: string } } | null
 
 /** Lets the deferred sync and its requests finish. */
 export const settle = () => act(() => vi.advanceTimersByTimeAsync(2500))
@@ -83,7 +83,7 @@ export function fakeServer() {
     }
     /** Switches the session (as another tab would) without letting time pass. */
     const emit = (id: string | null) => {
-      session = id ? { user: { id } } : null
+      session = id ? { user: { id, email: `${id}@example.com` } } : null
       act(() => listeners.forEach((listener) => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session)))
     }
     return { client: { from, auth } as unknown as SupabaseClient, emit }
@@ -97,3 +97,14 @@ export function fakeServer() {
     slow: (ms: number) => (delay = ms),
   }
 }
+
+/**
+ * The app reads its client once, at import. A test file mocks `getSupabase` to
+ * return `appClient`, which forwards to whichever client `account.client` holds.
+ */
+export const account = { client: null as unknown as SupabaseClient }
+
+export const appClient = {
+  from: (table: string) => account.client.from(table),
+  auth: { onAuthStateChange: (callback: never) => account.client.auth.onAuthStateChange(callback) },
+} as unknown as SupabaseClient

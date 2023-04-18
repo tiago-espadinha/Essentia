@@ -47,4 +47,15 @@ describe('ClaimDialog', () => {
     expect(container.textContent).toContain('This device has 2 tasks made while signed out.')
     expect(container.textContent).toContain('or keep them on this device only.')
   })
+
+  it('says what adding means for this device, when the app asks it to', () => {
+    act(() => root.render(<ClaimDialog count={1} noun={['note', 'notes']} email="ana@example.com" decline="keep" note="Notes added to your account leave this device when you sign out." onAnswer={() => {}} />))
+    const paragraphs = [...container.querySelectorAll('p')].map((p) => p.textContent)
+    expect(paragraphs[1]).toBe('Notes added to your account leave this device when you sign out.')
+  })
+
+  it('adds nothing when the app does not ask', () => {
+    act(() => root.render(<ClaimDialog count={1} noun={['task', 'tasks']} email="ana@example.com" onAnswer={() => {}} />))
+    expect(container.querySelectorAll('p')).toHaveLength(2)
+  })
 })

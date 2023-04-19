@@ -14,14 +14,18 @@ const TEXT: AccountText = {
   signOut: 'Signing out removes your documents and their versions from this device. The documents stay in your account; versions are not synced.',
 }
 
+/** Said instead of "Not synced yet." once Folio has taken the account's documents over. */
+const MOVED = 'Your documents now sync in Folio.'
+
 interface AccountMenuProps {
   auth: Auth
   client: SupabaseClient | null
   syncState: SyncState
   onSync: () => Promise<boolean>
+  movedToFolio?: boolean
 }
 
 /** The suite's account menu, worded for documents. */
-export function AccountMenu(props: AccountMenuProps) {
-  return <SuiteAccountMenu {...props} text={{ intro: t(TEXT.intro), sync: { off: t(TEXT.sync.off), syncing: t(TEXT.sync.syncing), synced: t(TEXT.sync.synced), failed: t(TEXT.sync.failed) }, signOut: t(TEXT.signOut) }} />
+export function AccountMenu({ movedToFolio = false, ...props }: AccountMenuProps) {
+  return <SuiteAccountMenu {...props} text={{ intro: t(TEXT.intro), sync: { off: t(movedToFolio ? MOVED : TEXT.sync.off), syncing: t(TEXT.sync.syncing), synced: t(TEXT.sync.synced), failed: t(TEXT.sync.failed) }, signOut: t(TEXT.signOut) }} />
 }

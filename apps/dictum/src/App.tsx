@@ -29,7 +29,7 @@ const client = getSupabase()
 export default function App() {
   useLocale()
   const auth = useAuth(client)
-  const { docs, moved, unclaimed, answer, versions, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
+  const { docs, moved, unclaimed, answer, versions, movedToFolio, saveFailed, syncState, sync, add, update, saveVersion, restore, remove, putBack } = useDocuments(client)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // What in which document takes focus when its editor mounts or shows.
   const [focusRequest, setFocusRequest] = useState<{ docId: string; target: FocusTarget } | null>(null)
@@ -76,6 +76,8 @@ export default function App() {
 
   // A new document is blank, so the search and tag are cleared to show it; it joins the folder in view.
   function newDoc() {
+    // Folio keeps this account's documents now: a document written here would never sync.
+    if (movedToFolio) return
     const doc = motion(() => add(activeFilter.folder ?? ''))
     setFilter({ ...NO_FILTER, folder: activeFilter.folder })
     setSelectedId(doc.id)
@@ -153,7 +155,7 @@ export default function App() {
           openDoc(id)
           setMode('write')
           setFocusRequest({ docId: id, target: 'title' })
-        }} />} account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
+        }} />} account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} movedToFolio={movedToFolio} />} />
       <main className="dictum" ref={mainRef} data-view={selected && view === 'doc' ? 'doc' : 'list'}>
         <h1 className="visually-hidden">{t("Dictum documents")}</h1>
         <DocList
@@ -178,7 +180,7 @@ export default function App() {
           filters={<Filters filter={activeFilter} folders={folders} tags={tags} onChange={setFilter} />}
           onClearFilters={() => setFilter(NO_FILTER)}
           onSelect={openDoc}
-          onNew={newDoc}
+          onNew={movedToFolio ? undefined : newDoc}
         />
         <section data-motion-detail className="pane doc-pane" aria-label={t("Document")}>
           {saveFailed && (

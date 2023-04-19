@@ -74,6 +74,16 @@ export function loadVersions(docIds: string[]): Version[] {
     .map(({ id, docId, title, content, savedAt }) => ({ id, docId, title, content, savedAt }))
 }
 
+/** Whether Folio has taken over this account's documents on this device; Dictum then no longer syncs them. */
+export function takenOver(owner: string): boolean {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(MOVED_KEY) ?? 'null')
+    return isRecord(saved) && Array.isArray(saved.accounts) && saved.accounts.includes(owner)
+  } catch {
+    return false
+  }
+}
+
 /** Ids of the documents Folio has taken in from this device. Dictum keeps them stored but leaves them to Folio. */
 export function loadMoved(): Set<string> {
   try {

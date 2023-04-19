@@ -1,6 +1,10 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "Your documents are in Folio now.": "Os seus documentos estão agora no Folio.",
+  "Write and edit them there; they sync with your account.": "Escreva e edite-os lá; são sincronizados com a sua conta.",
+  "Open Folio": "Abrir o Folio",
+  "Your documents now sync in Folio.": "Os seus documentos agora são sincronizados no Folio.",
   "A version is saved after 30 seconds without typing. The newest {count} are kept.": "É guardada uma versão após 30 segundos sem escrever. São mantidas as {count} mais recentes.",
   "All folders": "Todas as pastas",
   "All tags": "Todas as etiquetas",

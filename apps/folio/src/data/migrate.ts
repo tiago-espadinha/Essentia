@@ -1,17 +1,19 @@
 import { isUuid, uuidFromHash } from '../domain/ids'
 import type { Note, NoteVersion } from '../domain/notes'
-import { dictumOwned, readDictum, readDictumVersions, readFolio } from './sources'
+import { dictumOwner, readDictum, readDictumDeleted, readDictumVersions, readFolio } from './sources'
 import {
   cleanNote,
   isRecord,
   isString,
   isTimestamp,
   loadNotes,
+  loadStamps,
   loadVersions,
   NOTES_KEY,
   readList,
   readRaw,
   save,
+  saveStamps,
   UNREADABLE_KEY,
   VERSIONS_KEY,
 } from './storage'
@@ -33,6 +35,8 @@ export interface Ledger {
   imported: Record<string, Imported>
   /** Dictum documents now kept by Folio; Dictum reads this to hide them. */
   moved: string[]
+  /** Accounts whose Dictum copy Folio has taken over; Dictum stops syncing them. Missing before T-052b. */
+  accounts?: string[]
   skipped: { folio: number; dictum: number }
   lastRun: string
 }
@@ -44,9 +48,14 @@ export interface Store {
 
 export interface Sources {
   folio: Note[]
-  /** Only Dictum documents made while signed out; an account's copy waits for sync. */
+  /** Dictum documents made while signed out, or the account's copy when the notes belong to the same account. */
   dictum: Note[]
   dictumVersions: NoteVersion[]
+  /**
+   * Set when `dictum` is that account's copy: its id, the deletions it has not
+   * synced yet, and the notes deleted here that the account has not heard of.
+   */
+  account?: { id: string; deleted: Record<string, string>; removedHere: string[] }
   skipped: Ledger['skipped']
 }
 
@@ -64,6 +73,7 @@ function loadLedger(): Ledger | null {
     const saved: unknown = JSON.parse(readRaw(LEDGER_KEY) ?? 'null')
     if (!isRecord(saved) || saved.schema !== 1 || !isRecord(saved.imported) || !Array.isArray(saved.moved)) return null
     if (!Object.values(saved.imported).every(isImported) || !saved.moved.every(isString)) return null
+    if (saved.accounts !== undefined && !(Array.isArray(saved.accounts) && saved.accounts.every(isString))) return null
     return saved as unknown as Ledger
   } catch {
     return null
@@ -79,7 +89,12 @@ const newer = (a: string, b: string) => Date.parse(a) > Date.parse(b)
  * if the note has not changed since, or else comes in as an "earlier copy".
  * Nothing is ever overwritten that was edited here.
  */
-export function mergeSources(store: Store, ledger: Ledger | null, sources: Sources, now: string): Store & { ledger: Ledger } {
+export function mergeSources(
+  store: Store,
+  ledger: Ledger | null,
+  sources: Sources,
+  now: string,
+): Store & { ledger: Ledger; deleted: Record<string, string> } {
   const notes = [...store.notes]
   const at = new Map(notes.map((note, index) => [note.id, index]))
   const imported = { ...ledger?.imported }
@@ -93,6 +108,7 @@ export function mergeSources(store: Store, ledger: Ledger | null, sources: Sourc
   }
   const takenByOther = (id: string, key: string) => owners.has(id) && owners.get(id) !== key
   let collisions = 0
+  const removedHere = new Set(sources.account?.removedHere)
 
   function add(note: Note) {
     if (at.has(note.id)) return
@@ -131,6 +147,22 @@ export function mergeSources(store: Store, ledger: Ledger | null, sources: Sourc
     keepBoth(key, entry.id, source)
   }
 
+  /**
+   * A document of the account the notes belong to: both copies mirror the same
+   * row, so the newer one wins whole, as a sync would, with no earlier copy.
+   */
+  function mirror(key: string, source: Note) {
+    const entry = imported[key]
+    if (entry && !newer(source.updatedAt, entry.sourceUpdatedAt)) return
+    const id = entry?.id ?? source.id
+    const index = at.get(id)
+    if (index === undefined) {
+      // Deleted here and not yet synced: the deletion stands.
+      if (!removedHere.has(id)) add({ ...source, id })
+    } else if (newer(source.updatedAt, notes[index].updatedAt)) notes[index] = { ...source, id }
+    record(key, { id, sourceUpdatedAt: source.updatedAt })
+  }
+
   for (const note of sources.folio) {
     const key = `folio:${note.id}`
     const own = isUuid(note.id) && !dictumIds.has(note.id) && !takenByOther(note.id, key)
@@ -145,10 +177,27 @@ export function mergeSources(store: Store, ledger: Ledger | null, sources: Sourc
       collisions++
       continue
     }
-    take(key, cleanNote(note))
+    if (sources.account) mirror(key, cleanNote(note))
+    else take(key, cleanNote(note))
     moved.add(note.id)
     taken.add(note.id)
   }
+
+  // An account's pending deletions go with its documents, so the account still hears of them;
+  // each once, as a moved id, so a deletion synced since is not stamped again.
+  // A note edited here after the deletion outranks it, so that deletion is not carried.
+  const deleted: Record<string, string> = {}
+  const dropped = new Set<string>()
+  for (const [id, stamp] of Object.entries(sources.account?.deleted ?? {})) {
+    if (moved.has(id) || takenByOther(id, `dictum:${id}`)) continue
+    moved.add(id)
+    const index = at.get(id)
+    if (index !== undefined && !newer(stamp, notes[index].updatedAt)) continue
+    if (index !== undefined) dropped.add(id)
+    deleted[id] = stamp
+  }
+  const accounts = new Set(ledger?.accounts)
+  if (sources.account) accounts.add(sources.account.id)
 
   const versionIds = new Set(store.versions.map((version) => version.id))
   const versions = [
@@ -157,15 +206,17 @@ export function mergeSources(store: Store, ledger: Ledger | null, sources: Sourc
   ]
 
   return {
-    notes,
-    versions,
+    notes: dropped.size > 0 ? notes.filter((note) => !dropped.has(note.id)) : notes,
+    versions: dropped.size > 0 ? versions.filter((version) => !dropped.has(version.noteId)) : versions,
     ledger: {
       schema: 1,
       imported,
       moved: [...moved],
+      ...(accounts.size > 0 && { accounts: [...accounts] }),
       skipped: { ...sources.skipped, dictum: sources.skipped.dictum + collisions },
       lastRun: now,
     },
+    deleted,
   }
 }
 
@@ -191,19 +242,27 @@ function keepUnreadable(raw: string): boolean {
  * Reads the notes store and takes in the old stores, writing notes, then
  * versions, then the ledger last, each only when it changed. A refused or
  * unconfirmed write of notes or versions stops the rest and reports failure.
+ * `session` is the account signed in on this device, when known: an account's
+ * Dictum copy is only taken in while that account is the one signed in.
  */
-export function openNotes(now = new Date().toISOString()): Opened {
+export function openNotes(now = new Date().toISOString(), session?: string | null): Opened {
   const store = { notes: loadNotes(), versions: [] as NoteVersion[] }
   store.versions = loadVersions(store.notes.map((note) => note.id))
   const ledger = loadLedger()
   const folio = readFolio()
-  const owned = dictumOwned()
-  const dictum = owned ? { notes: [], skipped: 0 } : readDictum()
+  const stamps = loadStamps()
+  // Dictum's copy joins notes with the same owner: signed-out documents join signed-out notes
+  // (and so the claim dialog), an account's copy joins that account's notes while it is signed in.
+  // Any other copy waits, untouched, for its own sign-out or claim.
+  const owner = dictumOwner()
+  const readable = owner === stamps.owner && (owner === null || session === undefined || session === owner)
+  const dictum = readable ? readDictum() : { notes: [], skipped: 0 }
   const next = mergeSources(store, ledger, {
     folio: folio.notes,
     dictum: dictum.notes,
-    dictumVersions: owned ? [] : readDictumVersions(),
+    dictumVersions: readable ? readDictumVersions() : [],
     skipped: { folio: folio.skipped, dictum: dictum.skipped },
+    ...(owner !== null && readable && { account: { id: owner, deleted: readDictumDeleted(), removedHere: Object.keys(stamps.deleted) } }),
   }, now)
   const result = { notes: next.notes, versions: next.versions }
 
@@ -218,10 +277,17 @@ export function openNotes(now = new Date().toISOString()): Opened {
   // Against what is stored, not what was loaded: versions of deleted notes are dropped on load and must go here too.
   const versionsChanged = !same(next.versions, readList(VERSIONS_KEY).items)
   if (versionsChanged && !save(VERSIONS_KEY, next.versions)) return { ...result, failed: true }
+  // Before the ledger marks them moved: a deletion not stamped here would be lost.
+  if (Object.keys(next.deleted).length > 0 && !saveStamps({ ...stamps, deleted: { ...next.deleted, ...stamps.deleted } })) {
+    return { ...result, failed: true }
+  }
   const ledgerChanged = !ledger || !same({ ...ledger, lastRun: '' }, { ...next.ledger, lastRun: '' })
   // Without the ledger Dictum keeps showing what was just taken in, so edits there would split the note.
   // With nothing taken in, a refused ledger loses nothing: a browser that stores nothing still opens for editing.
-  const tookIn = !same(ledger?.imported ?? {}, next.ledger.imported) || !same(ledger?.moved ?? [], next.ledger.moved)
+  const tookIn =
+    !same(ledger?.imported ?? {}, next.ledger.imported) ||
+    !same(ledger?.moved ?? [], next.ledger.moved) ||
+    !same(ledger?.accounts ?? [], next.ledger.accounts ?? [])
   if (ledgerChanged && !save(LEDGER_KEY, next.ledger) && tookIn) return { ...result, failed: true }
   return { ...result, failed: false }
 }

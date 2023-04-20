@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createDoc, type Doc } from '../domain/documents'
-import { LIMITS, merge, NO_STAMPS, readRemote, stampDeletions, type DocRow, type Stamps } from '../data/sync'
+import { LIMITS, merge, NO_STAMPS, readRemote, richIds, stampDeletions, type DocRow, type Stamps } from '../data/sync'
 
 const ID = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
 const OTHER = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
@@ -151,5 +151,27 @@ describe('stampDeletions', () => {
 
   it('leaves the owner alone', () => {
     expect(stampDeletions([], [], NO_STAMPS, T2)).toEqual(NO_STAMPS)
+  })
+})
+
+describe('rich notes made in Folio', () => {
+  const rich = (changes: Partial<DocRow> = {}) => ({ ...row(changes), format: 'rich', content: '<p>Plan</p>' })
+
+  it('are never read as documents; markdown rows and rows from before formats are', () => {
+    const rows = [rich(), { ...row({ id: OTHER }), format: 'markdown' }, row({ id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' })]
+    expect(readRemote(rows).map((r) => r.id)).toEqual([OTHER, 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'])
+    expect([...richIds(rows)]).toEqual([ID])
+  })
+
+  it('take a document that became one off this device, even when edited here since, and never send it', () => {
+    const result = merge([doc({ updatedAt: T3 })], { owner: 'u1', deleted: {} }, [], richIds([rich({ updated_at: T2 })]))
+    expect(result.docs).toEqual([])
+    expect(result.push).toEqual({ docs: [], deletions: [] })
+  })
+
+  it('drop a pending deletion of a document that became one', () => {
+    const result = merge([], { owner: 'u1', deleted: { [ID]: T3 } }, [], new Set([ID]))
+    expect(result.stamps.deleted).toEqual({})
+    expect(result.push.deletions).toEqual([])
   })
 })

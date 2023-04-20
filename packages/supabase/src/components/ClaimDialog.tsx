@@ -14,6 +14,8 @@ interface ClaimDialogProps {
    * leaves it on this device, apart from the account, for when signed out.
    */
   decline?: 'remove' | 'keep'
+  /** Said before the choice, in the app's words: what adding means for this device. */
+  note?: string
   onAnswer: (add: boolean) => void
 }
 
@@ -22,7 +24,7 @@ interface ClaimDialogProps {
  * shared device it may be someone else's, so it joins the account only when
  * the person signing in says so.
  */
-export function ClaimDialog({ count, noun, email, decline = 'remove', onAnswer }: ClaimDialogProps) {
+export function ClaimDialog({ count, noun, email, decline = 'remove', note, onAnswer }: ClaimDialogProps) {
   useLocale()
   const one = count === 1
   const items = `${formatNumber(count)} ${noun[one ? 0 : 1]}`
@@ -37,6 +39,7 @@ export function ClaimDialog({ count, noun, email, decline = 'remove', onAnswer }
             ? t(one ? 'or keep it on this device only.' : 'or keep them on this device only.')
             : t(one ? 'or remove it from this device.' : 'or remove them from this device.')}
         </p>
+        {note && <p>{note}</p>}
         <p>{keep ? t('Kept work stays here and comes back when you sign out.') : t("Removing can’t be undone.")}</p>
         <div className="account__actions account__actions--answer">
           <button type="button" className="account__close" onClick={() => onAnswer(false)}>

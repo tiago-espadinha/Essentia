@@ -85,14 +85,26 @@ export function readFolio(): Source {
   return { notes, skipped: items.length - notes.length }
 }
 
-/** Whether Dictum's documents on this device belong to an account. Unreadable stamps count as none, as in Dictum. */
-export function dictumOwned(): boolean {
+function readDictumStamps(): Record<string, unknown> | null {
   try {
     const stamps: unknown = JSON.parse(readRaw(DICTUM_SYNC_KEY) ?? 'null')
-    return isRecord(stamps) && isString(stamps.owner)
+    return isRecord(stamps) ? stamps : null
   } catch {
-    return false
+    return null
   }
+}
+
+/** The account Dictum's documents on this device belong to, or null. Unreadable stamps count as none, as in Dictum. */
+export function dictumOwner(): string | null {
+  const owner = readDictumStamps()?.owner
+  return isString(owner) ? owner : null
+}
+
+/** Dictum's deletions its account has not heard of yet, by document id. */
+export function readDictumDeleted(): Record<string, string> {
+  const deleted = readDictumStamps()?.deleted
+  if (!isRecord(deleted) || Array.isArray(deleted)) return {}
+  return Object.fromEntries(Object.entries(deleted).filter((entry): entry is [string, string] => isTimestamp(entry[1])))
 }
 
 /** Dictum's documents, as markdown notes. */

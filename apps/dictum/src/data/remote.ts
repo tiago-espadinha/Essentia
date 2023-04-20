@@ -12,7 +12,7 @@ export async function fetchRemote(client: SupabaseClient): Promise<unknown[]> {
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await client
       .from('documents')
-      .select('id, title, content, folder, tags, created_at, updated_at, deleted_at')
+      .select('id, format, title, content, folder, tags, created_at, updated_at, deleted_at')
       .order('id')
       .range(from, from + PAGE - 1)
     if (error) throw error

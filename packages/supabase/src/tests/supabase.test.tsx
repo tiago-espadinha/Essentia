@@ -125,6 +125,13 @@ describe('useAuth', () => {
       'essentia-aurum-budgets': { budgets: [], deleted: {} },
       'essentia-aurum-recurring': { items: [], deleted: {} },
       'essentia-folio-notes': [{ id: 'n1' }],
+      'essentia-notes-sync': { owner: 'u1', deleted: {}, folders: {} },
+      'essentia-notes': [{ id: 'n2' }],
+      'essentia-notes-versions': [{ id: 'v2' }],
+      'essentia-notes-folders': ['Work'],
+      'essentia-notes-device': { notes: [{ id: 'n3' }], versions: [], folders: [] },
+      'essentia-notes-migration': { schema: 1, imported: {}, moved: [] },
+      'essentia-notes-unreadable': 'not json',
       'essentia-acta-tasks': [{ id: 'a1' }],
       'essentia-acta-account:u1': { owner: 'u1', operations: [], legacyIds: {} },
       'essentia-acta-account:u2': { owner: 'u2', operations: [], legacyIds: {} },
@@ -143,8 +150,23 @@ describe('useAuth', () => {
       'essentia-dictum-sync',
       'essentia-dictum-versions',
       'essentia-folio-notes',
+      'essentia-notes-device',
+      'essentia-notes-migration',
+      'essentia-notes-unreadable',
       'essentia-theme',
     ])
+  })
+
+  it('keeps notes made while signed out', () => {
+    localStorage.clear()
+    localStorage.setItem('essentia-notes-sync', JSON.stringify({ owner: null, deleted: {}, folders: {} }))
+    localStorage.setItem('essentia-notes', JSON.stringify([{ id: 'n1' }]))
+    localStorage.setItem('essentia-notes-folders', JSON.stringify(['Work']))
+    const { client, emit } = fakeClient()
+    render(<Probe client={client} />)
+
+    emit('SIGNED_OUT', null)
+    expect(Object.keys(localStorage).sort()).toEqual(['essentia-notes', 'essentia-notes-folders', 'essentia-notes-sync'])
   })
 })
 

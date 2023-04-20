@@ -3,8 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { applyChanges, createDoc, type Doc, type DocChanges } from '../domain/documents'
 import { fetchRemote, pushChanges } from '../data/remote'
-import { DOCS_KEY, loadDocs, loadMoved, loadStamps, loadVersions, save, SYNC_KEY, VERSIONS_KEY } from '../data/storage'
-import { merge, NO_STAMPS, readRemote, stampDeletions, type Stamps } from '../data/sync'
+import { DOCS_KEY, loadDocs, loadMoved, loadStamps, loadVersions, save, SYNC_KEY, takenOver, VERSIONS_KEY } from '../data/storage'
+import { merge, NO_STAMPS, readRemote, richIds, stampDeletions, type Stamps } from '../data/sync'
 import { addVersion, type Version } from '../domain/versions'
 
 /** One wording for a failed sync, on the page and in the account dialog. */
@@ -29,19 +29,24 @@ interface Moved {
 
 const NO_MOVED: Moved = { docs: [], versions: [] }
 
-/** Takes out of `saved` the documents Folio has taken in by now; they join `moved`. */
+/**
+ * Takes out of `saved` the documents Folio has taken in by now; they join
+ * `moved`. Once Folio has taken over the account, all of its documents are Folio's.
+ */
 function split(saved: Saved, moved: Moved): { saved: Saved; moved: Moved } {
   const ids = loadMoved()
-  if (!saved.docs.some((doc) => ids.has(doc.id))) return { saved, moved }
+  const all = saved.stamps.owner !== null && takenOver(saved.stamps.owner)
+  const isMoved = (id: string) => all || ids.has(id)
+  if (!saved.docs.some((doc) => isMoved(doc.id))) return { saved, moved }
   return {
     saved: {
       ...saved,
-      docs: saved.docs.filter((doc) => !ids.has(doc.id)),
-      versions: saved.versions.filter((version) => !ids.has(version.docId)),
+      docs: saved.docs.filter((doc) => !isMoved(doc.id)),
+      versions: saved.versions.filter((version) => !isMoved(version.docId)),
     },
     moved: {
-      docs: [...moved.docs, ...saved.docs.filter((doc) => ids.has(doc.id))],
-      versions: [...moved.versions, ...saved.versions.filter((version) => ids.has(version.docId))],
+      docs: [...moved.docs, ...saved.docs.filter((doc) => isMoved(doc.id))],
+      versions: [...moved.versions, ...saved.versions.filter((version) => isMoved(version.docId))],
     },
   }
 }
@@ -118,6 +123,8 @@ export function useDocuments(client: SupabaseClient | null = null) {
   /** Resolves to whether everything on this device reached the account. */
   function sync(): Promise<boolean> {
     if (!client || !userId.current || latest.current.stamps.owner !== userId.current) return Promise.resolve(false)
+    // Folio keeps this account's notes now, and syncs them.
+    if (takenOver(userId.current)) return Promise.resolve(false)
     if (inFlight.current) {
       queued.current = true
       return inFlight.current
@@ -138,7 +145,7 @@ export function useDocuments(client: SupabaseClient | null = null) {
         const fetched = await fetchRemote(client)
         // Signed out while the request was out: the documents are no longer this account's.
         if (latest.current.stamps.owner !== user) return false
-        const result = merge(latest.current.docs, latest.current.stamps, readRemote(fetched))
+        const result = merge(latest.current.docs, latest.current.stamps, readRemote(fetched), richIds(fetched))
         const kept = new Set(result.docs.map((doc) => doc.id))
         store({
           docs: result.docs,
@@ -246,6 +253,8 @@ export function useDocuments(client: SupabaseClient | null = null) {
       void sync()
     },
     versions: saved.versions,
+    /** True once Folio has taken over the signed-in account's documents: they live and sync there, and none is written here. */
+    movedToFolio: saved.stamps.owner !== null && takenOver(saved.stamps.owner),
     saveFailed: failed.docs || failed.versions || failed.stamps,
     syncState,
     sync,

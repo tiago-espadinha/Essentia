@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LEDGER_KEY, openNotes } from '../data/migrate'
-import { NOTES_KEY, UNREADABLE_KEY, VERSIONS_KEY } from '../data/storage'
+import { NOTES_KEY, SYNC_KEY, UNREADABLE_KEY, VERSIONS_KEY } from '../data/storage'
 
 // Synthetic before/after pictures of a device's storage. `input` is the raw
 // localStorage; `expected` is what the notes store holds after one load, and
@@ -8,7 +8,9 @@ import { NOTES_KEY, UNREADABLE_KEY, VERSIONS_KEY } from '../data/storage'
 interface Picture {
   notes: unknown[]
   versions: unknown[]
-  ledger: { imported: unknown; moved: unknown; skipped: unknown } | null
+  ledger: { imported: unknown; moved: unknown; accounts?: unknown; skipped: unknown } | null
+  /** The sync stamps, for devices that hold them. */
+  stamps?: unknown
 }
 
 interface Fixture {
@@ -27,10 +29,12 @@ const read = (key: string) => JSON.parse(localStorage.getItem(key) ?? 'null')
 
 function picture(): Picture {
   const ledger = read(LEDGER_KEY)
+  const stamps = read(SYNC_KEY)
   return {
     notes: read(NOTES_KEY) ?? [],
     versions: read(VERSIONS_KEY) ?? [],
-    ledger: ledger && { imported: ledger.imported, moved: ledger.moved, skipped: ledger.skipped },
+    ledger: ledger && { imported: ledger.imported, moved: ledger.moved, ...(ledger.accounts && { accounts: ledger.accounts }), skipped: ledger.skipped },
+    ...(stamps && { stamps }),
   }
 }
 
@@ -51,7 +55,7 @@ afterEach(() => vi.restoreAllMocks())
 
 describe('moving notes into one store', () => {
   it('covers every fixture', () => {
-    expect(fixtures).toHaveLength(14)
+    expect(fixtures).toHaveLength(16)
   })
 
   describe.each(fixtures.filter((fixture) => !fixture.simulate).map((fixture) => [fixture.name, fixture] as const))(
@@ -97,6 +101,17 @@ describe('moving notes into one store', () => {
     refuse([VERSIONS_KEY])
     expect(openNotes().failed).toBe(true)
     expect(read(LEDGER_KEY)).toBeNull()
+  })
+
+  it('writes no ledger when an account’s pending deletions cannot be stamped, so they are not lost', () => {
+    seed(fixtures.find((fixture) => fixture.name === '15-dictum-owned-same-account')!.input)
+    const refused = refuse([SYNC_KEY])
+    expect(openNotes().failed).toBe(true)
+    expect(read(LEDGER_KEY)).toBeNull()
+
+    refused.mockRestore()
+    expect(openNotes().failed).toBe(false)
+    expect(Object.keys(read(SYNC_KEY).deleted)).toEqual(['886313e1-3b8a-4372-9b90-0c9aee199e5d'])
   })
 
   it('treats a refused ledger as a failure once something was taken in', () => {
@@ -192,5 +207,70 @@ describe('when storage refuses every write', () => {
   it('still opens for editing when there was nothing to move', () => {
     refuse([NOTES_KEY, VERSIONS_KEY, LEDGER_KEY])
     expect(openNotes()).toEqual({ notes: [], versions: [], failed: false })
+  })
+})
+
+describe('Dictum documents and an account', () => {
+  const X = '9b2e6f1a-3c4d-4e5f-8a9b-0c1d2e3f4a5b'
+  const Z = '16fd2706-8baf-433b-82eb-8c7fada847da'
+  const doc = (updatedAt: string, title = 'Essay') => ({ id: Z, title, content: '# Essay', folder: '', tags: [], createdAt: '2023-01-01T00:00:00.000Z', updatedAt })
+  const note = (updatedAt: string, title = 'Essay') => ({ id: Z, format: 'markdown', title, body: '# Essay', folder: '', tags: [], pinned: false, createdAt: '2023-01-01T00:00:00.000Z', updatedAt })
+  const owned = (owner: string | null, deleted: Record<string, string> = {}) => {
+    localStorage.setItem(SYNC_KEY, JSON.stringify({ owner, deleted: {}, folders: {} }))
+    localStorage.setItem('essentia-dictum-sync', JSON.stringify({ owner, deleted }))
+  }
+  const titles = () => (read(NOTES_KEY) as { title: string }[]).map((n) => n.title)
+
+  it('keeps signed-out Dictum documents out of notes that belong to an account', () => {
+    localStorage.setItem(SYNC_KEY, JSON.stringify({ owner: X, deleted: {}, folders: {} }))
+    localStorage.setItem('essentia-dictum-documents', JSON.stringify([doc('2023-02-01T00:00:00.000Z')]))
+    openNotes()
+    expect(read(NOTES_KEY) ?? []).toEqual([])
+  })
+
+  it('takes the newer side of a document both copies hold, with no earlier copy', () => {
+    owned(X)
+    localStorage.setItem(NOTES_KEY, JSON.stringify([note('2023-03-01T00:00:00.000Z', 'Edited in Folio')]))
+    localStorage.setItem('essentia-dictum-documents', JSON.stringify([doc('2023-02-01T00:00:00.000Z')]))
+    openNotes()
+    expect(titles()).toEqual(['Edited in Folio'])
+
+    localStorage.setItem('essentia-dictum-documents', JSON.stringify([doc('2023-04-01T00:00:00.000Z', 'Edited in Dictum')]))
+    openNotes()
+    expect(titles()).toEqual(['Edited in Dictum'])
+  })
+
+  it('does not bring back a note deleted here that the account has not heard of', () => {
+    localStorage.setItem(SYNC_KEY, JSON.stringify({ owner: X, deleted: { [Z]: '2023-03-01T00:00:00.000Z' }, folders: {} }))
+    localStorage.setItem('essentia-dictum-sync', JSON.stringify({ owner: X, deleted: {} }))
+    localStorage.setItem('essentia-dictum-documents', JSON.stringify([doc('2023-02-01T00:00:00.000Z')]))
+    openNotes()
+    expect(read(NOTES_KEY) ?? []).toEqual([])
+  })
+
+  it('carries a Dictum deletion newer than the note, and drops the note with it', () => {
+    owned(X, { [Z]: '2023-03-01T00:00:00.000Z' })
+    localStorage.setItem(NOTES_KEY, JSON.stringify([note('2023-02-01T00:00:00.000Z')]))
+    openNotes()
+    expect(read(NOTES_KEY)).toEqual([])
+    expect(read(SYNC_KEY).deleted).toEqual({ [Z]: '2023-03-01T00:00:00.000Z' })
+  })
+
+  it('lets a note edited after a Dictum deletion outrank it', () => {
+    owned(X, { [Z]: '2023-02-01T00:00:00.000Z' })
+    localStorage.setItem(NOTES_KEY, JSON.stringify([note('2023-03-01T00:00:00.000Z')]))
+    openNotes()
+    expect(titles()).toEqual(['Essay'])
+    expect(read(SYNC_KEY).deleted).toEqual({})
+  })
+
+  it('takes in an account’s copy only while that account is signed in', () => {
+    owned(X)
+    localStorage.setItem('essentia-dictum-documents', JSON.stringify([doc('2023-02-01T00:00:00.000Z')]))
+    openNotes(undefined, 'someone-else')
+    expect(read(NOTES_KEY) ?? []).toEqual([])
+    expect(read(LEDGER_KEY).accounts).toBeUndefined()
+    openNotes(undefined, X)
+    expect(titles()).toEqual(['Essay'])
   })
 })

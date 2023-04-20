@@ -8,7 +8,7 @@ piece. Live at https://essentia-beta.vercel.app/
 
 | App | Path | What it does | Data |
 |---|---|---|---|
-| Folio | `/folio/` | Notes with rich text, tags and pins | This device |
+| Folio | `/folio/` | Notes in rich text or markdown, with folders, tags and pins | This device, synced when signed in |
 | Acta | `/acta/` | Tasks with categories, due dates and filters | This device |
 | Virtus | `/virtus/` | Habits with streaks, a heatmap and badges; installs as an app and works offline | This device, synced when signed in |
 | Dictum | `/dictum/` | Markdown writing with a live preview, versions and read-only share links | This device, synced when signed in |
@@ -101,9 +101,9 @@ Account unavailable, and Merces says it is not set up.
    - `apps/folio/supabase/migration.sql`: note format, pinning and kept folders, added to Dictum's documents
    - `apps/aurum/supabase/migration.sql`: transactions, budgets and recurring items
 3. Under Authentication, URL configuration: set the Site URL to where the suite runs, and add `http://localhost:5100/**` (and your deployed URL followed by `/**`) to the redirect URLs. The confirmation email leads back to the app it was sent from. Merces now requests `/merces/`; keep both `/merces/` and `/aurum/` allowed if using explicit paths rather than the wildcard.
-4. Copy `.env.example` into the hub and the three apps that sync, then fill in the same project URL and publishable (anon) key from the project's API settings. These files are ignored by git.
+4. Copy `.env.example` into the hub and the four apps that sync, then fill in the same project URL and publishable (anon) key from the project's API settings. These files are ignored by git.
    ```bash
-   for app in hub virtus dictum aurum; do cp .env.example apps/$app/.env.local; done
+   for app in hub folio virtus dictum aurum; do cp .env.example apps/$app/.env.local; done
    ```
 5. Restart `pnpm dev`.
 
@@ -152,7 +152,7 @@ there is no data migration. Preview both paths before deploying.
 
 ## Known limitations
 
-- Folio and Acta keep data in the browser only; clearing site data removes it.
-- Dictum's saved versions stay on the device that saved them; only documents sync.
+- Notes kept on a device only, and anything made while signed out, live in the browser; clearing site data removes them.
+- Folio's and Dictum's saved versions stay on the device that saved them; only notes and documents sync.
 - On a phone, Dictum's formatting toolbar scrolls sideways with no visual hint that more buttons follow.
 - Keyboard use and automated accessibility checks are covered; screen readers (NVDA, VoiceOver) have not been tested.

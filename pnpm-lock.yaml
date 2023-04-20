@@ -269,6 +269,9 @@ importers:
 
   apps/folio:
     dependencies:
+      '@essentia/supabase':
+        specifier: workspace:*
+        version: link:../../packages/supabase
       '@essentia/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens

@@ -1,6 +1,16 @@
 import { createTranslator } from '@essentia/ui'
 
 export const messages = {
+  "Keep your notes and folders on every device. If this device already has notes, you choose whether they join your account or stay on this device only.": "Tenha as suas notas e pastas em todos os dispositivos. Se este dispositivo já tiver notas, pode escolher se as adiciona à sua conta ou se ficam só neste dispositivo.",
+  "Not synced yet.": "Ainda não sincronizado.",
+  "Syncing…": "A sincronizar…",
+  "Your notes are up to date in your account.": "As suas notas estão atualizadas na sua conta.",
+  "Couldn’t sync with your account. Your notes are kept on this device.": "Não foi possível sincronizar com a sua conta. As suas notas mantêm-se neste dispositivo.",
+  "Signing out removes your notes, folders and their versions from this device. The notes and folders stay in your account; versions are not synced.": "Terminar sessão remove as suas notas, pastas e respetivas versões deste dispositivo. As notas e pastas mantêm-se na sua conta; as versões não são sincronizadas.",
+  "Try again": "Tentar novamente",
+  "note": "nota",
+  "notes": "notas",
+  "Notes added to your account leave this device when you sign out.": "As notas adicionadas à sua conta saem deste dispositivo quando terminar sessão.",
   "Hide folders": "Ocultar pastas",
   "Show folders": "Mostrar pastas",
   "Folder": "Pasta",

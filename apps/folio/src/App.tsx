@@ -1,6 +1,8 @@
 import { t } from './locale'
+import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
 import { Search, useLocale, useRecordMotion } from '@essentia/ui'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AccountMenu } from './components/AccountMenu'
 import { AppHeader } from './components/AppHeader'
 import { Editor } from './components/Editor'
 import { Library } from './components/Library'
@@ -13,19 +15,23 @@ import { VersionsDialog } from './components/VersionsDialog'
 import { versionsOf } from './domain/versions'
 import { useAutoVersion } from './hooks/useAutoVersion'
 import { exportAll } from './data/export'
-import { useNotes } from './hooks/useNotes'
+import { SYNC_FAILED, useNotes } from './hooks/useNotes'
 import { useSidebar } from './hooks/useSidebar'
 
 /** Matches folio.css: one pane at a time below 768 px. */
 const PHONE = '(width < 768px)'
 
+// Null without the suite's account settings: Folio then stays on this device.
+const client = getSupabase()
+
 export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
   const {
-    notes, versions, folders, readOnly, saveFailed, add, update, saveVersion, restoreVersion, convert, remove, restore,
-    createFolder, renameFolder, deleteFolder, moveNote,
-  } = useNotes()
+    notes, versions, folders, readOnly, saveFailed, syncState, sync, unclaimed, answer, add, update, saveVersion, restoreVersion,
+    convert, remove, restore, createFolder, renameFolder, deleteFolder, moveNote,
+  } = useNotes(client)
+  const auth = useAuth(client)
   const autoVersion = useAutoVersion(saveVersion)
   const sidebar = useSidebar()
   // The open dialog, the note it is for and the control that opened it; it closes if the note goes.
@@ -203,7 +209,7 @@ export default function App() {
           clearFilters()
           openNote(id)
           setTitleFocusId(id)
-        }} />} />
+        }} />} account={<AccountMenu auth={auth} client={client} syncState={syncState} onSync={sync} />} />
       <main
         className="folio"
         ref={mainRef}
@@ -249,6 +255,12 @@ export default function App() {
           onUndo={undoDelete}
         />
         <section data-motion-detail className="pane editor-pane" aria-label={t("Editor")}>
+          {syncState === 'failed' && (
+            <p className="notice" role="status">
+              {t(SYNC_FAILED)}{' '}
+              <button type="button" className="undo__button" onClick={() => void sync()}>{t("Try again")}</button>
+            </p>
+          )}
           {saveFailed && (
             <p className="notice" role="alert">{t("Couldn’t save on this device. Your changes last until you close the page.")}</p>
           )}
@@ -277,6 +289,16 @@ export default function App() {
           )}
         </section>
       </main>
+      {unclaimed > 0 && auth.status === 'signed-in' && (
+        <ClaimDialog
+          count={unclaimed}
+          noun={[t('note'), t('notes')]}
+          email={auth.email}
+          decline="keep"
+          note={t('Notes added to your account leave this device when you sign out.')}
+          onAnswer={answer}
+        />
+      )}
       {dialog?.kind === 'versions' && dialogNote && (
         <VersionsDialog
           note={dialogNote}

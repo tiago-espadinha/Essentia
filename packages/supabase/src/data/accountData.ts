@@ -2,6 +2,8 @@
 const ACCOUNT_KEYS = [
   ['essentia-virtus-sync', 'essentia-virtus-habits'],
   ['essentia-dictum-sync', 'essentia-dictum-documents', 'essentia-dictum-versions'],
+  // Notes set aside with "Keep on this device only" (essentia-notes-device), the import ledger and a kept unreadable copy stay.
+  ['essentia-notes-sync', 'essentia-notes', 'essentia-notes-versions', 'essentia-notes-folders'],
   ['essentia-aurum-sync', 'essentia-aurum-transactions', 'essentia-aurum-budgets', 'essentia-aurum-recurring'],
 ]
 

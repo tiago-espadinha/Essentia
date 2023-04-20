@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createNote, type Note } from '../domain/notes'
-import { FOLDERS_KEY, loadFolders, loadNotes, loadVersions, NOTES_KEY, saveFolders, saveNotes, VERSIONS_KEY } from '../data/storage'
+import {
+  clearKept, DEVICE_KEY, FOLDERS_KEY, loadFolders, loadKept, loadNotes, loadStamps, loadVersions, NOTES_KEY, saveFolders, saveNotes,
+  saveStamps, setAside, SYNC_KEY, VERSIONS_KEY,
+} from '../data/storage'
+import { NO_STAMPS } from '../data/sync'
 
 const valid: Note = {
   ...createNote(new Date('2022-06-20T10:00:00Z'), 'a'),
@@ -117,5 +121,69 @@ describe('folder storage', () => {
       throw new DOMException('full', 'QuotaExceededError')
     })
     expect(saveFolders(['Work'])).toBe(false)
+  })
+})
+
+describe('sync stamps', () => {
+  const stamps = { owner: 'u1', deleted: { a: '2023-04-17T10:00:00.000Z' }, folders: { Work: '2023-04-17T10:00:00.000Z' } }
+
+  it('round-trips the owner, deletions and folder changes', () => {
+    expect(saveStamps(stamps)).toBe(true)
+    expect(loadStamps()).toEqual(stamps)
+  })
+
+  it('reads stamps without folders as having no folder changes', () => {
+    localStorage.setItem(SYNC_KEY, JSON.stringify({ owner: 'u1', deleted: {} }))
+    expect(loadStamps()).toEqual({ owner: 'u1', deleted: {}, folders: {} })
+  })
+
+  it('starts over from unreadable or malformed stamps, so the notes count as never synced', () => {
+    for (const value of ['{not json', '[]', '{"owner":5,"deleted":{}}', '{"owner":"u1","deleted":{"a":"soon"}}', '{"owner":"u1","deleted":{},"folders":[]}']) {
+      localStorage.setItem(SYNC_KEY, value)
+      expect(loadStamps()).toEqual(NO_STAMPS)
+    }
+  })
+})
+
+describe('notes kept on this device only', () => {
+  const version = { id: 'v1', noteId: valid.id, title: 'Plan', body: '<p>Old</p>', format: 'rich' as const, savedAt: '2022-06-20T11:00:00.000Z' }
+
+  it('reads nothing when nothing is set aside', () => {
+    expect(loadKept()).toEqual({ notes: [], versions: [], folders: [] })
+  })
+
+  it('sets notes, their versions and folders aside, adding to what is already there with the newer copy winning', () => {
+    const other = { ...valid, id: 'b', title: 'Other' }
+    const edited = { ...valid, title: 'Plan, edited' }
+    expect(setAside({ notes: [valid], versions: [version], folders: ['Work'] })).toBe(true)
+    expect(setAside({ notes: [other, edited], versions: [], folders: ['Home', 'Work'] })).toBe(true)
+    expect(loadKept()).toEqual({ notes: [other, edited], versions: [version], folders: ['Home', 'Work'] })
+  })
+
+  it('skips malformed entries and versions of notes not kept, and sanitizes rich bodies', () => {
+    localStorage.setItem(DEVICE_KEY, JSON.stringify({
+      notes: [{ ...valid, body: '<p onclick="x()">Hi</p><script>x()</script>' }, { id: 'bad' }],
+      versions: [version, { ...version, id: 'v2', noteId: 'gone' }],
+      folders: ['Work', '', 5, ' Work '],
+    }))
+    const kept = loadKept()
+    expect(kept.notes).toHaveLength(1)
+    expect(kept.notes[0].body).not.toMatch(/script|onclick/)
+    expect(kept.versions.map((v) => v.id)).toEqual(['v1'])
+    expect(kept.folders).toEqual(['Work'])
+  })
+
+  it('reads an unreadable value as nothing, and forgets it once cleared', () => {
+    localStorage.setItem(DEVICE_KEY, '{not json')
+    expect(loadKept().notes).toEqual([])
+    clearKept()
+    expect(localStorage.getItem(DEVICE_KEY)).toBeNull()
+  })
+
+  it('reports a refused write', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('quota')
+    })
+    expect(setAside({ notes: [valid], versions: [], folders: [] })).toBe(false)
   })
 })

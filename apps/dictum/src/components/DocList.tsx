@@ -18,7 +18,8 @@ interface DocListProps {
   /** The undo notice after a delete. */
   notice: ReactNode
   onSelect: (id: string) => void
-  onNew: () => void
+  /** Missing once Folio keeps the account's documents: nothing new is written here. */
+  onNew?: () => void
 }
 
 export function DocList({ docs, total, moved, selectedId, filters, onClearFilters, notice, onSelect, onNew }: DocListProps) {
@@ -28,13 +29,19 @@ export function DocList({ docs, total, moved, selectedId, filters, onClearFilter
         <h2 id="list-title" className="label">
           {t('Documents · {count}', { count: formatNumber(docs.length) })}
         </h2>
-        {total > 0 && <NewDocButton onClick={onNew} />}
+        {total > 0 && onNew && <NewDocButton onClick={onNew} />}
       </div>
       {total > 0 && filters}
       {notice}
 
       <div className="pane__body">
-        {total === 0 ? (
+        {total === 0 && !onNew ? (
+          <div className="empty">
+            <h3 className="empty__title">{t("Your documents are in Folio now.")}</h3>
+            <p className="empty__text">{t("Write and edit them there; they sync with your account.")}</p>
+            <a className="button-ghost button-ghost--outlined" href="/folio/">{t("Open Folio")}</a>
+          </div>
+        ) : total === 0 && onNew ? (
           <div className="empty">
             <h3 className="empty__title">{t("Nothing written yet.")}</h3>
             <p className="empty__text">{t("Start a document and it stays on this device.")}</p>

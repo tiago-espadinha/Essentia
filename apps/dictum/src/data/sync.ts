@@ -59,13 +59,25 @@ function isDocRow(row: unknown): row is DocRow {
     value.tags.every(isString) &&
     isStamp(value.created_at) &&
     isStamp(value.updated_at) &&
-    (value.deleted_at === null || isStamp(value.deleted_at))
+    (value.deleted_at === null || isStamp(value.deleted_at)) &&
+    // Rows from before Folio's columns have no format; they are markdown.
+    (value.format === undefined || value.format === 'markdown' || value.format === 'rich')
   )
 }
 
-/** Keeps the rows the app can trust, with folder and tags tidied as saved data is. */
+const isRich = (row: unknown) => isDocRow(row) && (row as { format?: string }).format === 'rich'
+
+/**
+ * Ids of the account's rich notes. Only Folio edits them: Dictum shows none,
+ * and drops its own copy of a document that became one.
+ */
+export function richIds(rows: unknown[]): Set<string> {
+  return new Set(rows.filter(isRich).map((row) => (row as DocRow).id))
+}
+
+/** Keeps the markdown rows the app can trust, with folder and tags tidied as saved data is. */
 export function readRemote(rows: unknown[]): DocRow[] {
-  return rows.filter(isDocRow).map((row) => ({
+  return rows.filter((row): row is DocRow => isDocRow(row) && !isRich(row)).map((row) => ({
     id: row.id,
     title: row.title,
     content: row.content,
@@ -107,14 +119,19 @@ const fromRow = (row: DocRow): Doc => ({
   updatedAt: new Date(row.updated_at).toISOString(),
 })
 
-/** Merges the account's rows into this device's documents. */
-export function merge(local: Doc[], stamps: Stamps, remote: DocRow[]) {
+/**
+ * Merges the account's rows into this device's documents. A document whose row
+ * is now a rich note (`rich`, from `richIds`) leaves this device and is never sent.
+ */
+export function merge(local: Doc[], stamps: Stamps, remote: DocRow[], rich: Set<string> = new Set()) {
   const deleted = { ...stamps.deleted }
   const push: Push = { docs: [], deletions: [] }
   const rows = new Map(remote.map((row) => [row.id, row]))
   const docs: Doc[] = []
+  for (const id of rich) delete deleted[id]
 
   for (const doc of local) {
+    if (rich.has(doc.id)) continue
     const row = rows.get(doc.id)
     rows.delete(doc.id)
     if (!syncable(doc)) docs.push(doc)
@@ -127,7 +144,7 @@ export function merge(local: Doc[], stamps: Stamps, remote: DocRow[]) {
   }
 
   // Deleted here: tell the server unless it has a newer version, which comes back.
-  for (const [id, at] of Object.entries(stamps.deleted)) {
+  for (const [id, at] of Object.entries(deleted)) {
     const row = rows.get(id)
     rows.delete(id)
     if (row && !row.deleted_at && time(at) > time(row.updated_at)) {

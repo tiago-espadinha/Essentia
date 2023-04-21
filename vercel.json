@@ -4,7 +4,11 @@
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/dictum/:path*", "destination": "/dictum/index.html" }],
+  "rewrites": [
+    { "source": "/folio/shared/:id", "destination": "/folio/index.html" },
+    { "source": "/dictum/shared/:id", "destination": "/folio/index.html" },
+    { "source": "/dictum/:path*", "destination": "/dictum/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -24,7 +28,7 @@
       ]
     },
     {
-      "source": "/dictum/shared/(.*)",
+      "source": "/(folio|dictum)/shared/(.*)",
       "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
     }
   ]

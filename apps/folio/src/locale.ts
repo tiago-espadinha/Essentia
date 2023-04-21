@@ -130,7 +130,17 @@ export const messages = {
   "{count} characters": "{count} carateres",
   "{count} word": "{count} palavra",
   "{count} words": "{count} palavras",
-  "{items} stay as text, with their markdown symbols.": "{items} ficam como texto, com os símbolos markdown."
+  "{items} stay as text, with their markdown symbols.": "{items} ficam como texto, com os símbolos markdown.",
+  "Shared note": "Nota partilhada",
+  "Loading the note…": "A carregar a nota…",
+  "This note isn’t shared any more.": "Esta nota já não está partilhada.",
+  "The link may have been stopped, or the note deleted.": "A partilha pode ter sido interrompida ou a nota eliminada.",
+  "Go to Essentia": "Ir para o Essentia",
+  "Couldn’t load this note.": "Não foi possível carregar esta nota.",
+  "Check your connection and try again.": "Verifique a ligação e tente novamente.",
+  "Shared from Folio · Updated {date}": "Partilhada a partir do Folio · Atualizada em {date}",
+  "This note is empty.": "Esta nota está vazia.",
+  "Image": "Imagem",
 }
 
 export const t = createTranslator(messages)

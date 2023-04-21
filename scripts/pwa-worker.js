@@ -68,7 +68,7 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     if (url.pathname === config.base || url.pathname === `${config.base}index.html`) {
       event.respondWith(entry(request))
-    } else if (config.base === '/dictum/' && url.pathname.startsWith('/dictum/shared/')) {
+    } else if ((config.base === '/dictum/' || config.base === '/folio/') && url.pathname.startsWith(`${config.base}shared/`)) {
       // The shell is static, but neither shared responses nor private records
       // ever enter Cache Storage. Revoked shares therefore cannot reappear offline.
       event.respondWith(fetch(request).catch(() => cached(`${config.base}offline.html`)))

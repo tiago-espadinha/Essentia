@@ -112,6 +112,54 @@
   color: var(--color-danger);
 }
 
+/* A shared note put back by an undo: its link works again, with a way to stop it. */
+.link-notice {
+  margin: var(--space-4);
+  color: var(--color-mid);
+}
+
+.link-notice[data-failed] { color: var(--color-danger); }
+
+/* Share dialog */
+.share {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.share .dialog__text { margin: 0; }
+
+.share__link {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* The link takes the row; on a phone Copy link drops below it, full width. */
+.share__link .field-input { flex: 1 1 240px; }
+.share__link .button-primary { flex: 1 0 auto; }
+
+.share__link .field-input {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.share__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.share__status { color: var(--color-success); }
+.share__status[data-failed] { color: var(--color-danger); }
+
+/* Empty, it stays in place for screen readers but takes no room. */
+.share__status:empty { margin-top: calc(-1 * var(--space-3)); }
+
+.button-primary[aria-disabled='true'],
+.button-ghost[aria-disabled='true'],
+.undo__button[aria-disabled='true'] { opacity: 0.7; cursor: default; }
+
 /* Undo notice: a hairline strip under the list head while a deleted note can come back. */
 .undo {
   display: flex;

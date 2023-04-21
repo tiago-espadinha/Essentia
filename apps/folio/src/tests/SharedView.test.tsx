@@ -158,7 +158,7 @@ describe('SharedView', () => {
 
 describe('share links', () => {
   it('are made under Folio', () => {
-    expect(shareUrl(LINK, '/folio/', 'https://essentia.example')).toBe(`https://essentia.example/folio/shared/${LINK}`)
+    expect(shareUrl(LINK, 'https://essentia.example')).toBe(`https://essentia.example/folio/shared/${LINK}`)
   })
 
   it('open from Folio’s path and from Dictum’s older one, and nowhere else', () => {

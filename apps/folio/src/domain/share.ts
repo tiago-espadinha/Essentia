@@ -1,13 +1,13 @@
 // A shared note is read at `/folio/shared/<id>`. Links made by Dictum,
-// `/dictum/shared/<id>`, open the same view (vercel.json sends both here).
+// `/dictum/shared/<id>`, open the same view. Both paths are fixed by the
+// rewrites in vercel.json, whatever path the app is built for.
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-/** Fixed by the rewrites in vercel.json, whatever path the app is built for. */
 const SHARE_PATHS = ['/folio/shared/', '/dictum/shared/']
 
 /** The link a shared note is read at. */
-export function shareUrl(linkId: string, base: string = import.meta.env.BASE_URL, origin: string = location.origin): string {
-  return new URL(`${base}shared/${linkId}`, origin).href
+export function shareUrl(linkId: string, origin: string = location.origin): string {
+  return new URL(`${SHARE_PATHS[0]}${linkId}`, origin).href
 }
 
 /**

@@ -6,7 +6,8 @@ import type { Push } from './sync'
 /** PostgREST's default cap on rows per response; longer tables are read in pages. */
 const PAGE = 1000
 
-const NOTE_COLUMNS = 'id, format, title, content, folder, tags, pinned, created_at, updated_at, deleted_at'
+// share_id only tells which notes have a link (see `sharedNoteIds`); it is never sent back.
+const NOTE_COLUMNS = 'id, format, title, content, folder, tags, pinned, share_id, created_at, updated_at, deleted_at'
 
 async function fetchAll(client: SupabaseClient, table: string, columns: string, key: string): Promise<unknown[]> {
   const rows: unknown[] = []
@@ -64,4 +65,31 @@ export async function pushChanges(client: SupabaseClient, push: Push, user: stri
       .lt('updated_at', at)
     if (error) throw error
   }
+}
+
+/** The link id of one of the account's notes, or null while it is not shared. */
+export async function fetchShareId(client: SupabaseClient, noteId: string): Promise<string | null> {
+  const { data, error } = await client.from('documents').select('share_id').eq('id', noteId).maybeSingle()
+  if (error) throw error
+  return (data as { share_id: string | null } | null)?.share_id ?? null
+}
+
+/** Shares the note and returns its link id; null when the account does not have it. */
+export async function shareNote(client: SupabaseClient, noteId: string): Promise<string | null> {
+  const { data, error } = await client.rpc('share_document', { document_id: noteId })
+  if (error) throw error
+  return typeof data === 'string' ? data : null
+}
+
+/** Stops sharing the note: its link stops working, and sharing again makes a new one. */
+export async function unshareNote(client: SupabaseClient, noteId: string) {
+  const { error } = await client.rpc('unshare_document', { document_id: noteId })
+  if (error) throw error
+}
+
+/** The note behind a share link, unchecked; anyone may call it, signed in or not. */
+export async function fetchShared(client: SupabaseClient, linkId: string): Promise<unknown> {
+  const { data, error } = await client.rpc('get_shared_document', { link_id: linkId })
+  if (error) throw error
+  return Array.isArray(data) ? (data[0] ?? null) : null
 }

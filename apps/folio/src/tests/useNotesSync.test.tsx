@@ -304,3 +304,57 @@ describe('Dictum’s account copy', () => {
     expect(read('essentia-notes-migration').accounts).toEqual(['ana'])
   })
 })
+
+describe('share links', () => {
+  const shareOnServer = async (id: string) => {
+    const { client } = server.client({ user: { id: 'ana' } })
+    return (await client.rpc('share_document', { document_id: id })).data as string
+  }
+  const readLink = async (linkId: string) => {
+    const { client } = server.client(null)
+    return (await client.rpc('get_shared_document', { link_id: linkId })).data as unknown[]
+  }
+
+  it('learns which notes are shared from the account, and forgets them on signing out', async () => {
+    const d = await device('ana')
+    await d.signIn('ana')
+    const id = await write(d, 'Shared')
+    await write(d, 'Private')
+    await shareOnServer(id)
+    await act(() => d.notes().sync())
+    expect(d.notes().shared).toEqual([id])
+
+    await d.signIn(null)
+    expect(d.notes().shared).toEqual([])
+  })
+
+  it('never sends the link with a synced edit, so the link survives it', async () => {
+    const d = await device('ana')
+    await d.signIn('ana')
+    const id = await write(d, 'Shared')
+    const linkId = await shareOnServer(id)
+    server.calls.upserts.length = 0
+    act(() => d.notes().update(id, { title: 'Shared, edited' }))
+    await settle()
+    expect(server.calls.upserts).not.toEqual([])
+
+    expect(server.calls.upserts.flatMap((upsert) => upsert.rows).every((row) => !('share_id' in row))).toBe(true)
+    expect(await readLink(linkId)).toEqual([expect.objectContaining({ title: 'Shared, edited', format: 'rich' })])
+  })
+
+  it('stops a deleted note’s link and lets it work again once the note is put back', async () => {
+    const d = await device('ana')
+    await d.signIn('ana')
+    const id = await write(d, 'Shared')
+    const linkId = await shareOnServer(id)
+    const note = d.notes().notes.find((n) => n.id === id)!
+
+    act(() => d.notes().remove(id))
+    await settle()
+    expect(await readLink(linkId)).toEqual([])
+
+    act(() => d.notes().restore(note))
+    await settle()
+    expect(await readLink(linkId)).toEqual([expect.objectContaining({ title: 'Shared' })])
+  })
+})

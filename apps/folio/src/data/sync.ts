@@ -119,6 +119,18 @@ export function readRemote(rows: unknown[]): NoteRow[] {
   })
 }
 
+/**
+ * The notes that have a share link, deleted ones included: the link of a
+ * deleted note works again if the note comes back.
+ */
+export function sharedNoteIds(rows: unknown[]): string[] {
+  return rows.flatMap((row) => {
+    if (typeof row !== 'object' || row === null) return []
+    const { id, share_id: shareId } = row as Record<string, unknown>
+    return typeof id === 'string' && typeof shareId === 'string' ? [id] : []
+  })
+}
+
 /** Keeps the folder rows the app can trust; the first row of a name wins. */
 export function readRemoteFolders(rows: unknown[]): FolderRow[] {
   const seen = new Set<string>()

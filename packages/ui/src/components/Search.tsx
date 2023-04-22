@@ -23,7 +23,6 @@ const destinations = [
   { title: 'Acta', href: '/acta/' },
   { title: 'Virtus', href: '/virtus/' },
   { title: 'Merces', href: '/merces/' },
-  { title: 'Dictum', href: '/dictum/' },
 ]
 const LIMIT = 20
 

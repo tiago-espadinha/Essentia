@@ -91,7 +91,7 @@ describe('suite search', () => {
     const onSelect = vi.fn()
     render(<Search sourceLabel="Notes" records={[{ id: 'one', title: 'Orchard', text: 'APPLE #garden' }]} onSelect={onSelect} />)
     clickSearch()
-    expect(options().map(item => item.getAttribute('href'))).toEqual(['/', '/folio/', '/acta/', '/virtus/', '/merces/', '/dictum/'])
+    expect(options().map(item => item.getAttribute('href'))).toEqual(['/', '/folio/', '/acta/', '/virtus/', '/merces/'])
     expect(container.textContent).not.toContain('Orchard')
     query('apple')
     expect(options().map(item => item.textContent)).toEqual(['Orchard'])
@@ -116,7 +116,7 @@ describe('suite search', () => {
     render(<Search sourceLabel="Notes" records={records} sourceState="unavailable" />)
     expect(container.textContent).not.toContain('record 0')
     query('')
-    expect(options()).toHaveLength(6)
+    expect(options()).toHaveLength(5)
     expect(container.textContent).toContain('Records are unavailable')
   })
 

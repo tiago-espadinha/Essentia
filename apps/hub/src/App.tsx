@@ -23,8 +23,7 @@ function AppEntry({ app }: { app: SuiteApp }) {
 
 export default function App({ apps = suiteApps }: { apps?: SuiteApp[] }) {
   useLocale()
-  const primaryApps = apps.filter((app) => app.path !== '/dictum/')
-  const dictum = apps.find((app) => app.path === '/dictum/')
+  const listed = apps.filter((app) => !app.retired)
 
   return (
     <>
@@ -43,32 +42,17 @@ export default function App({ apps = suiteApps }: { apps?: SuiteApp[] }) {
         <h1 className="hub__title">{t("The essentials of a working day.")}</h1>
         <p className="hub__lede">{t("A little space to think, do, grow and plan.")}</p>
 
-        {apps.length === 0 ? (
+        {listed.length === 0 ? (
           <section className="hub__empty" aria-labelledby="hub-empty-title">
             <h2 id="hub-empty-title" className="hub__section-title">{t("Nothing here yet.")}</h2>
             <p className="hub__empty-text">{t("Apps appear here as they join the suite.")}</p>
           </section>
         ) : (
-          <>
-            {primaryApps.length > 0 && (
-              <nav aria-label={t("Everyday tools")}>
-                <ul className="hub__apps">
-                  {primaryApps.map((app) => <AppEntry key={app.path} app={app} />)}
-                </ul>
-              </nav>
-            )}
-            {dictum && (
-              <section className="hub__writing" aria-labelledby="hub-writing-title">
-                <div>
-                  <h2 id="hub-writing-title" className="hub__section-title">{t("Markdown writing")}</h2>
-                  <p className="hub__writing-text">{t("Dictum is still your separate space for markdown, previews and versions.")}</p>
-                </div>
-                <a className="hub__open" href={dictum.path}>
-                  {t('Open {name}', { name: dictum.name })} <span aria-hidden="true">↗</span>
-                </a>
-              </section>
-            )}
-          </>
+          <nav aria-label={t("Everyday tools")}>
+            <ul className="hub__apps">
+              {listed.map((app) => <AppEntry key={app.path} app={app} />)}
+            </ul>
+          </nav>
         )}
       </main>
     </>

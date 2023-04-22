@@ -13,7 +13,7 @@ apps/
   acta/      /acta/     tasks; synced when signed in
   folio/     /folio/    rich-text notes, on the device only
   virtus/    /virtus/   habits; installable PWA; optional sync
-  dictum/    /dictum/   markdown documents; optional sync and share links
+  dictum/    /dictum/   says Dictum is now part of Folio; its worker still updates
   aurum/     /merces/   income, expenses, budgets, recurring items; needs an account
 packages/
   config/    shared TypeScript and ESLint configs
@@ -84,9 +84,9 @@ or reload. A failed precache is removed without replacing the working version.
 Activation removes only that target's obsolete caches. Cache eviction by the
 browser can still require another online visit.
 
-After an online visit has installed the worker, the hub, Folio, Acta, Virtus and
-Dictum editor reopen offline with existing device-local behavior. Installing the
-hub does not precache the other apps. Shared Dictum navigation remains network
+After an online visit has installed the worker, the hub, Folio, Acta and Virtus
+reopen offline with existing device-local behavior. Installing the
+hub does not precache the other apps. Shared-note navigation (`/folio/shared/` and `/dictum/shared/`) remains network
 only, with a static, localized retry page when unreachable. Merces's cached shell
 shows connection-required feedback when the browser reports offline; all finance
 write controls and late mutation callbacks are unavailable until reconnecting.
@@ -110,7 +110,7 @@ hint; service outages continue to use existing sync-failure feedback.
 - Folio sync uses the same newer-wins merge for notes (a disagreement on `format` takes the whole newer row) and for kept folders, with `essentia-notes-sync` holding the owner and the deletions and folder changes not yet sent. Notes made while signed out join an account only through the claim dialog: Add to account (their folders are stamped so an old deletion of the same name cannot remove them) or Keep on this device, which sets them aside in `essentia-notes-device` until no account owns the notes, then brings them back. Signing out clears `essentia-notes-sync`, `essentia-notes`, `essentia-notes-versions` and `essentia-notes-folders`; the set-aside notes, the ledger and an unreadable copy stay. When the notes belong to the account that owns Dictum's copy on the device, Folio takes that copy in with its versions and pending deletions and records the account in the ledger's `accounts`; Dictum then stops syncing that account and becomes read-only for it, listing its documents as links to Folio. Dictum's copy joins only notes with the same owner: documents made while signed out join signed-out notes, and so the claim dialog. Dictum never reads rich rows, and drops its copy of a document that became one, so it cannot write markdown over a rich note.
 - The hub reuses the shared client, session hook and account menu. It cannot certify
   another app’s sync: hub sign-out requires a separate discard confirmation and
-  links to Acta, Virtus, Dictum and Merces to check/retry sync first. Device-local sign-out
+  links to Folio, Acta, Virtus and Merces to check/retry sync first. Device-local sign-out
   clears account-owned copies across those apps, including unsynced work and
   Dictum’s device-only versions; unowned work and other devices’ sessions stay.
 - Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the hub shows Account
@@ -118,11 +118,11 @@ hint; service outages continue to use existing sync-failure feedback.
   Merces shows that it is not set up.
 - Ownership and authorization rules: row level security on every table, `user_id = auth.uid()` for every read and write; the anon key alone reads nothing. Table and column grants are narrowed (no `truncate`; Dictum's `share_id` and Merces's recurring `posted` counter cannot be written by clients). Only the publishable (anon) key is in client code, so RLS is the security boundary.
 - Server functions (Postgres, `security definer`, fixed `search_path`):
-  - `share_document(document_id)` / `unshare_document(document_id)`: the owner turns a document's read-only link on or off.
-  - `get_shared_document(link_id)`: anyone with the link reads that one document's title and content.
+  - `share_document(document_id)` / `unshare_document(document_id)`: the owner turns a note's read-only link on or off; Folio calls both.
+  - `get_shared_document(link_id)`: anyone with the link reads that one note's title, content, format and date, while it is shared and not deleted. Folio's `shared-format.sql` adds `format`; the reader cleans a rich body with the same allowlist as the editor and never renders markdown's raw HTML.
   - `acta_write_task(p_owner, p_operation_id, p_task_id, p_expected_version, p_content)`: Acta's only write. It checks the owner and the task's shape, serializes each account's writes, answers a repeated operation ID from its receipt, and applies the write or returns the newer version as a conflict. Receipts older than 30 days are pruned; a retry that late meets the newer version and settles as already done.
   - `process_due_recurring(p_today)`: Merces calls it at the end of each sync; it posts every due occurrence of the caller's recurring items once, skipping paused periods, and catches up missed periods.
-- Migrations and seed strategy: one SQL file per app, `apps/{acta,virtus,dictum,folio,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other, except Folio's: it adds `format` and `pinned` to Dictum's `documents` table and a `note_folders` table for kept folders, so it runs after Dictum's. No seed data.
+- Migrations and seed strategy: one SQL file per app, `apps/{acta,virtus,dictum,folio,aurum}/supabase/migration.sql`, run once each in the Supabase SQL editor. They are independent of each other, except Folio's: it adds `format` and `pinned` to Dictum's `documents` table and a `note_folders` table for kept folders, so it runs after Dictum's. Folio's `shared-format.sql` then makes `get_shared_document` return each note's format. No seed data.
 
 ## APIs and integrations
 
@@ -161,14 +161,14 @@ under the user’s control.
 |---|---|---|---|
 | Supabase Auth (email and password) | One session for the suite | Supabase; password rules set in the dashboard | Plain error in the form; Virtus and Dictum stay usable signed out |
 | Supabase REST (`/rest/v1/<table>`) | Sync Virtus, Dictum and Merces records | RLS and grants; table `check` constraints; the apps validate rows they read | Local copy kept; status in the account dialog, and a notice with Try again on the page |
-| `rpc/get_shared_document` | Read a shared Dictum document at `/dictum/shared/<id>` | Anyone holding the link; returns nothing once unshared | "This document isn't shared any more." |
+| `rpc/get_shared_document` | Read a shared note at `/folio/shared/<id>` (or the older `/dictum/shared/<id>`) | Anyone holding the link; returns nothing once unshared or deleted | "This note isn't shared any more." |
 | `rpc/process_due_recurring` | Post Merces's due recurring items | Signed-in user; only their own items; `p_today` within a day of the server's date | Retried on the next sync |
 | Google Fonts | Instrument Sans, Instrument Serif, JetBrains Mono, Lora | None | System fonts |
 
 ## Configuration
 - Env var names: see `.env.example` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Vite reads them in dev and at build time, from `apps/<app>/.env.local` locally (`apps/hub`, `apps/virtus`, `apps/dictum`, `apps/aurum` for Merces) or from the Vercel project's env vars. Use the same project configuration in each.
 - Local development: `pnpm dev` runs every app on its own port (5101-5105) and the hub on 5100, which proxies each `/<app>/` so the suite runs on one origin as in production.
-- Staging and production: Vercel builds with `pnpm build` and serves `dist/`. `vercel.json` sets the security headers (CSP, HSTS, X-Frame-Options and others), the Dictum rewrite for share links, and `noindex` on shared documents. The CSP `connect-src` names the Supabase project's origin, so it must change with `VITE_SUPABASE_URL`.
+- Staging and production: Vercel builds with `pnpm build` and serves `dist/`. `vercel.json` sets the security headers (CSP, HSTS, X-Frame-Options and others), the rewrites that send both share paths to Folio, and `noindex` on both. The CSP `connect-src` names the Supabase project's origin, so it must change with `VITE_SUPABASE_URL`.
 
 ## Testing and CI
 - Unit and integration: Vitest with jsdom (React rendered with `createRoot` and `act`) in every app except the hub, and in `packages/ui` and `packages/supabase`. The shared Supabase tests also render the hub account adapter and exercise the suite sign-out flow. Sync is tested against an in-memory fake of the Supabase tables. Accessibility checks run axe-core on each app's main states.

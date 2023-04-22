@@ -1,5 +1,6 @@
 // The apps the hub lists, and the dev ports it proxies to under one origin.
-// Each app adds itself here when it joins the suite.
+// Each app adds itself here when it joins the suite; a retired app stays for
+// the proxy, since its page still points people on, but is no longer listed.
 export interface SuiteApp {
   name: string
   path: string
@@ -8,6 +9,7 @@ export interface SuiteApp {
   aliases?: string[]
   description: string
   port: number
+  retired?: true
 }
 
 export const suiteApps: SuiteApp[] = [
@@ -41,6 +43,8 @@ export const suiteApps: SuiteApp[] = [
     latin: 'a thing said',
     description: 'Markdown writing with a live preview and versions.',
     port: 5104,
+    // Part of Folio now: /dictum/ says so and links there.
+    retired: true,
   },
   {
     name: 'Merces',

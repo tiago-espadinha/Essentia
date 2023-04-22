@@ -8,6 +8,7 @@ import {
   NO_STAMPS,
   readRemote,
   readRemoteFolders,
+  sharedNoteIds,
   stampDeletions,
   stampFolders,
   syncable,
@@ -399,5 +400,20 @@ describe('readRemoteFolders', () => {
       folderRow('Work', T2),
     ])
     expect(rows).toEqual([folderRow('Work', T1)])
+  })
+})
+
+describe('sharedNoteIds', () => {
+  it('lists the rows with a link, deleted ones included, and skips malformed rows', () => {
+    expect(
+      sharedNoteIds([
+        { id: 'a', share_id: 'link-a', deleted_at: null },
+        { id: 'b', share_id: null },
+        { id: 'c', share_id: 'link-c', deleted_at: '2023-04-20T00:00:00Z' },
+        { id: 'd' },
+        null,
+        { id: 1, share_id: 'link' },
+      ]),
+    ).toEqual(['a', 'c'])
   })
 })

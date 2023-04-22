@@ -72,6 +72,7 @@ describe('fetchRemote', () => {
     ])
     expect(calls.find((c) => c.table === 'documents' && c.op === 'select')?.args[0]).toContain('format')
     expect(calls.find((c) => c.table === 'documents' && c.op === 'select')?.args[0]).toContain('pinned')
+    expect(calls.find((c) => c.table === 'documents' && c.op === 'select')?.args[0]).toContain('share_id')
   })
 
   it('stops at a page shorter than 1000', async () => {

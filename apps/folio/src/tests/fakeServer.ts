@@ -13,7 +13,11 @@ export const settle = () => act(() => vi.advanceTimersByTimeAsync(2500))
 export function fakeServer() {
   const tables: Record<string, Row[]> = { documents: [], note_folders: [] }
   const keyOf: Record<string, string[]> = { documents: ['id'], note_folders: ['user_id', 'name'] }
-  const calls = { upserts: [] as { table: string; rows: Record<string, unknown>[] }[], tables: new Set<string>() }
+  const calls = {
+    upserts: [] as { table: string; rows: Record<string, unknown>[] }[],
+    tables: new Set<string>(),
+    rpcs: [] as { name: string; args: Record<string, string> }[],
+  }
   let failing = false
   let delay = 0
 
@@ -33,6 +37,12 @@ export function fakeServer() {
         select: () => {
           const query = {
             order: () => query,
+            eq: (column: string, value: unknown) => ({
+              maybeSingle: () => {
+                const row = own().find((existing) => existing[column] === value)
+                return result(row ? { share_id: row.share_id ?? null } : null)
+              },
+            }),
             range: (start: number, end: number) =>
               result(own().slice(start, end + 1).map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => column !== 'user_id')))),
           }
@@ -74,6 +84,23 @@ export function fakeServer() {
         },
       }
     }
+    // The sharing functions of the migrations: owner-only changes, a link read by anyone.
+    const rpc = (name: string, args: Record<string, string>) => {
+      calls.rpcs.push({ name, args })
+      if (failing) return result(null)
+      const documents = tables.documents
+      if (name === 'get_shared_document') {
+        const row = documents.find((existing) => existing.share_id === args.link_id && !existing.deleted_at)
+        return result(row ? [{ title: row.title, content: row.content, format: row.format, updated_at: row.updated_at }] : [])
+      }
+      const row = documents.find((existing) => existing.user_id === user() && existing.id === args.document_id)
+      if (name === 'share_document') {
+        if (row && !row.deleted_at) row.share_id ??= crypto.randomUUID()
+        return result(row && !row.deleted_at ? row.share_id : null)
+      }
+      if (row) row.share_id = null
+      return result(null)
+    }
     const auth = {
       onAuthStateChange: (callback: (event: string, session: Session) => void) => {
         listeners.add(callback)
@@ -86,7 +113,7 @@ export function fakeServer() {
       session = id ? { user: { id, email: `${id}@example.com` } } : null
       act(() => listeners.forEach((listener) => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session)))
     }
-    return { client: { from, auth } as unknown as SupabaseClient, emit }
+    return { client: { from, rpc, auth } as unknown as SupabaseClient, emit }
   }
 
   return {
@@ -106,5 +133,6 @@ export const account = { client: null as unknown as SupabaseClient }
 
 export const appClient = {
   from: (table: string) => account.client.from(table),
+  rpc: (name: string, args: object) => account.client.rpc(name, args),
   auth: { onAuthStateChange: (callback: never) => account.client.auth.onAuthStateChange(callback) },
 } as unknown as SupabaseClient

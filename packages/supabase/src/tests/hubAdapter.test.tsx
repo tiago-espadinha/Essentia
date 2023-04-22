@@ -69,7 +69,7 @@ describe('actual hub account adapter', () => {
     expect(account.textContent).toBe('Account')
     act(() => account.click())
     expect(container.textContent).toContain('ana@example.com')
-    expect(container.textContent).toContain('One account connects Acta, Virtus, Dictum and Merces.')
+    expect(container.textContent).toContain('One account connects Folio, Acta, Virtus and Merces.')
 
     act(() => emit('SIGNED_OUT', null))
     expect(container.querySelector('dialog')).toBeNull()

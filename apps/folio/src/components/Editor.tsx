@@ -28,18 +28,23 @@ interface EditorProps {
   onVersions: (returnFocusId: string) => void
   /** Opens Convert; its dialog returns focus to the control with this id. */
   onConvert: (returnFocusId: string) => void
-  onDelete: () => void
+  /** Opens Share; left out when the suite has no account service. */
+  onShare?: (returnFocusId: string) => void
+  /** Deletes, or asks first; a dialog returns focus to the control with this id. */
+  onDelete: (returnFocusId: string) => void
 }
 
 const CONVERT_BUTTON_ID = 'convert-button'
 const VERSIONS_BUTTON_ID = 'versions-button'
+const SHARE_BUTTON_ID = 'share-button'
+const DELETE_BUTTON_ID = 'delete-button'
 
 /**
  * One note. Remounted per note (keyed by id), so the body is written into the DOM once.
  * A markdown note is edited as its source text, with a preview beside it: the
  * rich editor would turn it into HTML.
  */
-export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange, onMove, onBack, onVersions, onConvert, onDelete }: EditorProps) {
+export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange, onMove, onBack, onVersions, onConvert, onShare, onDelete }: EditorProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
   const sourceRef = useRef<HTMLTextAreaElement>(null)
@@ -125,12 +130,16 @@ export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange
               {convertLabel}
             </button>
             <button type="button" id={VERSIONS_BUTTON_ID} className="button-ghost note-action" onClick={() => onVersions(VERSIONS_BUTTON_ID)}>{t("Versions")}</button>
-            <button type="button" className="button-ghost button-ghost--danger note-action" onClick={onDelete}>{t("Delete")}</button>
+            {onShare && (
+              <button type="button" id={SHARE_BUTTON_ID} className="button-ghost note-action" onClick={() => onShare(SHARE_BUTTON_ID)}>{t("Share")}</button>
+            )}
+            <button type="button" id={DELETE_BUTTON_ID} className="button-ghost button-ghost--danger note-action" onClick={() => onDelete(DELETE_BUTTON_ID)}>{t("Delete")}</button>
             <MoreMenu
               items={[
                 { label: convertLabel, onSelect: () => onConvert(MORE_BUTTON_ID) },
                 { label: t('Versions'), onSelect: () => onVersions(MORE_BUTTON_ID) },
-                { label: t('Delete'), onSelect: onDelete, danger: true },
+                ...(onShare ? [{ label: t('Share'), onSelect: () => onShare(MORE_BUTTON_ID) }] : []),
+                { label: t('Delete'), onSelect: () => onDelete(MORE_BUTTON_ID), danger: true },
               ]}
             />
           </>

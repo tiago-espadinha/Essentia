@@ -99,7 +99,11 @@ export const messages = {
   "{count} min read": "{count} min de leitura",
   "{count} word": "{count} palavra",
   "{count} words": "{count} palavras",
-  "“{title}” is too large to keep in your account, so it can’t be shared. It stays on this device. Your account holds titles up to {characters} characters, {tags} tags and about a million characters of text.": "“{title}” é demasiado grande para guardar na sua conta e não pode ser partilhado. Mantém-se neste dispositivo. A conta aceita títulos até {characters} carateres, {tags} etiquetas e cerca de um milhão de carateres de texto."
+  "“{title}” is too large to keep in your account, so it can’t be shared. It stays on this device. Your account holds titles up to {characters} characters, {tags} tags and about a million characters of text.": "“{title}” é demasiado grande para guardar na sua conta e não pode ser partilhado. Mantém-se neste dispositivo. A conta aceita títulos até {characters} carateres, {tags} etiquetas e cerca de um milhão de carateres de texto.",
+  "Dictum is now part of Folio": "O Dictum faz agora parte do Folio",
+  "Dictum is now part of Folio.": "O Dictum faz agora parte do Folio.",
+  "Your markdown documents open in Folio, beside your notes, with their versions. Folio brings in the documents on this device the first time it opens here.": "Os seus documentos markdown abrem no Folio, junto das suas notas, com as respetivas versões. O Folio traz os documentos deste dispositivo da primeira vez que abre aqui.",
+  "Links you shared from Dictum keep working.": "As ligações que partilhou a partir do Dictum continuam a funcionar.",
 }
 
 export const t = createTranslator(messages)

@@ -12,6 +12,10 @@ import { DeleteAnnouncer } from './components/UndoNotice'
 import { ConvertDialog } from './components/ConvertDialog'
 import { DeleteFolderDialog } from './components/DeleteFolderDialog'
 import { VersionsDialog } from './components/VersionsDialog'
+import { ShareDialog } from './components/ShareDialog'
+import { DeleteSharedDialog } from './components/DeleteSharedDialog'
+import { LinkBackNotice } from './components/LinkBackNotice'
+import { unshareNote } from './data/remote'
 import { versionsOf } from './domain/versions'
 import { useAutoVersion } from './hooks/useAutoVersion'
 import { exportAll } from './data/export'
@@ -28,20 +32,22 @@ export default function App() {
   const locale = useLocale()
   useEffect(() => { document.title = `Folio · ${t('Your Notes')} · Essentia` }, [locale])
   const {
-    notes, versions, folders, readOnly, saveFailed, syncState, sync, unclaimed, answer, add, update, saveVersion, restoreVersion,
-    convert, remove, restore, createFolder, renameFolder, deleteFolder, moveNote,
+    notes, versions, folders, readOnly, saveFailed, syncState, sync, shared, markShared, unclaimed, answer, add, update, saveVersion,
+    restoreVersion, convert, remove, restore, createFolder, renameFolder, deleteFolder, moveNote,
   } = useNotes(client)
   const auth = useAuth(client)
   const autoVersion = useAutoVersion(saveVersion)
   const sidebar = useSidebar()
   // The open dialog, the note it is for and the control that opened it; it closes if the note goes.
-  const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert'; noteId: string; returnFocusId: string } | null>(null)
+  const [dialog, setDialog] = useState<{ kind: 'versions' | 'convert' | 'share' | 'delete'; noteId: string; returnFocusId: string } | null>(null)
   // Bumped when a restore or conversion replaces the open note's body, which the editor writes into the DOM only on mount.
   // The editor's key also holds the note's format, so a conversion made in another tab remounts it too.
   const [revision, setRevision] = useState(0)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   // The latest deleted note, until it is restored or another one is deleted.
   const [deleted, setDeleted] = useState<Note | null>(null)
+  // A shared note put back by an undo, whose link works again, until sharing stops or another note opens.
+  const [linkBack, setLinkBack] = useState<{ id: string; stopped: boolean } | null>(null)
   // The note whose title takes focus when its editor mounts or shows.
   const [titleFocusId, setTitleFocusId] = useState<string | null>(null)
   // Below 768 px one pane shows at a time: the list, or the open note's editor.
@@ -92,6 +98,8 @@ export default function App() {
   const selected = notes.find((note) => note.id === selectedId) ?? visible[0] ?? null
   const dialogNote = dialog && notes.find((note) => note.id === dialog.noteId)
   if (dialog && !dialogNote) setDialog(null)
+  // The link notice is for the note put back; it goes once another note is open.
+  if (linkBack && selected?.id !== linkBack.id) setLinkBack(null)
 
   // A restore or conversion saves the note first, so an autosave pending for it would only repeat that.
   function replaceBody(id: string, change: () => void) {
@@ -182,6 +190,7 @@ export default function App() {
     const position = visible.findIndex((note) => note.id === id)
     const next = (visible[position + 1] ?? visible[position - 1])?.id ?? null
     autoVersion.cancel(id)
+    setLinkBack(null)
     setDeleted(notes.find((note) => note.id === id)!)
     motion(() => remove(id))
     setSelectedId(next)
@@ -195,6 +204,7 @@ export default function App() {
     if (!deleted) return
     if (filterNotes([deleted], query, activeTag, activeFolder).length === 0) clearFilters()
     motion(() => restore(deleted))
+    if (shared.includes(deleted.id)) setLinkBack({ id: deleted.id, stopped: false })
     setDeleted(null)
     setSelectedId(deleted.id)
     setTitleFocusId(deleted.id)
@@ -264,6 +274,17 @@ export default function App() {
           {saveFailed && (
             <p className="notice" role="alert">{t("Couldn’t save on this device. Your changes last until you close the page.")}</p>
           )}
+          {client && selected && linkBack?.id === selected.id && (linkBack.stopped || shared.includes(selected.id)) && (
+            <LinkBackNotice
+              title={selected.title}
+              stopped={linkBack.stopped}
+              onStop={async () => {
+                await unshareNote(client, selected.id)
+                setLinkBack({ id: selected.id, stopped: true })
+                markShared(selected.id, false)
+              }}
+            />
+          )}
           {selected ? (
             <Editor
               key={`${selected.id}:${selected.format}:${revision}`}
@@ -282,7 +303,11 @@ export default function App() {
               onBack={() => backToList(selected.id)}
               onVersions={(returnFocusId) => setDialog({ kind: 'versions', noteId: selected.id, returnFocusId })}
               onConvert={(returnFocusId) => setDialog({ kind: 'convert', noteId: selected.id, returnFocusId })}
-              onDelete={() => deleteNote(selected.id)}
+              onShare={client ? (returnFocusId) => setDialog({ kind: 'share', noteId: selected.id, returnFocusId }) : undefined}
+              // A shared note's link stops working while it is deleted, so that is asked first.
+              onDelete={(returnFocusId) =>
+                shared.includes(selected.id) ? setDialog({ kind: 'delete', noteId: selected.id, returnFocusId }) : deleteNote(selected.id)
+              }
             />
           ) : (
             <p className="editor-pane__idle">{t("Your note opens here.")}</p>
@@ -315,6 +340,28 @@ export default function App() {
           count={counts.get(folderToDelete) ?? 0}
           onDelete={() => confirmDeleteFolder(folderToDelete)}
           onClose={() => setFolderToDelete(null)}
+        />
+      )}
+      {dialog?.kind === 'share' && dialogNote && client && (
+        <ShareDialog
+          note={dialogNote}
+          auth={auth}
+          client={client}
+          returnFocusId={dialog.returnFocusId}
+          onSync={sync}
+          onShared={(on) => markShared(dialogNote.id, on)}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog?.kind === 'delete' && dialogNote && (
+        <DeleteSharedDialog
+          note={dialogNote}
+          returnFocusId={dialog.returnFocusId}
+          onDelete={() => {
+            setDialog(null)
+            deleteNote(dialogNote.id)
+          }}
+          onClose={() => setDialog(null)}
         />
       )}
       {dialog?.kind === 'convert' && dialogNote && (

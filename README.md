@@ -8,22 +8,21 @@ piece. Live at https://essentia-beta.vercel.app/
 
 | App | Path | What it does | Data |
 |---|---|---|---|
-| Folio | `/folio/` | Notes in rich text or markdown, with folders, tags and pins | This device, synced when signed in |
+| Folio | `/folio/` | Notes in rich text or markdown, with folders, tags, pins and read-only share links | This device, synced when signed in |
 | Acta | `/acta/` | Tasks with categories, due dates and filters | This device |
 | Virtus | `/virtus/` | Habits with streaks, a heatmap and badges; installs as an app and works offline | This device, synced when signed in |
-| Dictum | `/dictum/` | Markdown writing with a live preview, versions and read-only share links | This device, synced when signed in |
 | Merces | `/merces/` | Income and expenses, budgets, recurring items and insights | Your account (sign-in required) |
 
 Sign in or open Account from the hub header. Before signing out there, check each
 app’s sync: confirmation discards any unsynced account changes and device-only
-Dictum versions from this browser. Work made while signed out stays.
+note versions from this browser. Work made while signed out stays.
 
 Account also offers password changes for confirmed email accounts. Enter your
 current password and confirm the new one; if the server requests verification,
 send and enter the email code. Forgot your password? The sign-in form links to
 recovery on the hub. Other sign-in providers manage their own passwords.
 
-One sign-in covers Virtus, Dictum and Merces, and the light or dark theme you
+One sign-in covers Folio, Acta, Virtus and Merces, and the light or dark theme you
 pick in one app applies to all of them.
 
 Choose English (UK) or Português (Portugal) with Language in the hub header.
@@ -35,10 +34,10 @@ inputs use a point. Native browser date controls follow browser settings.
 
 The hub and each app can be installed through a supporting browser's Install
 menu (or Add to Home Screen). Visit the entry online first and let its offline
-setup finish. Folio, Acta, Virtus and the Dictum editor then reopen with their
+setup finish. Folio, Acta and Virtus then reopen with their
 device-local data; the hub also reopens offline. Each app needs its own online
 visit: installing the hub does not download every app. Merces requires a
-connection for finance writes, and shared Dictum links require one to load.
+connection for finance writes, and shared notes require one to load.
 Close that app's open tabs and installed windows to apply a downloaded update.
 Existing `/aurum/` links install the canonical Merces app.
 
@@ -88,17 +87,18 @@ Open http://localhost:5100. The hub runs there and proxies every app
 To run a single app: `pnpm --filter <app> dev` (for example `pnpm --filter acta dev`
 serves http://localhost:5102/acta/; its link back to the hub needs the full `pnpm dev`).
 
-Without a Supabase project everything except Merces works: Folio, Acta, Virtus
-and Dictum keep their data in the browser, app sign-in is hidden, the hub shows
+Without a Supabase project everything except Merces works: Folio, Acta and Virtus
+keep their data in the browser, app sign-in is hidden, the hub shows
 Account unavailable, and Merces says it is not set up.
 
 ### Supabase (for sync and Merces)
 
 1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
-2. In the project's SQL editor, run each of these files once. Only Folio's depends on another, so run it after Dictum's:
+2. In the project's SQL editor, run each of these files once, Folio's after Dictum's, in this order:
    - `apps/virtus/supabase/migration.sql`: habits and check-ins
    - `apps/dictum/supabase/migration.sql`: documents and share links
    - `apps/folio/supabase/migration.sql`: note format, pinning and kept folders, added to Dictum's documents
+   - `apps/folio/supabase/shared-format.sql`: shared notes also say whether they are rich or markdown; run after Folio's migration
    - `apps/aurum/supabase/migration.sql`: transactions, budgets and recurring items
 3. Under Authentication, URL configuration: set the Site URL to where the suite runs, and add `http://localhost:5100/**` (and your deployed URL followed by `/**`) to the redirect URLs. The confirmation email leads back to the app it was sent from. Merces now requests `/merces/`; keep both `/merces/` and `/aurum/` allowed if using explicit paths rather than the wildcard.
 4. Copy `.env.example` into the hub and the four apps that sync, then fill in the same project URL and publishable (anon) key from the project's API settings. These files are ignored by git.
@@ -137,7 +137,7 @@ packages refer to them as `"catalog:"`.
 ## Deploy
 
 The suite deploys to Vercel as one static site; `vercel.json` holds the build
-command, the security headers and the rewrite for Dictum share links.
+command, the security headers and the rewrites for share links.
 
 1. Import the repository into Vercel. The build settings come from `vercel.json`.
 2. Add the environment variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the build.
@@ -153,6 +153,6 @@ there is no data migration. Preview both paths before deploying.
 ## Known limitations
 
 - Notes kept on a device only, and anything made while signed out, live in the browser; clearing site data removes them.
-- Folio's and Dictum's saved versions stay on the device that saved them; only notes and documents sync.
-- On a phone, Dictum's formatting toolbar scrolls sideways with no visual hint that more buttons follow.
+- Folio's saved versions stay on the device that saved them; only notes sync.
+- Deleting a shared note stops its link until the note is restored; the link itself is kept until sharing stops.
 - Keyboard use and automated accessibility checks are covered; screen readers (NVDA, VoiceOver) have not been tested.

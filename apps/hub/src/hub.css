@@ -93,16 +93,7 @@
 
 .hub__open:hover { background: var(--color-paper); }
 
-.hub__writing {
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  gap: var(--space-4);
-  margin-top: var(--space-8);
-}
-
 .hub__section-title { font-family: var(--font-serif); font-weight: 400; font-size: var(--text-xl); }
-.hub__writing-text { margin-top: var(--space-2); max-width: 48ch; color: var(--color-mid); }
 .hub__empty { padding-top: var(--space-8); }
 .hub__empty-text { margin-top: var(--space-2); color: var(--color-mid); }
 
@@ -111,8 +102,6 @@
   .hub { padding: var(--space-12) var(--space-6) var(--space-16); }
   .hub__title { font-size: var(--text-4xl); }
   .hub__apps { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-8); }
-  .hub__writing { flex-direction: row; align-items: center; justify-content: space-between; }
-  .hub__writing > .hub__open { flex-shrink: 0; }
 }
 
 @media (min-width: 1024px) {

@@ -159,6 +159,16 @@ test('shared navigation remains network-only, with a static offline fallback and
   assert.equal([...w.stores.values()].some((cache) => cache.has(origin + path)), false)
 })
 
+test('Folio share links are network-only too, never cached', async () => {
+  const w = worker({ base: '/folio/' })
+  await w.lifecycle('install')
+  const path = '/folio/shared/aaaaaaaa-aaaa-4aaa-8aaa-000000000001'
+  assert.equal(await (await w.request(path, { mode: 'navigate' })).text(), 'PRIVATE shared response')
+  w.offline()
+  assert.match(await (await w.request(path, { mode: 'navigate' })).text(), /static new: .*offline.html/)
+  assert.equal([...w.stores.values()].some((cache) => [...cache.values()].some((body) => body.includes('PRIVATE'))), false)
+})
+
 test('evicted static assets recover only through integrity-checked network reads without runtime caching', async () => {
   const w = worker()
   await w.lifecycle('install')

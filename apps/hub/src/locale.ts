@@ -3,7 +3,7 @@ import { createTranslator } from '@essentia/ui'
 export const messages = {
   "Loading account…": "A carregar a conta…",
   "Account unavailable in this build.": "Conta indisponível nesta versão.",
-  "Sign in to use your account in Acta, Virtus, Dictum and Merces. Local work is added only when you choose in each app.": "Inicie sessão para usar a sua conta no Acta, Virtus, Dictum e Merces. O trabalho local só é adicionado quando o escolher em cada aplicação.",
+  "Sign in to use your account in Folio, Acta, Virtus and Merces. Local work is added only when you choose in each app.": "Inicie sessão para usar a sua conta no Folio, Acta, Virtus e Merces. O trabalho local só é adicionado quando o escolher em cada aplicação.",
   "Your Notes": "As suas notas",
   "Your Tasks": "As suas tarefas",
   "Your Habits": "Os seus hábitos",
@@ -24,8 +24,6 @@ export const messages = {
   "Nothing here yet.": "Ainda não há nada aqui.",
   "Apps appear here as they join the suite.": "As aplicações aparecem aqui à medida que se juntam à suite.",
   "Everyday tools": "Ferramentas do dia a dia",
-  "Markdown writing": "Escrita em markdown",
-  "Dictum is still your separate space for markdown, previews and versions.": "O Dictum continua a ser o seu espaço separado para markdown, pré-visualizações e versões.",
   "Page not found · Essentia": "Página não encontrada · Essentia",
   "404 · Not found": "404 · Não encontrado",
   "Nothing lives at this address.": "Não há nada neste endereço.",

@@ -10,7 +10,7 @@ import {
   clearKept, FOLDERS_KEY, joinKept, loadFolders, loadKept, loadNotes, loadStamps, loadVersions, NOTES_KEY, save,
   saveFolders, saveNotes, saveStamps, setAside, SYNC_KEY, VERSIONS_KEY,
 } from '../data/storage'
-import { merge, NO_STAMPS, readRemote, readRemoteFolders, stampDeletions, stampFolders, type Stamps } from '../data/sync'
+import { merge, NO_STAMPS, readRemote, readRemoteFolders, sharedNoteIds, stampDeletions, stampFolders, type Stamps } from '../data/sync'
 
 /** One wording for a failed sync, on the page and in the account dialog. */
 export const SYNC_FAILED = 'Couldn’t sync with your account. Your notes are kept on this device.'
@@ -80,6 +80,8 @@ export function useNotes(client: SupabaseClient | null = null) {
   const queued = useRef(false)
   // Set by Supabase's auth events, which can come from another app or tab.
   const userId = useRef<string | null>(null)
+  // The account's notes that have a share link, as of the last sync or share change; never stored.
+  const [shared, setShared] = useState<string[]>([])
 
   function show(next: Store) {
     latest.current = next
@@ -150,6 +152,7 @@ export function useNotes(client: SupabaseClient | null = null) {
         const fetched = await fetchRemote(client)
         // Signed out while the request was out: the notes are no longer this account's.
         if (latest.current.stamps.owner !== user) return false
+        setShared(sharedNoteIds(fetched.notes))
         const current = latest.current
         const result = merge(
           { notes: current.notes, folders: current.folders },
@@ -198,6 +201,8 @@ export function useNotes(client: SupabaseClient | null = null) {
   const claim = useEffectEvent((user: string | null) => {
     userId.current = user
     setAsking(false)
+    // Another account's links, or none signed out; the next sync reads this account's.
+    setShared([])
     const { owner } = latest.current.stamps
     // Offline with an expired token, Supabase reports no session yet keeps it: the copy stays until the session goes.
     // Another account's copy; signing out may have removed it already.
@@ -285,6 +290,11 @@ export function useNotes(client: SupabaseClient | null = null) {
     saveFailed,
     syncState,
     sync,
+    /** The ids of the account's notes that have a share link. */
+    shared,
+    /** Records a share change made through the account (see `ShareDialog`). */
+    markShared: (id: string, on: boolean) =>
+      setShared((current) => (on ? (current.includes(id) ? current : [...current, id]) : current.filter((other) => other !== id))),
     /** How many notes made while signed out wait for `answer`; 0 when there is no question. */
     unclaimed: asking ? store.notes.length : 0,
     /**

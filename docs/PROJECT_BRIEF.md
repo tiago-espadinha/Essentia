@@ -3,7 +3,7 @@
 ## Product in one sentence
 Essentia’s revised destination is four everyday productivity tools—Folio notes and markdown writing, Acta tasks, Virtus habits, and Merces personal finance—sharing one design language and a landing hub, built mainly for the author’s personal use and shown as a portfolio piece.
 
-This is the agreed product direction, not a statement of completed implementation. The current application still has five entry points, including separate Dictum and Merces apps; Merces retains the internal `aurum` identifiers.
+This is the agreed product direction, not a statement of completed implementation. The hub lists four apps: Dictum is now part of Folio, and `/dictum/` says so and links there. Merces retains the internal `aurum` identifiers.
 
 ## Audience and context
 - Primary user: the author, in daily personal use.
@@ -16,10 +16,10 @@ This is the agreed product direction, not a statement of completed implementatio
 - How success is judged: build, lint, typecheck, tests and `pnpm audit` all clean (zero known vulnerabilities); one visual language across apps; WCAG 2.2 AA; live on Vercel.
 
 ## Current user journeys
-1. Open the hub, pick an app, use it immediately (Folio is local-only; Acta, Virtus and Dictum work locally without signing in).
-2. Sign in once (one Supabase project, shared session across the suite) and have Acta, Virtus, Dictum and Merces data available across devices.
+1. Open the hub, pick an app, use it immediately (Folio, Acta and Virtus work locally without signing in).
+2. Sign in once (one Supabase project, shared session across the suite) and have Folio, Acta, Virtus and Merces data available across devices.
 3. Merces: record income and expenses, set budgets, create recurring items that post when the app syncs, review summaries and charts.
-4. Dictum: write markdown with live preview, keep version history, share a read-only link at `/dictum/shared/<id>`.
+4. Folio: write rich or markdown notes, keep version history, share a read-only link at `/folio/shared/<id>`; older `/dictum/shared/<id>` links open the same view.
 
 ## Requirements
 - Must have in the current baseline: all five apps and the hub working; shared `@essentia/tokens` design system across all apps; Merces built on Supabase (Auth + RLS); Virtus habits and Dictum documents synced to Supabase; current dependency versions with zero known vulnerabilities; lint, typecheck, test and build passing; no open security findings; deployed on Vercel.
@@ -38,7 +38,7 @@ This is the agreed product direction, not a statement of completed implementatio
 - Architecture: `docs/ARCHITECTURE.md`; flows and screens: `docs/UX_FLOWS.md`.
 
 ## Current baseline acceptance
-Visiting the deployed hub lets you use all five apps on one design system, with sign-in and synced data in Virtus, Dictum and Merces, working Dictum share links, clean checks, and no known vulnerabilities.
+Visiting the deployed hub lets you use the four apps on one design system (Dictum is now part of Folio), with sign-in and synced data in Folio, Virtus and Merces, working share links, clean checks, and no known vulnerabilities.
 
 
 ## Revised destination
@@ -53,7 +53,7 @@ Visiting the deployed hub lets you use all five apps on one design system, with 
 The target hub uses four entries in a two-by-two desktop grid and one mobile
 column. Each entry has its icon, name, catchphrase and one clear open action.
 Shared account, appearance and search controls belong in the header. Existing
-Dictum remains discoverable until unified Folio is usable and migration is safe.
+Dictum left the hub once unified Folio synced and shared notes; `/dictum/` points to Folio.
 
 Folio adopts Dictum’s writing workspace with a collapsible library aside and an
 explicit rich-text/markdown mode control. The existing Folio editor is rich text;
@@ -74,7 +74,7 @@ See [design direction](DESIGN_DIRECTION.md) and [flows](UX_FLOWS.md) for boundar
 - Preserve existing Folio notes, Dictum documents, stable identities, timestamps,
   ownership, deletions and available local version history. Do not merge by title.
 - Preserve `/dictum/shared/<id>` links, anonymous read-only access, revocation and
-  `noindex`. New canonical sharing paths remain TBD. Keep `/dictum/` entry compatibility.
+  `noindex`; the canonical path is `/folio/shared/<id>`. Keep `/dictum/` entry compatibility.
 - Preserve existing `/aurum/` URLs and finance data. `/merces/` is a proposed new
   entry; route/package/storage migration choices require separate review.
 - Define retryable, idempotent migration, conflicts, backup, failure recovery and

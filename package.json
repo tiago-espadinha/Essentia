@@ -11,7 +11,7 @@
     "build": "turbo run build && node scripts/assemble.mjs",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "test": "node --test scripts/assemble.test.mjs scripts/pwa-worker.test.mjs scripts/pwa-build.test.mjs && turbo run test",
+    "test": "node --test scripts/assemble.test.mjs scripts/pwa-worker.test.mjs scripts/pwa-build.test.mjs scripts/vercel.test.mjs && turbo run test",
     "preview": "pnpm build && vite preview --config vite.preview.config.mjs"
   },
   "devDependencies": {

@@ -1,26 +1,21 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@essentia/tokens/index.css'
-import { getSupabase } from '@essentia/supabase'
 import { applyStoredTheme, registerOfflineWorker } from '@essentia/ui'
 import './dictum.css'
-import App from './App'
-import { readSharePath } from './domain/share'
-import { SharedView } from './components/SharedView'
+import { MovedPage } from './components/MovedPage'
 
-applyStoredTheme()
-
-if (import.meta.env.PROD) registerOfflineWorker(import.meta.env.BASE_URL)
-
-// A share link (/dictum/shared/<id>) opens the reading view instead of the editor.
-const shared = readSharePath(location.pathname)
-if (shared) {
-  // Shared documents are private to whoever holds the link: keep them out of search results.
-  const robots = document.head.appendChild(document.createElement('meta'))
-  robots.name = 'robots'
-  robots.content = 'noindex'
+// Share links open in Folio; this only catches one that reached Dictum's page
+// anyway (vercel.json already sends them there, as does the dev proxy's Dictum).
+if (location.pathname.startsWith(`${import.meta.env.BASE_URL}shared/`)) {
+  location.replace(`/folio/shared/${location.pathname.slice(`${import.meta.env.BASE_URL}shared/`.length)}`)
+} else {
+  applyStoredTheme()
+  // Kept so a Dictum installed on a device updates to this page.
+  if (import.meta.env.PROD) registerOfflineWorker(import.meta.env.BASE_URL)
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <MovedPage />
+    </StrictMode>,
+  )
 }
-
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>{shared ? <SharedView linkId={shared.id} client={getSupabase()} /> : <App />}</StrictMode>,
-)

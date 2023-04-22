@@ -739,8 +739,9 @@
 
 .shared__note { color: var(--color-mid); }
 
-/* A link that looks like the other ghost buttons. */
-.shared__message .button-ghost { text-decoration: none; }
+/* Links that look like the other buttons. */
+.shared__message .button-ghost,
+.shared__message .button-primary { text-decoration: none; }
 
 @media (width < 768px) {
   .shared { padding-top: var(--space-6); }

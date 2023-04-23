@@ -15,6 +15,40 @@ describe('parseQuickAdd', () => {
     expect(parseQuickAdd('+Salary €2100')).toEqual({ description: 'Salary', amount: 210_000, type: 'income', category: 'other' })
   })
 
+  it('makes a plus on the amount income, keeping it out of the description', () => {
+    const coffee = { description: 'coffee', amount: 350, type: 'income', category: 'other' }
+    expect(parseQuickAdd('coffee +3.50')).toEqual(coffee)
+    expect(parseQuickAdd('+ coffee 3.50')).toEqual(coffee)
+    expect(parseQuickAdd('coffee +€3.50')).toEqual(coffee)
+    expect(parseQuickAdd('coffee +3,50€')).toEqual(coffee)
+    expect(parseQuickAdd('+coffee +3.50')).toEqual(coffee)
+    expect(parseQuickAdd('Invoice +€450 freelance')).toEqual({ description: 'Invoice', amount: 45_000, type: 'income', category: 'freelance' })
+  })
+
+  it('leaves a plus elsewhere in the line as part of the description', () => {
+    expect(parseQuickAdd('C++ book 30')).toEqual({ description: 'C++ book', amount: 3000, type: 'expense', category: 'other' })
+    expect(parseQuickAdd('Salt + pepper €3')).toMatchObject({ description: 'Salt + pepper', type: 'expense' })
+    expect(parseQuickAdd('coffee + 3.50')).toMatchObject({ description: 'coffee +', type: 'expense' })
+    expect(parseQuickAdd('Top up +5 €20')).toMatchObject({ description: 'Top up +5', amount: 2000, type: 'expense' })
+    expect(parseQuickAdd('Top up+€5')).toMatchObject({ description: 'Top up+', amount: 500, type: 'expense' })
+    expect(parseQuickAdd('x+3€')).toMatchObject({ description: 'x+', amount: 300, type: 'expense' })
+  })
+
+  it('keeps a spaced dash before the amount as a separator for income', () => {
+    const salary = { description: 'Salary', amount: 210_000, type: 'income', category: 'other' }
+    expect(parseQuickAdd('+Salary - 2100')).toEqual(salary)
+    expect(parseQuickAdd('+Salary - €2100')).toEqual(salary)
+    expect(parseQuickAdd('Salary - +2100')).toEqual(salary)
+  })
+
+  it('keeps the money rules for an amount with a plus', () => {
+    expect(parseQuickAdd('coffee +1.234,56')?.amount).toBe(123_456)
+    expect(parseQuickAdd('coffee +3.5')?.amount).toBe(350)
+    for (const amount of ['3.505', '12,5', '1,234.56', '€7']) {
+      expect(parseQuickAdd(`coffee +${amount}`)?.amount).toBe(parseQuickAdd(`coffee ${amount}`)?.amount)
+    }
+  })
+
   it('files a known category given as the last word', () => {
     expect(parseQuickAdd('Rent €900 housing')).toEqual({ description: 'Rent', amount: 90_000, type: 'expense', category: 'housing' })
     expect(parseQuickAdd('+Invoice 42 €450 Freelance')).toMatchObject({ description: 'Invoice 42', category: 'freelance', type: 'income' })
@@ -38,7 +72,7 @@ describe('parseQuickAdd', () => {
     expect(parseQuickAdd('Books — €20')).toMatchObject({ description: 'Books' })
   })
 
-  it.each(['', '   ', 'Coffee', 'Coffee €0', 'Coffee €3.5.5', '+'])('reads nothing from %j', (input) => {
+  it.each(['', '   ', 'Coffee', 'Coffee €0', 'Coffee €3.5.5', '+', 'coffee +', 'coffee +0', 'coffee +€3.5.5', 'coffee ++3.50', 'coffee -3.50', '+coffee -€3.50', '+coffee −3,50€', '+coffee -3.50€', 'coffee -+3.50'])('reads nothing from %j', (input) => {
     expect(parseQuickAdd(input)).toBeNull()
   })
 

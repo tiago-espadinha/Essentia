@@ -62,6 +62,37 @@ describe('adding transactions', () => {
     expect(rows()).toEqual([])
   })
 
+  it.each(['coffee +3.50', '+ coffee 3.50'])('records %j as income of 3.50 and reaches the account', async (line) => {
+    const { server } = await signedIn()
+    quickAdd(line)
+    expect(rows()).toEqual(['coffee'])
+    expect(amounts()).toEqual(['Income +€3.50'])
+    await settle()
+    expect(server.transactions).toMatchObject([{ description: 'coffee', amount: 3.5, type: 'income' }])
+  })
+
+  it('says in words, as well as colour, when a line will be income', async () => {
+    await signedIn()
+    const hint = () => $('#add-transaction-hint')
+    type(addField(), 'coffee +3.50')
+    expect(addField().classList.contains('input--income')).toBe(true)
+    expect(hint().textContent).toBe('Will be added as income. End with a category to file it.')
+    expect(hint().getAttribute('aria-live')).toBe('polite')
+    expect(addField().getAttribute('aria-describedby')).toBe('add-transaction-hint')
+    type(addField(), 'coffee 3.50')
+    expect(addField().classList.contains('input--income')).toBe(false)
+    expect(hint().textContent).toContain('A + at the start or on the amount records income.')
+  })
+
+  it('shows a refused line as an error, never as income', async () => {
+    await signedIn()
+    quickAdd('+coffee -€3.50')
+    expect(addField().getAttribute('aria-invalid')).toBe('true')
+    expect(addField().classList.contains('input--income')).toBe(false)
+    expect($('[role="alert"]').textContent).toContain('like “Coffee €3.50”')
+    expect(rows()).toEqual([])
+  })
+
   it('reaches the account', async () => {
     const { server } = await signedIn()
     quickAdd('Coffee €3.50')

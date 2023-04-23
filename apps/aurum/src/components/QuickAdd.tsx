@@ -14,6 +14,8 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
   const [error, setError] = useState(false)
   // Counts refused submits; each one remounts the alert so it is announced again.
   const [refusals, setRefusals] = useState(0)
+  // Read as it is typed, so income is visible before it is saved.
+  const income = !error && parseQuickAdd(input)?.type === 'income'
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -37,7 +39,7 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
         <input
           ref={inputRef}
           id="add-transaction"
-          className="input"
+          className={income ? 'input input--income' : 'input'}
           value={input}
           onChange={(event) => {
             setInput(event.target.value)
@@ -59,9 +61,12 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
         <p key={refusals} id="add-transaction-hint" className="field-error" role="alert">
           {t(QUICK_ADD_HINT)}
         </p>
+      ) : income ? (
+        <p id="add-transaction-hint" className="add__hint add__hint--income" aria-live="polite">
+          {t("Will be added as income. End with a category to file it.")}</p>
       ) : (
-        <p id="add-transaction-hint" className="add__hint">
-          {t("A leading + records income. End with a category, like “housing”, to file it.")}</p>
+        <p id="add-transaction-hint" className="add__hint" aria-live="polite">
+          {t("A + at the start or on the amount records income. End with a category, like “housing”, to file it.")}</p>
       )}
     </form>
   )

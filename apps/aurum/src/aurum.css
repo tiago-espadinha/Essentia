@@ -220,6 +220,13 @@
 
 [aria-invalid='true'] { border-color: var(--color-danger); }
 
+/* Quick add has read the line as income; the hint below says so in words. */
+/* The inset line doubles the border's weight without shifting the layout or meeting the focus ring. */
+.input--income {
+  border-color: var(--color-success);
+  box-shadow: inset 0 0 0 1px var(--color-success);
+}
+
 .field-error {
   margin-top: var(--space-1);
   color: var(--color-danger);
@@ -243,6 +250,8 @@
   color: var(--color-mid);
   font-size: var(--text-xs);
 }
+
+.add__hint--income { color: var(--color-success); }
 
 /* Undo */
 .undo:not(:empty) {

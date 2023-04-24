@@ -67,6 +67,24 @@ export function occurrence(start: string, frequency: Frequency, count: number): 
   return `${y}-${pad(m + 1)}-${pad(Math.min(day, last))}`
 }
 
+/** Days of the week as `Date.getUTCDay` numbers them (0 is Sunday), listed from Monday. */
+export const WEEKDAYS = [1, 2, 3, 4, 5, 6, 0] as const
+
+export type Weekday = (typeof WEEKDAYS)[number]
+
+/** The day of the week a YYYY-MM-DD day falls on; a weekly item repeats on its start's. */
+export function weekdayOf(day: string): Weekday {
+  const [year, month, date] = day.split('-').map(Number)
+  return new Date(Date.UTC(year, month - 1, date)).getUTCDay() as Weekday
+}
+
+/** The first day on or after `from` that falls on `weekday`. */
+export function nextOnWeekday(from: string, weekday: Weekday): string {
+  const [year, month, date] = from.split('-').map(Number)
+  const ahead = (weekday - weekdayOf(from) + 7) % 7
+  return new Date(Date.UTC(year, month - 1, date + ahead)).toISOString().slice(0, 10)
+}
+
 /** The first occurrence after `today`: by then the server has posted every earlier one. */
 export function nextAfter(item: Pick<RecurringItem, 'startOn' | 'frequency'>, today: string): string {
   let count = 0

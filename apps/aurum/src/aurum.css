@@ -797,6 +797,27 @@
 /* The list's last row already draws the rule. */
 .rows + .recurring-form { border-top: none; }
 
+/* The weekly first day: the dates it will post, or the matching day to use instead. */
+.recurring-form__hint {
+  margin-top: calc(-1 * var(--space-2));
+  color: var(--color-mid);
+  font-size: var(--text-xs);
+}
+
+.recurring-form__fix {
+  justify-self: start;
+  min-height: 44px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-accent-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 /* Visible at rest: on touch there is no hover to reveal it. */
 .recurring-form .button-ghost {
   justify-self: start;

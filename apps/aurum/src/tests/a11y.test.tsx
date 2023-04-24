@@ -176,4 +176,18 @@ describe('accessibility', () => {
     expect($('#recurring-title').closest('section')!.querySelector('.row')!.textContent).toContain('Rent')
     expect(await violations()).toEqual([])
   })
+
+  it('has no violations in the weekly form, previewing and refusing a weekday mismatch', async () => {
+    await withTransactions()
+    click(buttonNamed('Plan'))
+    await settle()
+    choose('recurring-frequency', 'weekly')
+    expect($('#recurring-schedule').textContent).toContain('every Tuesday')
+    expect(await violations()).toEqual([])
+    choose('recurring-weekday', '1')
+    act(() => $<HTMLFormElement>('.recurring-form').requestSubmit())
+    expect($('#recurring-date-error').textContent).toContain('not a Monday')
+    expect(buttonNamed(/^Use Monday/)).toBeTruthy()
+    expect(await violations()).toEqual([])
+  })
 })

@@ -26,6 +26,7 @@ four-app destination is specified separately below; it is not yet delivered.
 - Switch theme in any app; the choice applies to every app (`essentia-theme`).
 - Folio: share a note and open the link at `/folio/shared/<id>` while signed out; older `/dictum/shared/<id>` links open the same view.
 - Merces: recurring items post when the app syncs, catching up any missed periods.
+- Merces: a weekly item names its weekday and first payment; a first payment on another weekday is refused, with the next matching day offered, and the form previews the first dates it will post.
 - Virtus: install as a PWA and check in offline.
 
 ## Current screen inventory
@@ -40,7 +41,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Shared note `/folio/shared/<id>`, also `/dictum/shared/<id>` | Read a shared note | Read | Loading, not shared any more, couldn't load; rich notes cleaned, markdown never renders HTML | Reading column |
 | Merces `/merces/` (also `/aurum/`) signed out | Get access | Sign in / sign up | Validation, auth error, not set up (no Supabase project in this build) | 520 px column |
 | Merces Transactions | Track money | Add transaction | Empty, list, filtered, loading, sync error | 520 px column |
-| Merces Insights, Plan (budgets, recurring items, CSV export and import) | Plan and review | Set budget / add recurring | Empty, over budget, paused item, import errors | Charts reflow at 375 |
+| Merces Insights, Plan (budgets, recurring items, CSV export and import) | Plan and review | Set budget / add recurring | Empty, over budget, paused item, weekday mismatch, import errors | Charts reflow at 375 |
 
 ## Interactions
 | Interaction | Expected behavior | Keyboard / a11y | Failure and recovery |

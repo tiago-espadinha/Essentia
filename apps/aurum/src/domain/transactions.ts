@@ -82,6 +82,15 @@ export function shortDate(day: string): string {
   return formatDate(new Date(year, month - 1, date), { month: 'short', day: 'numeric' })
 }
 
+/** 1 -> 'Monday', counting as `Date.getUTCDay` does (0 is Sunday). 1 Jan 2023 was a Sunday. */
+export const weekdayName = (weekday: number) => formatDate(new Date(2023, 0, 1 + weekday), { weekday: 'long' })
+
+/** '2023-05-01' -> 'Monday 1 May'. */
+export function longDate(day: string): string {
+  const [year, month, date] = day.split('-').map(Number)
+  return formatDate(new Date(year, month - 1, date), { weekday: 'long', month: 'short', day: 'numeric' })
+}
+
 /** The row's Edit button, which gets focus back when its dialog closes. */
 export const editId = (t: Pick<Transaction, 'id'>) => `transaction-${t.id}-edit`
 

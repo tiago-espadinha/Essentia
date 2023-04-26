@@ -6,7 +6,7 @@ import { fakeServer, settle } from './fakeServer'
 import type { RecurringFields } from '../domain/recurring'
 import { BUDGETS_KEY, RECURRING_KEY, SYNC_KEY, TRANSACTIONS_KEY } from '../data/storage'
 import './testing'
-import type { TransactionFields } from '../domain/transactions'
+import type { Transaction, TransactionFields } from '../domain/transactions'
 import { useTransactions } from '../hooks/useTransactions'
 
 const rendered: { current: ReturnType<typeof useTransactions> | null } = { current: null }
@@ -513,6 +513,89 @@ describe('syncing transactions with the account', () => {
     await settle(() => document.dispatchEvent(new Event('visibilitychange')))
     expect(hook().syncState).toBe('synced')
     expect(server.transactions).toHaveLength(1)
+  })
+})
+
+describe('backing up the account', () => {
+  /** Runs a backup to the end, its sync included. */
+  async function backup(during: () => void = () => {}) {
+    let result: Transaction[] | null = null
+    await act(async () => {
+      const pending = hook().backup()
+      during()
+      await vi.advanceTimersByTimeAsync(2500)
+      result = await pending
+    })
+    return result as Transaction[] | null
+  }
+
+  it('reads every page of the account, from every year, once each, leaving deleted ones out', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    const mine = add('Coffee here')
+    // Added on another device after this one synced: only the backup's own sync can see them.
+    for (let n = 1; n <= 2500; n++) {
+      server.transactions.push(remoteRow(n, 'ana', `row ${n}`, { occurred_on: n <= 1200 ? '2021-03-04' : '2022-11-01' }))
+    }
+    server.transactions.push(remoteRow(2501, 'ana', 'Gone', { deleted_at: '2022-11-07T08:00:00Z' }))
+    server.transactions.push(remoteRow(2502, 'ben', 'Not mine'))
+    expect(hook().transactions).toHaveLength(1)
+
+    const all = (await backup())!
+    expect(all).toHaveLength(2501)
+    expect(new Set(all.map((t) => t.id)).size).toBe(2501)
+    expect(all[0].id).toBe(mine)
+    expect(new Set(all.map((t) => t.date.slice(0, 4)))).toEqual(new Set(['2021', '2022']))
+    expect(all.map((t) => t.description)).not.toContain('Gone')
+    expect(all.map((t) => t.description)).not.toContain('Not mine')
+  })
+
+  it('gives nothing when the account cannot be read, keeping this device’s copy', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    add('Coffee')
+    await settle()
+    server.fail(true)
+    expect(await backup()).toBeNull()
+    expect(descriptions()).toEqual(['Coffee'])
+  })
+
+  it('gives nothing offline, without syncing', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    add('Coffee')
+    await settle()
+    const posts = server.calls.posts
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    expect(await backup()).toBeNull()
+    expect(server.calls.posts).toBe(posts)
+  })
+
+  it('joins a sync already out, then reads the account again', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    server.slow(500)
+    add('Coffee')
+    // The edit's sync starts and its read goes out before the row below exists.
+    await act(() => vi.advanceTimersByTimeAsync(2100))
+    server.transactions.push(remoteRow(1, 'ana', 'From the phone'))
+    const all = (await backup())!
+    expect(all.map((t) => t.description).sort()).toEqual(['Coffee', 'From the phone'])
+  })
+
+  it('gives nothing when another account signs in during the backup', async () => {
+    const server = fakeServer()
+    const device = server.client({ user: { id: 'ana' } })
+    await open(device.client)
+    add('Coffee')
+    await settle()
+    server.slow(500)
+    expect(await backup(() => device.emit('ben'))).toBeNull()
+  })
+
+  it('gives nothing signed out', async () => {
+    await open(null)
+    expect(await backup()).toBeNull()
   })
 })
 

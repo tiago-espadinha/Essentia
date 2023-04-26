@@ -82,6 +82,12 @@ export function shortDate(day: string): string {
   return formatDate(new Date(year, month - 1, date), { month: 'short', day: 'numeric' })
 }
 
+/** '2022-11-03' -> '3 Nov 2022'. */
+export function fullDate(day: string): string {
+  const [year, month, date] = day.split('-').map(Number)
+  return formatDate(new Date(year, month - 1, date), { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
 /** 1 -> 'Monday', counting as `Date.getUTCDay` does (0 is Sunday). 1 Jan 2023 was a Sunday. */
 export const weekdayName = (weekday: number) => formatDate(new Date(2023, 0, 1 + weekday), { weekday: 'long' })
 

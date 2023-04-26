@@ -1,6 +1,6 @@
 import { setLocale } from '@essentia/ui'
 import { act } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { readCsv, toCsv } from '../domain/csv'
 import { amountText, formatMoney, parseAmount } from '../domain/money'
 import { createTransaction, monthLabel, shortDate } from '../domain/transactions'
@@ -123,6 +123,26 @@ describe('Merces locale compatibility', () => {
     expect($('.data__outcome').textContent).toBe('Foi importada 1 transação. Foi ignorada 1 linha:Linha 3: o montante não é superior a zero, como 3.50.')
     switchTo('en-GB')
     expect($('.data__outcome').textContent).toBe('Imported 1 transaction. Skipped 1 row:Row 3: the amount is not one above zero, like 3.50.')
+  })
+
+  it('translates the export copy, its outcome and its failure', async () => {
+    const server = await signedIn()
+    add('Coffee €3.50')
+    add('+Salary €2100 salary')
+    await settle()
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:aurum')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    click(buttonNamed('Insights'))
+    switchTo('pt-PT')
+    expect($('#data-export-about').textContent).toContain('todas as transações da sua conta, de todas as datas e independentemente dos filtros')
+    await settle(() => click(buttonNamed('Exportar CSV')))
+    expect($('.data__outcome').textContent).toBe('Foram exportadas 2 transações, com data de 8/11/2022.')
+    server.fail(true)
+    await settle(() => click(buttonNamed('Exportar CSV')))
+    expect($('.data__outcome').textContent).toBe(
+      'Não foi possível aceder à sua conta, por isso nenhum ficheiro foi guardado: poderiam faltar transações. Tente novamente mais tarde.',
+    )
   })
 
   it('keeps every dictionary interpolation and provides non-empty Portuguese messages', () => {

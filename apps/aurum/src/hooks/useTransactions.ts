@@ -241,6 +241,17 @@ export function useTransactions(client: SupabaseClient | null) {
     saveFailed: failed.transactions || failed.stamps || failed.budgets || failed.recurring,
     syncState,
     sync,
+    /**
+     * Every transaction on the account, newest first, read in a sync that ends
+     * now; null when the account could not be read, so what this device holds
+     * is never taken for the whole account.
+     */
+    backup: async (): Promise<Transaction[] | null> => {
+      const user = userId.current
+      if (!navigator.onLine || !(await sync())) return null
+      // Another account may have signed in while the sync was out; its copy is not this backup.
+      return latest.current.stamps.owner === user ? [...latest.current.transactions].sort(byDate) : null
+    },
     add: (fields: TransactionFields) => {
       const transaction = createTransaction(fields)
       commit((current) => [transaction, ...current])

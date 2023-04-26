@@ -1,6 +1,6 @@
 import { act } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { fakeServer } from './fakeServer'
+import { fakeServer, settle } from './fakeServer'
 import { $, buttonNamed, click, renderApp, setupApp, text, type } from './testing'
 
 setupApp()
@@ -21,6 +21,36 @@ function choose(select: HTMLSelectElement, value: string) {
     select.dispatchEvent(new Event('change', { bubbles: true }))
   })
 }
+
+/** A transaction as the account holds it, 3.50 euros of food on the test day. */
+const row = (n: number, description: string, changes: Record<string, unknown> = {}) => ({
+  id: `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, '0')}`,
+  user_id: 'ana',
+  description,
+  amount: 3.5,
+  type: 'expense',
+  category: 'food',
+  occurred_on: '2022-11-08',
+  created_at: '2022-11-08T08:00:00Z',
+  updated_at: '2022-11-08T08:00:00Z',
+  deleted_at: null,
+  ...changes,
+})
+
+/** Catches the file the page hands the browser instead of saving it. */
+function spyDownload() {
+  const saved: Blob[] = []
+  vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
+    saved.push(blob as Blob)
+    return 'blob:aurum'
+  })
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+  const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  return { saved, clicked }
+}
+
+/** Clicks Export and lets its sync finish. */
+const exportCsv = () => settle(() => click(buttonNamed('Export CSV')))
 
 const spend = () => [...document.querySelectorAll('.spend__item')].map((item) => item.textContent)
 const monthRows = () => [...document.querySelectorAll('.months tbody tr')].map((row) => row.textContent)
@@ -87,19 +117,13 @@ describe('export', () => {
     await signedIn()
     quickAdd('+Salary €2100')
     quickAdd('Rent €900 housing')
-    let saved: Blob | null = null
-    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => {
-      saved = blob as Blob
-      return 'blob:aurum'
-    })
-    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
-    const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+    const { saved, clicked } = spyDownload()
     click(buttonNamed('Insights'))
-    click(buttonNamed('Export CSV'))
+    await exportCsv()
     expect(clicked).toHaveBeenCalledOnce()
     expect((clicked.mock.contexts[0] as HTMLAnchorElement).download).toBe('merces-2022-11-08.csv')
     // Blob.text() drops the byte order mark when it decodes, so the bytes are read.
-    const bytes = new Uint8Array(await saved!.arrayBuffer())
+    const bytes = new Uint8Array(await saved[0].arrayBuffer())
     expect([...bytes.slice(0, 3)]).toEqual([0xef, 0xbb, 0xbf])
     expect(new TextDecoder().decode(bytes.slice(3)).split('\r\n')).toEqual([
       'date,type,description,category,amount',
@@ -107,6 +131,104 @@ describe('export', () => {
       '2022-11-08,income,Salary,other,2100.00',
       '',
     ])
+    expect($('.data__outcome').textContent).toBe('Exported 2 transactions, dated 8 Nov 2022.')
+  })
+
+  it('says the export covers the whole account, whatever the filters', async () => {
+    await signedIn()
+    quickAdd('Coffee €3.50')
+    click(buttonNamed('Insights'))
+    const about = document.getElementById(buttonNamed('Export CSV').getAttribute('aria-describedby')!)!
+    expect(about.textContent).toContain('Export saves every transaction on your account, from all dates and regardless of filters')
+  })
+
+  it('exports every year of the account while the list is filtered', async () => {
+    const server = fakeServer()
+    server.transactions.push(
+      row(1, 'Salary, Nov', { type: 'income', category: 'salary', amount: 2100, occurred_on: '2022-11-01' }),
+      row(2, '=HYPERLINK("x")', { occurred_on: '2021-06-15' }),
+      row(3, 'Old rent', { category: 'housing', amount: 800, occurred_on: '2020-01-31' }),
+      row(4, 'Gone', { deleted_at: '2022-11-07T08:00:00Z' }),
+    )
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    choose($<HTMLSelectElement>('#filter-month'), '2022-11')
+    choose($<HTMLSelectElement>('#filter-category'), 'salary')
+    type($<HTMLInputElement>('#search'), 'sal')
+    expect([...document.querySelectorAll('.row__description')].map((cell) => cell.textContent)).toEqual(['Salary, Nov'])
+    const { saved } = spyDownload()
+    click(buttonNamed('Insights'))
+    await exportCsv()
+    expect((await saved[0].text()).split('\r\n')).toEqual([
+      'date,type,description,category,amount',
+      '2022-11-01,income,"Salary, Nov",salary,2100.00',
+      '2021-06-15,expense,"\'=HYPERLINK(""x"")",food,3.50',
+      '2020-01-31,expense,Old rent,housing,800.00',
+      '',
+    ])
+    expect($('.data__outcome').textContent).toBe('Exported 3 transactions, dated 31 Jan 2020 to 1 Nov 2022.')
+  })
+
+  it('saves no file when the account cannot be reached', async () => {
+    const server = fakeServer()
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    quickAdd('Coffee €3.50')
+    await settle()
+    server.fail(true)
+    const { clicked } = spyDownload()
+    click(buttonNamed('Insights'))
+    await exportCsv()
+    expect(clicked).not.toHaveBeenCalled()
+    expect($('.data__outcome').textContent).toBe(
+      'Couldn’t reach your account, so no file was saved: it might have missed transactions. Try again later.',
+    )
+    expect($('.data__outcome').classList).toContain('notice--error')
+    expect(buttonNamed('Export CSV').disabled).toBe(false)
+  })
+
+  it('keeps the focus on Export while it syncs, and saves one file however often it is pressed', async () => {
+    const server = fakeServer()
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    quickAdd('Coffee €3.50')
+    await settle()
+    server.slow(1000)
+    const { clicked } = spyDownload()
+    click(buttonNamed('Insights'))
+    const button = buttonNamed('Export CSV')
+    button.focus()
+    click(button)
+    expect(button.textContent).toBe('Exporting…')
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(document.activeElement).toBe(button)
+    click(button)
+    await settle()
+    expect(clicked).toHaveBeenCalledOnce()
+    expect(button.getAttribute('aria-disabled')).toBe('false')
+    expect(document.activeElement).toBe(button)
+  })
+
+  it('saves no file when the account turns out to be empty', async () => {
+    const server = fakeServer()
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    quickAdd('Coffee €3.50')
+    await settle()
+    // Deleted on another device since this one synced.
+    server.transactions[0].deleted_at = server.transactions[0].updated_at = '2022-11-08T10:00:00.000Z'
+    const { clicked } = spyDownload()
+    click(buttonNamed('Insights'))
+    await exportCsv()
+    expect(clicked).not.toHaveBeenCalled()
+    expect($('.data__outcome').textContent).toBe('Your account has no transactions to export.')
+  })
+
+  it('says so when the browser cannot make the file', async () => {
+    await signedIn()
+    quickAdd('Coffee €3.50')
+    vi.spyOn(URL, 'createObjectURL').mockImplementation(() => {
+      throw new Error('quota')
+    })
+    click(buttonNamed('Insights'))
+    await exportCsv()
+    expect($('.data__outcome').textContent).toBe('Couldn’t save the file. Try again.')
   })
 })
 

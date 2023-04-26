@@ -54,6 +54,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
     saveFailed,
     syncState,
     sync,
+    backup,
     add,
     addAll,
     update,
@@ -192,7 +193,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                           setView('transactions')
                         }}
                       />
-                      <DataTools transactions={transactions} onImport={addAll} />
+                      <DataTools transactions={transactions} onExport={backup} onImport={addAll} />
                     </div>
                   ) : (
                     <>

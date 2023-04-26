@@ -41,7 +41,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Shared note `/folio/shared/<id>`, also `/dictum/shared/<id>` | Read a shared note | Read | Loading, not shared any more, couldn't load; rich notes cleaned, markdown never renders HTML | Reading column |
 | Merces `/merces/` (also `/aurum/`) signed out | Get access | Sign in / sign up | Validation, auth error, not set up (no Supabase project in this build) | 520 px column |
 | Merces Transactions | Track money | Add transaction | Empty, list, filtered, loading, sync error | 520 px column |
-| Merces Insights, Plan (budgets, recurring items, CSV export and import) | Plan and review | Set budget / add recurring | Empty, over budget, paused item, weekday mismatch, import errors | Charts reflow at 375 |
+| Merces Insights, Plan (budgets, recurring items, CSV export and import) | Plan and review | Set budget / add recurring | Empty, over budget, paused item, weekday mismatch, import errors, export unreachable (no file) or empty account | Charts reflow at 375 |
 
 ## Interactions
 | Interaction | Expected behavior | Keyboard / a11y | Failure and recovery |

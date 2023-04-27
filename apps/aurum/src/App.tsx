@@ -15,6 +15,7 @@ import { InsightsView } from './components/InsightsView'
 import { QuickAdd } from './components/QuickAdd'
 import { Recurring } from './components/Recurring'
 import { TransactionRow } from './components/TransactionRow'
+import { categoryUses } from './domain/categories'
 import { formatMoney } from './domain/money'
 import {
   categoriesOf,
@@ -80,6 +81,8 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   const signedIn = auth.status === 'signed-in'
 
   const categories = categoriesOf(transactions)
+  // Every name in use, recurring items and budgets included: suggested and recognised wherever a category is typed.
+  const ownCategories = categoryUses({ transactions, recurring, budgets }).map((use) => use.name)
   const months = monthsOf(transactions)
   // A category or month filter lapses once no transaction carries it any more.
   const activeFilter: TransactionFilter = {
@@ -179,6 +182,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                       <Recurring
                         items={recurring}
                         ready={planReady}
+                        categories={ownCategories}
                         onAdd={addRecurring}
                         onPause={setRecurringPaused}
                         onRemove={removeRecurring}
@@ -199,6 +203,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                     <>
                       <QuickAdd
                         inputRef={addRef}
+                        categories={ownCategories}
                         onAdd={(fields) => {
                           motion(() => add(fields))
                           setDeleted(null)
@@ -257,6 +262,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
         <EditDialog
           key={editing.id}
           transaction={editing}
+          categories={ownCategories}
           onSave={(fields) => {
             update(editing.id, fields)
             setEditingId(null)

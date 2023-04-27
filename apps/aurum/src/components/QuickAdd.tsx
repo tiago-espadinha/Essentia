@@ -1,27 +1,31 @@
 import { t } from '../locale'
 import { useState, type FormEvent, type RefObject } from 'react'
 import { parseQuickAdd, QUICK_ADD_HINT } from '../domain/quickAdd'
-import { todayKey, type TransactionFields } from '../domain/transactions'
+import { DEFAULT_CATEGORY, todayKey, type TransactionFields } from '../domain/transactions'
 
 interface QuickAddProps {
   inputRef: RefObject<HTMLInputElement | null>
+  /** The account's own categories, recognised at the end of a line as the built-in ones are. */
+  categories: string[]
   onAdd: (fields: TransactionFields) => void
 }
 
 /** One line in, one transaction out, dated today; details can be changed afterwards with Edit. */
-export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
+export function QuickAdd({ inputRef, categories, onAdd }: QuickAddProps) {
   const [input, setInput] = useState('')
   const [error, setError] = useState(false)
   // Counts refused submits; each one remounts the alert so it is announced again.
   const [refusals, setRefusals] = useState(0)
   // Read as it is typed, so income is visible before it is saved.
-  const income = !error && parseQuickAdd(input)?.type === 'income'
+  const parsed = error ? null : parseQuickAdd(input, categories)
+  const income = parsed?.type === 'income'
+  const filedUnder = parsed && parsed.category !== DEFAULT_CATEGORY ? parsed.category : null
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    const parsed = parseQuickAdd(input)
-    if (parsed) {
-      onAdd({ ...parsed, date: todayKey() })
+    const line = parseQuickAdd(input, categories)
+    if (line) {
+      onAdd({ ...line, date: todayKey() })
       setInput('')
       setError(false)
     } else {
@@ -60,6 +64,10 @@ export function QuickAdd({ inputRef, onAdd }: QuickAddProps) {
       {error ? (
         <p key={refusals} id="add-transaction-hint" className="field-error" role="alert">
           {t(QUICK_ADD_HINT)}
+        </p>
+      ) : filedUnder ? (
+        <p id="add-transaction-hint" className={income ? 'add__hint add__hint--income' : 'add__hint'} aria-live="polite">
+          {t(income ? 'Will be added as income under “{category}”.' : 'Will be filed under “{category}”.', { category: filedUnder })}
         </p>
       ) : income ? (
         <p id="add-transaction-hint" className="add__hint add__hint--income" aria-live="polite">

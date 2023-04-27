@@ -90,6 +90,8 @@ export const messages = {
   "Add transaction": "Adicionar transação",
   "A + at the start or on the amount records income. End with a category, like “housing”, to file it.": "Um + no início ou no montante regista uma receita. Termine com uma categoria, como “housing”, para a classificar.",
   "Will be added as income. End with a category to file it.": "Vai ser adicionada como receita. Termine com uma categoria para a classificar.",
+  "Will be filed under “{category}”.": "Vai ser classificada em “{category}”.",
+  "Will be added as income under “{category}”.": "Vai ser adicionada como receita em “{category}”.",
   "Write a description and an amount, like “Coffee €3.50” or “+Salary €2100”.": "Escreva uma descrição e um montante, como “Café €3.50” ou “+Salário €2100”.",
   "Recurring": "Recorrentes",
   "Loading your recurring items": "A carregar os seus movimentos recorrentes",

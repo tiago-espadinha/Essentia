@@ -17,12 +17,15 @@ import {
   type Weekday,
 } from '../domain/recurring'
 import { readForm, type FormErrors, type TransactionForm } from '../domain/transactionForm'
-import { CATEGORIES, isDay, LIMITS, longDate, shortDate, todayKey, weekdayName } from '../domain/transactions'
+import { suggestionsFor } from '../domain/categories'
+import { isDay, LIMITS, longDate, shortDate, todayKey, weekdayName } from '../domain/transactions'
 
 interface RecurringProps {
   items: RecurringItem[]
   /** False until the account's recurring items have been read. */
   ready: boolean
+  /** The account's own categories, suggested after the built-in ones. */
+  categories: string[]
   onAdd: (fields: RecurringFields) => void
   onPause: (id: string, paused: boolean) => void
   onRemove: (id: string) => void
@@ -48,7 +51,7 @@ const MISMATCH = '{date} is a {actual}, not a {weekday}.'
 const PREVIEW = 3
 
 /** Items that post themselves when due, each time the app syncs, and the form that adds one. */
-export function Recurring({ items, ready, onAdd, onPause, onRemove }: RecurringProps) {
+export function Recurring({ items, ready, categories, onAdd, onPause, onRemove }: RecurringProps) {
   const [form, setForm] = useState(blank)
   const [errors, setErrors] = useState<FormErrors>({})
   const [announcement, setAnnouncement] = useState<{ key: string; description: string; date?: string } | null>(null)
@@ -194,7 +197,7 @@ export function Recurring({ items, ready, onAdd, onPause, onRemove }: RecurringP
               {...invalid('recurring-category', errors.category)}
             />
             <datalist id="recurring-categories">
-              {CATEGORIES[form.type].map((category) => (
+              {suggestionsFor(form.type, categories).map((category) => (
                 <option key={category} value={category} />
               ))}
             </datalist>

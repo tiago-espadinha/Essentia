@@ -11,7 +11,7 @@ export interface QuickAdd {
 
 export const QUICK_ADD_HINT = 'Write a description and an amount, like “Coffee €3.50” or “+Salary €2100”.'
 
-const KNOWN = new Set([...CATEGORIES.expense, ...CATEGORIES.income])
+const BUILT_IN = [...CATEGORIES.expense, ...CATEGORIES.income]
 // An amount with a euro sign on either side, or a bare number standing alone. A '+' starting
 // the amount's word ('+3.50', '+€3.50') marks income; one inside a word ('Top up+€5') does not.
 const AMOUNT = /(?:(?<!\S)(\+))?€\s*([\d.,]+)|(?:(?<!\S)(\+))?([\d.,]+)\s*€|(?:^|\s)(\+?)([\d.,]*\d[\d.,]*)(?=\s|$)/g
@@ -19,11 +19,12 @@ const MINUS = new Set(['-', '−'])
 
 /**
  * Reads a line into a transaction. A '+' at the start or on the amount ('+Salary 2100',
- * 'Coffee +3.50') makes it income; the amount is the last one written; a known category
- * as the last word files it. Null when there is no amount to read, or when income
+ * 'Coffee +3.50') makes it income; the amount is the last one written; a category the
+ * line ends with, built in or one of the account's `own` ('Dinner 30 eating out'), files
+ * it. Null when there is no amount to read, or when income
  * meets a minus on the amount.
  */
-export function parseQuickAdd(input: string): QuickAdd | null {
+export function parseQuickAdd(input: string, own: string[] = []): QuickAdd | null {
   let text = input.trim()
   let type: TransactionType = 'expense'
   if (text.startsWith('+')) {
@@ -42,10 +43,15 @@ export function parseQuickAdd(input: string): QuickAdd | null {
 
   const words = cleanDescription(text.slice(0, found.index) + ' ' + text.slice(found.index + found[0].length)).split(' ')
   let category = DEFAULT_CATEGORY
-  const last = words.at(-1)?.toLowerCase()
-  if (words.length > 1 && last && KNOWN.has(last)) {
-    category = cleanCategory(last)
-    words.pop()
+  const known = new Set([...BUILT_IN, ...own])
+  // The longest name the line ends with, leaving at least one word to describe it.
+  for (let count = words.length - 1; count >= 1; count--) {
+    const name = cleanCategory(words.slice(-count).join(' '))
+    if (known.has(name)) {
+      category = name
+      words.splice(-count)
+      break
+    }
   }
   const description = words.join(' ').replace(/\s*[—–-]$/, '').trim() || (type === 'income' ? 'Income' : 'Expense')
   return { description: description.slice(0, LIMITS.description), amount, type, category }

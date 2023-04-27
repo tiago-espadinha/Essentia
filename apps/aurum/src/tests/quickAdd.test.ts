@@ -54,6 +54,17 @@ describe('parseQuickAdd', () => {
     expect(parseQuickAdd('+Invoice 42 €450 Freelance')).toMatchObject({ description: 'Invoice 42', category: 'freelance', type: 'income' })
   })
 
+  it('files one of the account’s own categories, several words long too', () => {
+    const own = ['eating out', 'pets']
+    expect(parseQuickAdd('Dinner €30 Eating Out', own)).toEqual({ description: 'Dinner', amount: 3000, type: 'expense', category: 'eating out' })
+    expect(parseQuickAdd('Vet 45 pets', own)).toMatchObject({ description: 'Vet', category: 'pets' })
+    expect(parseQuickAdd('Vet 45 pets')).toMatchObject({ description: 'Vet pets', category: 'other' })
+  })
+
+  it('leaves a word to describe the line', () => {
+    expect(parseQuickAdd('Eating out €30', ['eating out'])).toMatchObject({ description: 'Eating out', category: 'other' })
+  })
+
   it('keeps an unknown last word in the description', () => {
     expect(parseQuickAdd('Train to Porto €18')).toMatchObject({ description: 'Train to Porto', category: 'other' })
     expect(parseQuickAdd('Gift for Ana €30 birthday')).toMatchObject({ description: 'Gift for Ana birthday' })

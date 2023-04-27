@@ -84,6 +84,23 @@ describe('adding transactions', () => {
     expect(hint().textContent).toContain('A + at the start or on the amount records income.')
   })
 
+  it('says which category a line will be filed under, the account’s own ones included', async () => {
+    await signedIn()
+    const hint = () => $('#add-transaction-hint').textContent
+    type(addField(), 'Rent €900 housing')
+    expect(hint()).toBe('Will be filed under “housing”.')
+    type(addField(), 'Invoice +450 freelance')
+    expect(hint()).toBe('Will be added as income under “freelance”.')
+    quickAdd('Vet €45')
+    click(buttonNamed('Edit “Vet”'))
+    type(field('edit-category'), 'Pets')
+    act(() => field('edit-category').form!.requestSubmit())
+    type(addField(), 'Food €12 pets')
+    expect(hint()).toBe('Will be filed under “pets”.')
+    click(buttonNamed('Edit “Vet”'))
+    expect([...document.querySelectorAll('#edit-categories option')].map((option) => option.getAttribute('value')).at(-1)).toBe('pets')
+  })
+
   it('shows a refused line as an error, never as income', async () => {
     await signedIn()
     quickAdd('+coffee -€3.50')

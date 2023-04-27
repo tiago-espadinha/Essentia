@@ -901,3 +901,75 @@ describe('saved data on the device', () => {
     expect(hook().saveFailed).toBe(false)
   })
 })
+
+describe('moving a category', () => {
+  const rent = (category: string): RecurringFields => ({
+    ...fields('Rent', 90000),
+    category,
+    frequency: 'monthly',
+    startOn: '2022-12-01',
+  })
+  const categoryRows = (rows: Record<string, unknown>[]) =>
+    rows.filter((row) => !row.deleted_at).map((row) => [row.user_id, row.category])
+
+  it('renames it on every transaction, recurring item and budget, on the account too', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    add('Lunch')
+    add('Dinner')
+    act(() => hook().addRecurring(rent('food')))
+    act(() => hook().setBudget('food', 20000))
+    await settle()
+    vi.setSystemTime(new Date('2022-11-08T10:00:00Z'))
+    act(() => hook().moveCategory('food', 'eating out'))
+    await settle()
+
+    expect(hook().transactions.map((t) => t.category)).toEqual(['eating out', 'eating out'])
+    expect(hook().recurring.map((item) => item.category)).toEqual(['eating out'])
+    expect(hook().budgets).toMatchObject([{ category: 'eating out', amount: 20000 }])
+    expect(categoryRows(server.transactions)).toEqual([['ana', 'eating out'], ['ana', 'eating out']])
+    expect(categoryRows(server.recurring)).toEqual([['ana', 'eating out']])
+    expect(categoryRows(server.budgets)).toEqual([['ana', 'eating out']])
+    expect(server.budgets.find((row) => row.category === 'food')?.deleted_at).not.toBeNull()
+  })
+
+  it('merges into an existing category, which keeps its own budget', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    add('Lunch')
+    act(() => hook().update(hook().transactions[0].id, { category: 'groceries' }))
+    add('Dinner')
+    act(() => hook().setBudget('groceries', 10000))
+    act(() => hook().setBudget('food', 30000))
+    act(() => hook().moveCategory('groceries', 'food'))
+    await settle()
+
+    expect(hook().transactions.map((t) => t.category)).toEqual(['food', 'food'])
+    expect(hook().budgets.map(({ category, amount }) => ({ category, amount }))).toEqual([{ category: 'food', amount: 30000 }])
+    expect(categoryRows(server.budgets)).toEqual([['ana', 'food']])
+  })
+
+  it('never changes another account’s rows', async () => {
+    const server = fakeServer()
+    server.transactions.push(remoteRow(9, 'ben', 'Ben’s lunch'))
+    server.budgets.push({ user_id: 'ben', category: 'food', amount: 100, updated_at: '2022-11-08T08:00:00Z', deleted_at: null })
+    await open(server.client({ user: { id: 'ana' } }).client)
+    add('Lunch')
+    act(() => hook().setBudget('food', 20000))
+    act(() => hook().moveCategory('food', 'other'))
+    await settle()
+
+    expect(hook().transactions.map((t) => t.description)).toEqual(['Lunch'])
+    expect(categoryRows(server.transactions)).toEqual([['ben', 'food'], ['ana', 'other']])
+    expect(categoryRows(server.budgets)).toEqual([['ben', 'food'], ['ana', 'other']])
+  })
+
+  it('changes nothing offline', async () => {
+    const server = fakeServer()
+    await open(server.client({ user: { id: 'ana' } }).client)
+    add('Lunch')
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    act(() => hook().moveCategory('food', 'other'))
+    expect(hook().transactions.map((t) => t.category)).toEqual(['food'])
+  })
+})

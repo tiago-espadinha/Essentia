@@ -2,6 +2,7 @@ import type { SyncState } from '@essentia/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { BUDGET_CODEC, newBudget, readBudgets, type Budget } from '../domain/budgets'
+import { moveCategory } from '../domain/categories'
 import { createRecurring, readRecurring, RECURRING_CODEC, setPaused, type RecurringFields, type RecurringItem } from '../domain/recurring'
 import { BUDGETS, fetchRemote, fetchRows, pushChanges, pushRows, RECURRING } from '../data/remote'
 import {
@@ -287,5 +288,13 @@ export function useTransactions(client: SupabaseClient | null) {
     setRecurringPaused: (id: string, paused: boolean) =>
       commitRecurring((current) => current.map((item) => (item.id === id ? setPaused(item, paused, todayKey()) : item))),
     removeRecurring: (id: string) => commitRecurring((current) => current.filter((item) => item.id !== id)),
+    /** Files everything under one category under another, as one sync: a rename, a merge or a removal. */
+    moveCategory: (from: string, to: string) => {
+      const { transactions, recurring, budgets } = latest.current
+      const moved = moveCategory({ transactions, recurring: recurring.items, budgets: budgets.budgets }, from, to)
+      commit(() => moved.transactions)
+      commitRecurring(() => moved.recurring)
+      commitBudgets(() => moved.budgets)
+    },
   }
 }

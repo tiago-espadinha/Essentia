@@ -4,15 +4,18 @@ import { useState, type FormEvent } from 'react'
 import { Field } from './Field'
 import { invalid } from '../domain/forms'
 import { formOf, readForm, type FormErrors, type TransactionForm } from '../domain/transactionForm'
-import { CATEGORIES, editId, LIMITS, type Transaction, type TransactionFields } from '../domain/transactions'
+import { suggestionsFor } from '../domain/categories'
+import { editId, LIMITS, type Transaction, type TransactionFields } from '../domain/transactions'
 
 interface EditDialogProps {
   transaction: Transaction
+  /** The account's own categories, suggested after the built-in ones. */
+  categories: string[]
   onSave: (fields: TransactionFields) => void
   onClose: () => void
 }
 
-export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
+export function EditDialog({ transaction, categories, onSave, onClose }: EditDialogProps) {
   const [form, setForm] = useState(() => formOf(transaction))
   const [errors, setErrors] = useState<FormErrors>({})
 
@@ -99,7 +102,7 @@ export function EditDialog({ transaction, onSave, onClose }: EditDialogProps) {
             {...invalid('edit-category', errors.category)}
           />
           <datalist id="edit-categories">
-            {CATEGORIES[form.type].map((category) => (
+            {suggestionsFor(form.type, categories).map((category) => (
               <option key={category} value={category} />
             ))}
           </datalist>

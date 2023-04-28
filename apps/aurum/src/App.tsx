@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { AccountMenu } from './components/AccountMenu'
 import { AppHeader } from './components/AppHeader'
 import { Budgets } from './components/Budgets'
+import { Categories } from './components/Categories'
 import { DataTools } from './components/DataTools'
 import { EditDialog } from './components/EditDialog'
 import { Filters } from './components/Filters'
@@ -15,6 +16,7 @@ import { InsightsView } from './components/InsightsView'
 import { QuickAdd } from './components/QuickAdd'
 import { Recurring } from './components/Recurring'
 import { TransactionRow } from './components/TransactionRow'
+import { categoryUses } from './domain/categories'
 import { formatMoney } from './domain/money'
 import {
   categoriesOf,
@@ -66,6 +68,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
     addRecurring,
     setRecurringPaused,
     removeRecurring,
+    moveCategory,
   } = useTransactions(client)
   // The transaction being edited, by id: a sync can remove it, and the dialog then closes.
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -80,6 +83,9 @@ export default function App({ client }: { client: SupabaseClient | null }) {
   const signedIn = auth.status === 'signed-in'
 
   const categories = categoriesOf(transactions)
+  // Every name in use, recurring items and budgets included: suggested and recognised wherever a category is typed.
+  const uses = categoryUses({ transactions, recurring, budgets })
+  const ownCategories = uses.map((use) => use.name)
   const months = monthsOf(transactions)
   // A category or month filter lapses once no transaction carries it any more.
   const activeFilter: TransactionFilter = {
@@ -179,9 +185,19 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                       <Recurring
                         items={recurring}
                         ready={planReady}
+                        categories={ownCategories}
                         onAdd={addRecurring}
                         onPause={setRecurringPaused}
                         onRemove={removeRecurring}
+                      />
+                      <Categories
+                        uses={uses}
+                        ready={planReady}
+                        onMove={(from, to) => {
+                          moveCategory(from, to)
+                          // A filter on the old name follows it, rather than lapsing to every category.
+                          setFilter((current) => (current.category === from ? { ...current, category: to } : current))
+                        }}
                       />
                     </div>
                   ) : view === 'insights' ? (
@@ -199,6 +215,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                     <>
                       <QuickAdd
                         inputRef={addRef}
+                        categories={ownCategories}
                         onAdd={(fields) => {
                           motion(() => add(fields))
                           setDeleted(null)
@@ -257,6 +274,7 @@ export default function App({ client }: { client: SupabaseClient | null }) {
         <EditDialog
           key={editing.id}
           transaction={editing}
+          categories={ownCategories}
           onSave={(fields) => {
             update(editing.id, fields)
             setEditingId(null)

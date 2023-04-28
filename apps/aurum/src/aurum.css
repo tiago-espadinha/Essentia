@@ -877,3 +877,24 @@
 
   .insights-layout > :last-child { grid-column: 1 / -1; }
 }
+
+/* Categories: under both Plan columns, with what confirming a change will do said in the dialog. */
+.plan-layout > .categories { grid-column: 1 / -1; }
+
+.categories__intro {
+  max-width: 65ch;
+  margin-bottom: var(--space-3);
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+/* A category row has no amount beside it: on narrow and touch screens its name takes the line and the actions go below. */
+@media (hover: none), (max-width: 480px) {
+  .categories .row__body { flex-basis: 100%; }
+}
+
+.categories__outcome {
+  min-height: calc(var(--text-sm) * 1.5);
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}

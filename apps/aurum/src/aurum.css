@@ -456,6 +456,8 @@
   cursor: pointer;
 }
 
+.segmented--three { grid-template-columns: repeat(3, 1fr); }
+
 .segmented__option + .segmented__option { border-left: 1px solid var(--color-line-strong); }
 
 .segmented__option input {
@@ -598,6 +600,14 @@
 .insight__none {
   color: var(--color-mid);
   font-size: var(--text-sm);
+}
+
+/* The interval picker: the segmented control without the fieldset's frame. */
+.interval {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
 }
 
 .amount--negative { color: var(--color-danger); }

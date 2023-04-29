@@ -1,10 +1,10 @@
 import { t } from '../locale'
 import { formatNumber } from '@essentia/ui'
-import { useState } from 'react'
-import { monthlyTotals, spendingByCategory } from '../domain/insights'
+import { useMemo, useState } from 'react'
+import { INTERVALS, periodTotals, spendingByCategory, type Interval } from '../domain/insights'
 import { MonthChart } from './MonthChart'
 import { formatMoney } from '../domain/money'
-import { monthLabel, monthOf, monthsOf, todayKey, totals, type Transaction } from '../domain/transactions'
+import { fullDate, monthLabel, monthOf, monthsOf, todayKey, totals, type Transaction } from '../domain/transactions'
 
 interface InsightsViewProps {
   transactions: Transaction[]
@@ -12,7 +12,7 @@ interface InsightsViewProps {
   onAdd: () => void
 }
 
-/** One month's totals and spending by category, then the last six months side by side. */
+/** One month's totals and spending by category, then the weeks or months of an interval side by side. */
 export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
   const current = monthOf(todayKey())
   const [month, setMonth] = useState(current)
@@ -81,28 +81,76 @@ export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
           </ul>
         )}
       </section>
-      <SixMonths transactions={transactions} last={current} />
+      <OverTime transactions={transactions} />
     </>
   )
 }
 
-function SixMonths({ transactions, last }: { transactions: Transaction[]; last: string }) {
-  const months = monthlyTotals(transactions, last)
+const INTERVAL_TEXT: Record<Interval, { option: string; title: string; caption: string; empty: string }> = {
+  weeks: {
+    option: '12 weeks',
+    title: 'Last 12 weeks',
+    caption: 'Income, expenses and net for each of the last 12 weeks',
+    empty: 'Nothing recorded in the last 12 weeks.',
+  },
+  months: {
+    option: '6 months',
+    title: 'Last six months',
+    caption: 'Income, expenses and net for each of the last six months',
+    empty: 'Nothing recorded in the last six months.',
+  },
+  year: {
+    option: '12 months',
+    title: 'Last 12 months',
+    caption: 'Income, expenses and net for each of the last 12 months',
+    empty: 'Nothing recorded in the last 12 months.',
+  },
+}
+
+/** The table's name for a bucket: 'Week of 24 Apr 2023' or 'April 2023'. */
+const periodName = (period: string, weekly: boolean) =>
+  weekly ? t("Week of {day}", { day: fullDate(period) }) : monthLabel(period)
+
+/** The interval's totals as a chart and, holding the same numbers, a table; both follow the chosen interval. */
+function OverTime({ transactions }: { transactions: Transaction[] }) {
+  const [interval, chooseInterval] = useState<Interval>('months')
+  const today = todayKey()
+  const periods = useMemo(() => periodTotals(transactions, interval, today), [transactions, interval, today])
+  const text = INTERVAL_TEXT[interval]
+  const weekly = INTERVALS[interval].unit === 'week'
+  const empty = periods.every((p) => p.income === 0 && p.expenses === 0)
   return (
-    <section className="insight" aria-labelledby="months-title">
+    <section className="insight" aria-labelledby="periods-title">
       <div className="section-row">
-        <h2 id="months-title" className="label">
-          {t("Last six months")}</h2>
+        <h2 id="periods-title" className="label">
+          {t(text.title)}</h2>
         <span className="section-row__rule" />
       </div>
-      <MonthChart months={months} />
-      <div className="months-scroll" role="region" aria-label={t("Monthly totals")} tabIndex={0}>
+      <fieldset className="interval">
+        <legend className="visually-hidden">{t("Interval to show")}</legend>
+        <div className="segmented segmented--three">
+          {(Object.keys(INTERVALS) as Interval[]).map((value) => (
+            <label key={value} className="segmented__option">
+              <input
+                type="radio"
+                name="insight-interval"
+                value={value}
+                checked={interval === value}
+                onChange={() => chooseInterval(value)}
+              />
+              <span>{t(INTERVAL_TEXT[value].option)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {empty ? <p className="insight__none">{t(text.empty)}</p> : <MonthChart periods={periods} weekly={weekly} />}
+      <div className="months-scroll" role="region" aria-label={t(weekly ? "Weekly totals" : "Monthly totals")} tabIndex={0}>
         <table className="months">
-          <caption className="visually-hidden">{t("Income, expenses and net for each of the last six months")}</caption>
+          <caption className="visually-hidden">{t(text.caption)}</caption>
           <thead>
             <tr>
               <th scope="col" className="label">
-                {t("Month")}</th>
+                {t(weekly ? "Week" : "Month")}</th>
               <th scope="col" className="label">
                 {t("In")}</th>
               <th scope="col" className="label">
@@ -112,9 +160,9 @@ function SixMonths({ transactions, last }: { transactions: Transaction[]; last: 
             </tr>
           </thead>
           <tbody>
-            {[...months].reverse().map(({ month, income, expenses, balance }) => (
-              <tr key={month}>
-                <th scope="row">{monthLabel(month)}</th>
+            {[...periods].reverse().map(({ period, income, expenses, balance }) => (
+              <tr key={period}>
+                <th scope="row">{periodName(period, weekly)}</th>
                 <td className="amount amount--income">{formatMoney(income)}</td>
                 <td className="amount">{formatMoney(expenses)}</td>
                 <td className={`amount${balance < 0 ? ' amount--negative' : ''}`}>{formatMoney(balance)}</td>

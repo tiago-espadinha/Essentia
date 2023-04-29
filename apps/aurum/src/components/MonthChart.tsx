@@ -1,6 +1,6 @@
 import { t } from '../locale'
 import { Component, lazy, Suspense, type ReactNode } from 'react'
-import type { MonthTotals } from '../domain/insights'
+import type { PeriodTotals } from '../domain/insights'
 
 const MonthBars = lazy(() => import('./MonthBars'))
 
@@ -19,18 +19,18 @@ class ChartFallback extends Component<{ children: ReactNode }, { failed: boolean
 }
 
 /**
- * Income and expenses side by side for each month, oldest on the left. Hidden
- * from screen readers: the table under it holds the same numbers. While the bars
- * load, an empty box of their height keeps the table from moving.
+ * Income and expenses side by side for each week or month, oldest on the left.
+ * Hidden from screen readers: the table under it holds the same numbers. While
+ * the bars load, an empty box of their height keeps the table from moving.
  */
-export function MonthChart({ months }: { months: MonthTotals[] }) {
+export function MonthChart({ periods, weekly }: { periods: PeriodTotals[]; weekly: boolean }) {
   return (
     <div className="month-chart" aria-hidden="true">
       <p className="month-chart__key label">
         <span className="month-chart__swatch month-chart__swatch--income" /> {t("In")}<span className="month-chart__swatch month-chart__swatch--expenses" /> {t("Out")}</p>
       <ChartFallback>
         <Suspense fallback={placeholder}>
-          <MonthBars months={months} />
+          <MonthBars periods={periods} weekly={weekly} />
         </Suspense>
       </ChartFallback>
     </div>

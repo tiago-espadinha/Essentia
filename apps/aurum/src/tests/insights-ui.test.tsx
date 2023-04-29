@@ -106,6 +106,65 @@ describe('insights', () => {
   })
 })
 
+describe('insights over an interval', () => {
+  const interval = (name: string) =>
+    [...document.querySelectorAll<HTMLInputElement>('input[name="insight-interval"]')].find(
+      (input) => input.parentElement!.textContent === name,
+    )!
+  const heading = () => $('#periods-title').textContent
+  const region = () => $('.months-scroll').getAttribute('aria-label')
+  /** The chart's bucket labels, once its lazy module has loaded. */
+  const chartTicks = async () => {
+    await act(() => vi.advanceTimersByTimeAsync(0))
+    return [...document.querySelectorAll('.month-chart .recharts-cartesian-axis-tick-value')].map((tick) => tick.textContent)
+  }
+
+  it('starts on six months and switches the heading, table and chart together', async () => {
+    await signedIn()
+    quickAdd('Rent €900 housing')
+    click(buttonNamed('Insights'))
+    expect(interval('6 months').checked).toBe(true)
+    expect(heading()).toBe('Last six months')
+    expect(await chartTicks()).toEqual(['Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov'])
+
+    click(interval('12 weeks'))
+    expect(interval('12 weeks').checked).toBe(true)
+    expect(heading()).toBe('Last 12 weeks')
+    expect($('.months caption').textContent).toBe('Income, expenses and net for each of the last 12 weeks')
+    expect(region()).toBe('Weekly totals')
+    expect($('.months thead th').textContent).toBe('Week')
+    expect(monthRows()).toHaveLength(12)
+    expect(monthRows()[0]).toBe('Week of 7 Nov 2022€0.00€900.00−€900.00')
+    expect(monthRows()[11]).toBe('Week of 22 Aug 2022€0.00€0.00€0.00')
+    const weeks = await chartTicks()
+    expect(weeks).toHaveLength(12)
+    expect([weeks[0], weeks[11]]).toEqual(['22 Aug', '7 Nov'])
+
+    click(interval('12 months'))
+    expect(heading()).toBe('Last 12 months')
+    expect(region()).toBe('Monthly totals')
+    expect(monthRows()).toHaveLength(12)
+    expect(monthRows()[0]).toBe('November 2022€0.00€900.00−€900.00')
+    expect(monthRows()[11]).toBe('December 2021€0.00€0.00€0.00')
+  })
+
+  it('says when nothing falls in the interval instead of drawing an empty chart', async () => {
+    const server = fakeServer()
+    server.transactions.push(row(1, 'Old rent', { category: 'housing', amount: 800, occurred_on: '2021-12-01' }))
+    await renderApp(server.client({ user: { id: 'ana' } }).client)
+    click(buttonNamed('Insights'))
+    expect(text()).toContain('Nothing recorded in the last six months.')
+    expect(document.querySelector('.month-chart')).toBeNull()
+    expect(monthRows()).toHaveLength(6)
+    click(interval('12 months'))
+    expect(text()).not.toContain('Nothing recorded')
+    expect(monthRows()[11]).toBe('December 2021€0.00€800.00−€800.00')
+    expect(await chartTicks()).toHaveLength(12)
+    click(interval('12 weeks'))
+    expect(text()).toContain('Nothing recorded in the last 12 weeks.')
+  })
+})
+
 describe('export', () => {
   it('cannot export before there is anything to export', async () => {
     await signedIn()

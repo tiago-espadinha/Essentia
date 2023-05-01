@@ -204,6 +204,9 @@ export default function App({ client }: { client: SupabaseClient | null }) {
                     <div className="insights-layout">
                       <InsightsView
                         transactions={transactions}
+                        budgets={budgets}
+                        recurring={recurring}
+                        planReady={planReady}
                         onAdd={() => {
                           focusAfter.current = ''
                           setView('transactions')

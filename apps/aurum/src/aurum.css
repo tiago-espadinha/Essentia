@@ -602,6 +602,39 @@
   font-size: var(--text-sm);
 }
 
+/* Badges: earned ones solid, locked ones dashed with how far along they are. */
+.badges {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.badge {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-md);
+}
+
+.badge__icon { color: var(--color-accent-text); }
+
+.badge__name { font-weight: 500; }
+
+.badge__description,
+.badge__progress {
+  color: var(--color-mid);
+  font-size: var(--text-xs);
+}
+
+.badge__progress { font-variant-numeric: tabular-nums; }
+
+.badge--locked { border-style: dashed; }
+.badge--locked .badge__icon,
+.badge--locked .badge__name { color: var(--color-mid); }
+
 /* The interval picker: the segmented control without the fieldset's frame. */
 .interval {
   margin: 0;
@@ -885,7 +918,8 @@
     gap: 0 var(--space-8);
   }
 
-  .insights-layout > :last-child { grid-column: 1 / -1; }
+  .insights-layout > :last-child,
+  .insights-layout > .badge-shelf { grid-column: 1 / -1; }
 }
 
 /* Categories: under both Plan columns, with what confirming a change will do said in the dialog. */

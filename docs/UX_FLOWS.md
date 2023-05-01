@@ -27,7 +27,7 @@ four-app destination is specified separately below; it is not yet delivered.
 - Folio: share a note and open the link at `/folio/shared/<id>` while signed out; older `/dictum/shared/<id>` links open the same view.
 - Merces: recurring items post when the app syncs, catching up any missed periods.
 - Merces: a weekly item names its weekday and first payment; a first payment on another weekday is refused, with the next matching day offered, and the form previews the first dates it will post.
-- Merces: Plan lists every category in use with what uses it. Renaming one changes it on every transaction, recurring item and budget; renaming into an existing name merges the two, keeping that category's budget; removing one moves its uses to a chosen category. Nothing is deleted, and the dialog says what will move before it does. Quick-add files a line under any category the account uses and says which before it is added.
+- Merces: Plan lists every category in use with what uses it. Renaming one changes it on every transaction, recurring item and budget; renaming into an existing name merges the two, keeping that category's budget; removing one moves its uses to a chosen category. Nothing is deleted, and the dialog says what will move before it does. Quick-add files a line under any category the account uses and says which before it is added. Insights ends with eight badges for keeping records and planning: entries counted (1, 50, 250), months in a row with something recorded (3, 12), a first budget, a first recurring item and a finished month with more coming in than going out. They are read from the account as it is now, so imports count at once, deleting the records behind one takes it away, and no badge rewards spending more. Locked counted badges show how far along they are.
 - Virtus: install as a PWA and check in offline.
 
 ## Current screen inventory
@@ -42,7 +42,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Shared note `/folio/shared/<id>`, also `/dictum/shared/<id>` | Read a shared note | Read | Loading, not shared any more, couldn't load; rich notes cleaned, markdown never renders HTML | Reading column |
 | Merces `/merces/` (also `/aurum/`) signed out | Get access | Sign in / sign up | Validation, auth error, not set up (no Supabase project in this build) | 520 px column |
 | Merces Transactions | Track money | Add transaction | Empty, list, filtered, loading, sync error | 520 px column |
-| Merces Insights, Plan (budgets, recurring items, CSV export and import) | Plan and review | Set budget / add recurring / rename category / compare 12 weeks, 6 months or 12 months | Empty, nothing in the chosen interval, over budget, paused item, weekday mismatch, import errors, export unreachable (no file) or empty account, blank or unchanged category name, merge with budget kept | Charts reflow at 375 |
+| Merces Insights, Plan (budgets, recurring items, CSV export and import) | Plan and review | Set budget / add recurring / rename category / compare 12 weeks, 6 months or 12 months / see badges and their progress | Empty, nothing in the chosen interval, badges waiting for budgets and recurring items, over budget, paused item, weekday mismatch, import errors, export unreachable (no file) or empty account, blank or unchanged category name, merge with budget kept | Charts reflow at 375 |
 
 ## Interactions
 | Interaction | Expected behavior | Keyboard / a11y | Failure and recovery |

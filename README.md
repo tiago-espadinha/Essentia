@@ -11,7 +11,7 @@ piece. Live at https://essentia-beta.vercel.app/
 | Folio | `/folio/` | Notes in rich text or markdown, with folders, tags, pins and read-only share links | This device, synced when signed in |
 | Acta | `/acta/` | Tasks with categories, due dates and filters | This device |
 | Virtus | `/virtus/` | Habits with streaks, a heatmap and badges; installs as an app and works offline | This device, synced when signed in |
-| Merces | `/merces/` | Income and expenses, budgets, recurring items and insights | Your account (sign-in required) |
+| Merces | `/merces/` | Income and expenses, budgets, recurring items, insights and badges | Your account (sign-in required) |
 
 Sign in or open Account from the hub header. Before signing out there, check each
 app’s sync: confirmation discards any unsynced account changes and device-only

@@ -3,17 +3,24 @@ import { formatNumber } from '@essentia/ui'
 import { useMemo, useState } from 'react'
 import { INTERVALS, periodTotals, spendingByCategory, type Interval } from '../domain/insights'
 import { MonthChart } from './MonthChart'
+import { BadgeShelf } from './BadgeShelf'
+import type { Budget } from '../domain/budgets'
+import type { RecurringItem } from '../domain/recurring'
 import { formatMoney } from '../domain/money'
 import { fullDate, monthLabel, monthOf, monthsOf, todayKey, totals, type Transaction } from '../domain/transactions'
 
 interface InsightsViewProps {
   transactions: Transaction[]
+  budgets: Budget[]
+  recurring: RecurringItem[]
+  /** False until budgets and recurring items are read, when badges could still change. */
+  planReady: boolean
   /** Leads to the add field, the empty view's one action. */
   onAdd: () => void
 }
 
-/** One month's totals and spending by category, then the weeks or months of an interval side by side. */
-export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
+/** One month's totals and spending by category, the weeks or months of an interval side by side, then the badges. */
+export function InsightsView({ transactions, budgets, recurring, planReady, onAdd }: InsightsViewProps) {
   const current = monthOf(todayKey())
   const [month, setMonth] = useState(current)
 
@@ -82,6 +89,7 @@ export function InsightsView({ transactions, onAdd }: InsightsViewProps) {
         )}
       </section>
       <OverTime transactions={transactions} />
+      {planReady && <BadgeShelf transactions={transactions} budgets={budgets} recurring={recurring} />}
     </>
   )
 }

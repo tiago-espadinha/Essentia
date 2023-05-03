@@ -30,7 +30,11 @@ export default function App() {
   const auth = useAuth(client)
   const { habits, unclaimed, answer, saveFailed, syncState, sync, add, update, toggle, log, remove, restore } = useHabits(client)
   const [editing, setEditing] = useState<Habit | null>(null)
-  const [statsFor, setStatsFor] = useState<Habit | null>(null)
+  // By id, so the dialog shows the habit as it is now, after a sync or an edit.
+  const [statsHabitId, setStatsHabitId] = useState<string | null>(null)
+  const statsFor = habits.find((habit) => habit.id === statsHabitId)
+  // A habit removed while its stats are open (by a sync or a sign-out elsewhere) closes them for good.
+  if (statsHabitId !== null && !statsFor) setStatsHabitId(null)
   const [view, setView] = useState<View>('today')
   const [query, setQuery] = useState(NO_FILTER)
   const [deleted, setDeleted] = useState<{ habit: Habit; beforeId: string | null } | null>(null)
@@ -99,7 +103,7 @@ export default function App() {
         setFocusId(controlId(habit))
       }}
       showLongest={view === 'streaks'}
-      onShowStats={setStatsFor}
+      onShowStats={(habit) => setStatsHabitId(habit.id)}
       onEdit={setEditing}
       onDelete={deleteHabit}
     />
@@ -123,7 +127,7 @@ export default function App() {
           habits={queryHabits(habits, NO_FILTER, today)}
           today={today}
           onToggle={(id) => toggle(id, today)}
-          onShowStats={setStatsFor}
+          onShowStats={(habit) => setStatsHabitId(habit.id)}
         />
       )
     }
@@ -186,7 +190,7 @@ export default function App() {
         <ClaimDialog count={unclaimed} noun={[t('habit'), t('habits')]} email={auth.email} onAnswer={answer} />
       )}
 
-      {statsFor && <HabitStatsDialog habit={statsFor} today={today} onClose={() => setStatsFor(null)} />}
+      {statsFor && <HabitStatsDialog habit={statsFor} today={today} onClose={() => setStatsHabitId(null)} />}
 
       {editing && (
         <EditDialog

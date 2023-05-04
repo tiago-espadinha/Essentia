@@ -1013,3 +1013,57 @@ select.input { cursor: pointer; }
   .stats__range,
   .tiles { grid-column: 1 / -1; }
 }
+
+/* Habit history, in the stats dialog */
+.history { margin-top: var(--space-6); }
+
+.history__empty {
+  margin-top: var(--space-2);
+  color: var(--color-mid);
+}
+
+.history__month { margin-top: var(--space-4); }
+
+.history__month-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding-bottom: var(--space-1);
+  border-bottom: 1px solid var(--color-line-strong);
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 400;
+}
+
+.history__entries { list-style: none; }
+
+.history__entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-faint);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.history__value {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0 var(--space-2);
+  text-align: right;
+}
+
+.history__state { color: var(--color-mid); }
+.history__state--met,
+.history__state--done { color: var(--color-accent-text); }
+
+.history__more {
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
+.history__more .label { margin-left: var(--space-2); }

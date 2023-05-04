@@ -163,7 +163,17 @@ export const messages: Record<string, string> = {
   "Not synced yet.": "Ainda não sincronizado.",
   "Syncing…": "A sincronizar…",
   "Your habits are up to date in your account.": "Os hábitos da sua conta estão atualizados.",
-  "Signing out removes your habits from this device. They stay in your account.": "Ao terminar sessão, os hábitos são removidos deste dispositivo. Permanecem na sua conta."
+  "Signing out removes your habits from this device. They stay in your account.": "Ao terminar sessão, os hábitos são removidos deste dispositivo. Permanecem na sua conta.",
+  "History": "Histórico",
+  "{count} day logged": "{count} dia registado",
+  "{count} days logged": "{count} dias registados",
+  "{count} day": "{count} dia",
+  "No check-ins yet.": "Ainda sem registos.",
+  "Checked in": "Registado",
+  "target met": "objetivo atingido",
+  "below target": "abaixo do objetivo",
+  "Show older": "Mostrar anteriores",
+  "{count} more": "mais {count}"
 }
 
 export const t = createTranslator(messages)

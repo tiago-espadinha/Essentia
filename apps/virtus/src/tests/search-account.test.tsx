@@ -100,4 +100,20 @@ describe('habit search session boundary', () => {
     type($<HTMLInputElement>('dialog input'), 'ben')
     expect($('dialog button[role="option"]').textContent).toBe('ben private')
   })
+
+  it('closes a habit’s stats for good when sign-out removes the habit', async () => {
+    vi.useFakeTimers()
+    const device = deviceWithHabits()
+    account.client = device.client
+    renderApp()
+    await settle()
+    click($('[id$="-stats"]'))
+    expect($('#stats-title').textContent).toBe('ana private')
+    device.emit(null)
+    expect(document.querySelector('dialog')).toBeNull()
+    device.emit('ana')
+    await settle()
+    expect(document.querySelector('.habit__name')?.textContent).toBe('ana private')
+    expect(document.querySelector('dialog')).toBeNull()
+  })
 })

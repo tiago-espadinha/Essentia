@@ -1,6 +1,7 @@
 import { t } from '../locale'
 import { Dialog, formatNumber } from '@essentia/ui'
 import { addDays, daysBetween, describeDays, shortDate, statsId, WEEK, WEEKDAY_NAMES, type Habit } from '../domain/habits'
+import { HabitHistory } from './HabitHistory'
 import { DAY_STATE_LABELS, dayState, percent, summarize } from '../domain/stats'
 
 interface HabitStatsDialogProps {
@@ -77,6 +78,8 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
           ))}
         </ol>
       </section>
+
+      <HabitHistory habit={habit} />
     </Dialog>
   )
 }

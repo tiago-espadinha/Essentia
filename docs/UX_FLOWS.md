@@ -37,7 +37,7 @@ four-app destination is specified separately below; it is not yet delivered.
 | Acta `/acta/` | Manage tasks | Add task | Empty, list, filtered (none match), completed; signed in: sync error with retry, keep-or-add question, a task changed on another device (Keep mine / Use theirs) | 520 px column |
 | Folio `/folio/` | Write and find notes | New note | Empty library, list, editor (rich text, or markdown edited as source), search no results, empty folder, folder name refused, delete-folder confirmation, save failed, read-only with Export all when notes can't be stored | Library (folders and tags), list and editor from 1024 px, the library hideable; list + editor from 768 px (library folds into a filter bar); one pane below 768 px |
 | Virtus `/virtus/` | Track habits | Check in today | Empty, habits, streak milestone, offline | 520 px column |
-| Virtus Streaks, Week, Stats views | See progress | Open a habit's stats | Not enough data | Charts reflow to one column at 375 |
+| Virtus Streaks, Week, Stats views | See progress | Open a habit's stats, read its full history by month (Show older reveals earlier days) | Not enough data; a habit with no check-ins says so | Charts reflow to one column at 375 |
 | Dictum `/dictum/` | Find where Dictum went | Open Folio | Says Dictum is now part of Folio; documents on the device stay until Folio takes them in | Reading column |
 | Shared note `/folio/shared/<id>`, also `/dictum/shared/<id>` | Read a shared note | Read | Loading, not shared any more, couldn't load; rich notes cleaned, markdown never renders HTML | Reading column |
 | Merces `/merces/` (also `/aurum/`) signed out | Get access | Sign in / sign up | Validation, auth error, not set up (no Supabase project in this build) | 520 px column |

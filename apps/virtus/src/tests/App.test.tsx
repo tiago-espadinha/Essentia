@@ -133,44 +133,84 @@ describe('Virtus', () => {
       expect($('.progress__count').textContent).toBe('0 of 1 done today')
     })
 
-    it('logs amounts and completes a numeric habit only at its target', () => {
-      store([{ name: 'Read', unit: 'pages', target: 20 }])
-      renderApp()
-      const log = (amount: string) => {
-        type($<HTMLInputElement>('#habit-h0-control'), amount)
-        submit($<HTMLFormElement>('form.amount'))
+    describe('amount habits', () => {
+      const mark = () => $<HTMLButtonElement>('#habit-h0-control')
+      const dialog = () => document.querySelector('dialog')
+      const logAmount = (amount: string) => {
+        click(mark())
+        type($<HTMLInputElement>('#log-amount'), amount)
+        submit($<HTMLFormElement>('dialog form'))
       }
 
-      log('12')
-      expect(section('section-due')).toEqual(['Read'])
-      expect($('.amount__today').textContent).toBe('12 / 20 pages today')
-      log('8')
-      expect(section('section-done')).toEqual(['Read'])
-      expect(saved()[0].log).toEqual({ [TODAY]: 20 })
-      expect(document.activeElement).toBe($('#habit-h0-control'))
+      it('keeps the row compact: its check is a button that opens a labelled log dialog', () => {
+        store([{ name: 'Read', unit: 'pages', target: 20 }])
+        renderApp()
+        expect(document.querySelector('.habit input, .habit form')).toBeNull()
+        expect(mark().tagName).toBe('BUTTON')
+        expect(mark().getAttribute('aria-haspopup')).toBe('dialog')
+        expect(mark().textContent).toBe('Log pages for “Read”, nothing logged today')
+        expect($('.habit__amount').textContent).toBe('0 / 20 pages')
 
-      click(buttonNamed(/^Clear/))
-      expect(saved()[0].log).toEqual({})
-    })
+        click(mark())
+        expect(document.getElementById(dialog()!.getAttribute('aria-labelledby')!)!.textContent).toBe('Log “Read”')
+        expect(document.activeElement).toBe($('#log-amount'))
+        expect(dialog()!.querySelector('.amount__clear')).toBeNull()
 
-    it('adds decimal amounts without float noise', () => {
-      store([{ name: 'Run', unit: 'km', target: null }])
-      renderApp()
-      for (const amount of ['0.1', '0.2']) {
-        type($<HTMLInputElement>('#habit-h0-control'), amount)
-        submit($<HTMLFormElement>('form.amount'))
-      }
-      expect(saved()[0].log).toEqual({ [TODAY]: 0.3 })
-    })
+        type($<HTMLInputElement>('#log-amount'), '5')
+        click(buttonNamed('Cancel'))
+        expect(dialog()).toBeNull()
+        expect(saved()[0].log).toEqual({})
+        expect(document.activeElement).toBe(mark())
+      })
 
-    it('refuses an amount that is not a positive number', () => {
-      store([{ name: 'Read', unit: 'pages', target: null }])
-      renderApp()
-      type($<HTMLInputElement>('#habit-h0-control'), '-3')
-      submit($<HTMLFormElement>('form.amount'))
+      it('adds to today, shows partial progress and completes only at the target', () => {
+        store([{ name: 'Read', unit: 'pages', target: 20 }])
+        renderApp()
 
-      expect(saved()[0].log).toEqual({})
-      expect($('#habit-h0-amount-error').textContent).toBe('Use a number above zero.')
+        logAmount('12')
+        expect(dialog()).toBeNull()
+        expect(section('section-due')).toEqual(['Read'])
+        expect(mark().classList).toContain('habit__log--partial')
+        expect(mark().textContent).toBe('Log pages for “Read”, 12 / 20 pages today, below target')
+        expect(document.activeElement).toBe(mark())
+
+        logAmount('8')
+        expect(section('section-done')).toEqual(['Read'])
+        expect(saved()[0].log).toEqual({ [TODAY]: 20 })
+        expect(mark().classList).toContain('habit__log--done')
+        expect(mark().textContent).toBe('Log pages for “Read”, 20 / 20 pages today, target met')
+        expect(document.activeElement).toBe(mark())
+
+        click(mark())
+        click(buttonNamed('Clear today'))
+        expect(saved()[0].log).toEqual({})
+        expect(section('section-due')).toEqual(['Read'])
+        expect(mark().classList).toContain('habit__log--none')
+        expect(document.activeElement).toBe(mark())
+      })
+
+      it('takes a point or a comma and adds decimals without float noise', () => {
+        store([{ name: 'Run', unit: 'km', target: null }])
+        renderApp()
+        logAmount('0,1')
+        logAmount('0.2')
+        expect(saved()[0].log).toEqual({ [TODAY]: 0.3 })
+        expect(mark().classList).toContain('habit__log--done')
+        expect(mark().textContent).toBe('Log km for “Run”, 0.3 km today, logged')
+      })
+
+      it.each(['', '0', '-3', '1.234', '1,234.5', '1e3', '0x10', '1000001', 'abc'])('refuses %j inline and keeps the dialog open', (amount) => {
+        store([{ name: 'Read', unit: 'pages', target: null, log: { [TODAY]: 2 } }])
+        renderApp()
+        logAmount(amount)
+
+        expect(saved()[0].log).toEqual({ [TODAY]: 2 })
+        expect(dialog()).not.toBeNull()
+        const input = $<HTMLInputElement>('#log-amount')
+        expect(input.getAttribute('aria-invalid')).toBe('true')
+        expect(input.getAttribute('aria-describedby')).toContain('log-amount-error')
+        expect($('#log-amount-error').textContent).toBe('Use a number from 0.01 to 1,000,000.')
+      })
     })
 
     it('shows the current streak, with a note at a milestone', () => {

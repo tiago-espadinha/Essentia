@@ -329,12 +329,24 @@
   transition: background var(--duration-fast) var(--ease), border-color var(--duration-fast) var(--ease);
 }
 
-/* A numeric row's mark only shows the state; the amount field is the control. */
-.habit__mark:not(input) { border-style: dashed; cursor: default; }
-.habit--done .habit__mark:not(input) {
-  border-style: solid;
-  border-color: var(--color-terracotta);
+/* A numeric row's mark opens its log dialog: empty, half filled below the target, ticked at it. */
+.habit__log { background: none; padding: 0; color: inherit; }
+
+.habit__log--partial { border-color: var(--color-terracotta); }
+.habit__log--partial::after {
+  content: '';
+  width: calc(var(--mark-size) - 6px);
+  height: calc((var(--mark-size) - 6px) / 2);
+  border-radius: 0 0 var(--radius-full) var(--radius-full);
   background: var(--color-terracotta);
+  transform: translateY(calc((var(--mark-size) - 6px) / 4));
+}
+
+@media (forced-colors: active) {
+  .habit__log--partial::after {
+    forced-color-adjust: none;
+    background: ButtonText;
+  }
 }
 
 .habit__streak { color: var(--color-accent-text); }
@@ -349,12 +361,14 @@
 
 .habit__check:hover { border-color: var(--color-accent-text); }
 
-.habit__check:checked {
+.habit__check:checked,
+.habit__check.habit__log--done {
   border-color: var(--color-terracotta);
   background: var(--color-terracotta);
 }
 
-.habit__check:checked::after {
+.habit__check:checked::after,
+.habit__check.habit__log--done::after {
   content: '';
   width: 9px;
   height: 5px;
@@ -517,12 +531,7 @@ select.input { cursor: pointer; }
 .add__options svg { transition: transform var(--duration-fast) var(--ease); }
 .add__options[aria-expanded='true'] svg { transform: rotate(180deg); }
 
-/* Amount logging on numeric rows */
-.amount {
-  flex-basis: 100%;
-  margin-top: var(--space-2);
-}
-
+/* Amount log dialog */
 .amount__today { color: var(--color-mid); }
 
 .amount__value {
@@ -531,15 +540,10 @@ select.input { cursor: pointer; }
   color: var(--color-ink);
 }
 
-.amount__row {
-  display: flex;
-  gap: var(--space-2);
-  margin-top: var(--space-1);
-}
-
 .amount__input { width: 8rem; }
 
-.amount__button { border-color: var(--color-line-strong); }
+/* Clear empties the day: set apart from Cancel and Add. */
+.amount__clear { margin-right: auto; }
 
 /* Hero week */
 .week-dots {

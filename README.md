@@ -29,8 +29,8 @@ Choose English (UK) or Português (Portugal) with Language in the hub header.
 The choice stays on this browser and applies across the suite and open tabs.
 Dates and amounts follow that locale; money remains in euros. Your notes,
 categories and other content keep their original language. Input and CSV rules
-stay the same: finance accepts comma or point decimals, while numeric habit
-inputs use a point. Native browser date controls follow browser settings.
+stay the same: finance and logged habit amounts accept comma or point
+decimals, while a habit's target uses a point. Native browser date controls follow browser settings.
 
 The hub and each app can be installed through a supporting browser's Install
 menu (or Add to Home Screen). Visit the entry online first and let its offline

@@ -37,7 +37,8 @@ scripts/
 - Locale changes only presentation: Intl formats calendar dates, counts and EUR
   amounts. Stored ISO dates, cents arithmetic, Monday-first weeks, sorting, user
   content and CSV/input grammars stay compatible. Finance accepts comma and point
-  decimals; numeric habit inputs retain their point-decimal parser. Export
+  decimals; so does the habit log dialog (above 0, up to 1,000,000, at most 2
+  decimals, added to today's total), while habit targets keep a point-decimal parser. Export
   filenames and CSV machine values remain stable. Browser-owned controls follow
   browser/OS locale settings.
 - Apps do not import each other; anything shared lives in `packages/`.

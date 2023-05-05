@@ -140,6 +140,30 @@ export function isDone(habit: Habit, day: string): boolean {
   return habit.target !== null && isNumeric(habit) ? value >= habit.target : value > 0
 }
 
+export type Progress = 'none' | 'partial' | 'done'
+
+/** Partial only exists for a numeric habit with a target: logged, but short of it. */
+export function progressOf(habit: Habit, day: string): Progress {
+  if (isDone(habit, day)) return 'done'
+  return (habit.log[day] ?? 0) > 0 ? 'partial' : 'none'
+}
+
+export const MAX_AMOUNT = 1_000_000
+
+/**
+ * Reads a typed amount: digits with at most 2 decimals after a point or a comma, above
+ * zero and up to MAX_AMOUNT. Grouping, signs, exponents and hex are refused (null).
+ */
+export function parseAmount(text: string): number | null {
+  const match = /^(\d*)(?:[.,](\d{1,2}))?$/.exec(text.trim())
+  if (!match || (match[1] === '' && match[2] === undefined)) return null
+  const value = Number(`${match[1] || '0'}.${match[2] ?? '0'}`)
+  return value > 0 && value <= MAX_AMOUNT ? value : null
+}
+
+/** Today's total after adding an amount, rounded to hundredths so 0.1 + 0.2 reads 0.3. */
+export const addAmount = (logged: number, value: number) => Math.round((logged + value) * 100) / 100
+
 /** The first day of the habit's history: its creation day, or an earlier logged day. */
 export function startOf(habit: Habit): string {
   const created = dayKey(new Date(habit.createdAt))

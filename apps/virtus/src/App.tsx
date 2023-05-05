@@ -10,8 +10,9 @@ import { Filters } from './components/Filters'
 import { HabitRow } from './components/HabitRow'
 import { HabitSection } from './components/HabitSection'
 import { HabitStatsDialog } from './components/HabitStatsDialog'
+import { LogDialog } from './components/LogDialog'
 import { Hero } from './components/Hero'
-import { categoriesOf, controlId, queryHabits, todayKey, type Habit, type ListQuery } from './domain/habits'
+import { categoriesOf, controlId, isNumeric, queryHabits, todayKey, type Habit, type ListQuery } from './domain/habits'
 import { UndoNotice } from './components/UndoNotice'
 import { SYNC_FAILED, useHabits } from './hooks/useHabits'
 import { StatsView } from './components/StatsView'
@@ -35,6 +36,10 @@ export default function App() {
   const statsFor = habits.find((habit) => habit.id === statsHabitId)
   // A habit removed while its stats are open (by a sync or a sign-out elsewhere) closes them for good.
   if (statsHabitId !== null && !statsFor) setStatsHabitId(null)
+  // The amount log dialog is held the same way, and also closes if a synced edit makes the habit yes/no.
+  const [logHabitId, setLogHabitId] = useState<string | null>(null)
+  const logFor = habits.find((habit) => habit.id === logHabitId && isNumeric(habit))
+  if (logHabitId !== null && !logFor) setLogHabitId(null)
   const [view, setView] = useState<View>('today')
   const [query, setQuery] = useState(NO_FILTER)
   const [deleted, setDeleted] = useState<{ habit: Habit; beforeId: string | null } | null>(null)
@@ -98,10 +103,7 @@ export default function App() {
         toggle(id, today)
         setFocusId(controlId(habit))
       }}
-      onLog={(id, value) => {
-        log(id, today, value)
-        setFocusId(controlId(habit))
-      }}
+      onOpenLog={(habit) => setLogHabitId(habit.id)}
       showLongest={view === 'streaks'}
       onShowStats={(habit) => setStatsHabitId(habit.id)}
       onEdit={setEditing}
@@ -191,6 +193,18 @@ export default function App() {
       )}
 
       {statsFor && <HabitStatsDialog habit={statsFor} today={today} onClose={() => setStatsHabitId(null)} />}
+      {logFor && (
+        <LogDialog
+          habit={logFor}
+          today={today}
+          onLog={(value) => {
+            log(logFor.id, today, value)
+            // Backstop: reaching or leaving the target moves the row to another section, remounting it.
+            setFocusId(controlId(logFor))
+          }}
+          onClose={() => setLogHabitId(null)}
+        />
+      )}
 
       {editing && (
         <EditDialog

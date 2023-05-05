@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  addAmount,
   addDays,
   applyDraft,
   createHabit,
@@ -9,7 +10,10 @@ import {
   isDay,
   isDone,
   logValue,
+  MAX_AMOUNT,
   newId,
+  parseAmount,
+  progressOf,
   queryHabits,
   streaks,
   toggleDay,
@@ -189,5 +193,37 @@ describe('querying', () => {
     expect(ids(queryHabits(list, { search: '', category: 'Mindfulness', sort: 'name' }, today))).toEqual(['c', 'b'])
     expect(ids(queryHabits(list, { search: 'RUN', category: null, sort: 'name' }, today))).toEqual(['a'])
     expect(ids(queryHabits(list, { search: 'fit', category: null, sort: 'name' }, today))).toEqual(['a'])
+  })
+})
+
+describe('amounts', () => {
+  const day = '2022-08-15'
+  const amount = (log: Record<string, number>, target: number | null) => habit({ unit: 'pages', target, log })
+
+  it('reads a point or a comma as the decimal separator', () => {
+    expect(parseAmount('1.5')).toBe(1.5)
+    expect(parseAmount('1,5')).toBe(1.5)
+    expect(parseAmount(' 12 ')).toBe(12)
+    expect(parseAmount(',25')).toBe(0.25)
+    expect(parseAmount('0.01')).toBe(0.01)
+    expect(parseAmount('1000000')).toBe(MAX_AMOUNT)
+  })
+
+  it.each(['', '  ', '0', '0.00', '-3', '+3', '1000000.01', '1.234', '1,234.5', '1.234,5', '1 000', '1e3', '0x10', 'Infinity', 'NaN', 'abc', '1.', '.', '1..5'])(
+    'refuses %j',
+    (text) => expect(parseAmount(text)).toBeNull(),
+  )
+
+  it('adds to the total without float noise', () => {
+    expect(addAmount(0.1, 0.2)).toBe(0.3)
+    expect(addAmount(2, 1.5)).toBe(3.5)
+  })
+
+  it('tells none, partial and done apart, with partial only under a target', () => {
+    expect(progressOf(amount({}, 5), day)).toBe('none')
+    expect(progressOf(amount({ [day]: 3 }, 5), day)).toBe('partial')
+    expect(progressOf(amount({ [day]: 5 }, 5), day)).toBe('done')
+    expect(progressOf(amount({}, null), day)).toBe('none')
+    expect(progressOf(amount({ [day]: 0.5 }, null), day)).toBe('done')
   })
 })

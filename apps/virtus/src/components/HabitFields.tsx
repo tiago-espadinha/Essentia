@@ -44,7 +44,7 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
 
       <div className="field-row">
         <div className="field">
-          <label className="label" htmlFor={id('schedule')}>{t("Schedule")}</label>
+          <label className="label" htmlFor={id('schedule')}>{t("Repeats")}</label>
           <select
             id={id('schedule')}
             className="input"
@@ -52,11 +52,11 @@ export function HabitFields({ idPrefix, form, errors, categories, onChange }: Ha
             onChange={(event) => set({ everyDay: event.target.value === 'every' })}
           >
             <option value="every">{t("Every day")}</option>
-            <option value="some">{t("Some days")}</option>
+            <option value="some">{t("On chosen days")}</option>
           </select>
         </div>
         <div className="field">
-          <label className="label" htmlFor={id('kind')}>{t("Track")}</label>
+          <label className="label" htmlFor={id('kind')}>{t("Log as")}</label>
           <select
             id={id('kind')}
             className="input"

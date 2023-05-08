@@ -233,12 +233,19 @@
   border-bottom-color: var(--color-terracotta);
 }
 
-/* Search, category and sort */
-.filters {
+/* Search, category and sort, behind a toggle */
+.filters { margin-top: var(--space-4); }
+
+.filters__panel {
   display: grid;
   gap: var(--space-3);
-  margin-top: var(--space-8);
+  margin-top: var(--space-2);
 }
+
+.filters__panel[hidden] { display: none; }
+
+/* Spaced as a word from the label; a flex item would drop a leading space. */
+.filters__count { margin-left: var(--space-1); color: var(--color-accent-text); }
 
 .filters__row {
   display: flex;
@@ -510,12 +517,12 @@ select.input { cursor: pointer; }
   color: var(--color-ink);
 }
 
-.add__options {
+.add__options,
+.filters__toggle {
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   min-height: 44px;
-  margin-top: var(--space-1);
   border: none;
   background: transparent;
   color: var(--color-mid);
@@ -526,10 +533,15 @@ select.input { cursor: pointer; }
   cursor: pointer;
 }
 
-.add__options:hover { color: var(--color-ink); }
+.add__options { margin-top: var(--space-1); }
 
-.add__options svg { transition: transform var(--duration-fast) var(--ease); }
-.add__options[aria-expanded='true'] svg { transform: rotate(180deg); }
+.add__options:hover,
+.filters__toggle:hover { color: var(--color-ink); }
+
+.add__options svg,
+.filters__toggle svg { transition: transform var(--duration-fast) var(--ease); }
+.add__options[aria-expanded='true'] svg,
+.filters__toggle[aria-expanded='true'] svg { transform: rotate(180deg); }
 
 /* Amount log dialog */
 .amount__today { color: var(--color-mid); }
@@ -608,7 +620,6 @@ select.input { cursor: pointer; }
   .hero__title { margin-top: var(--space-4); font-size: var(--text-3xl); }
   .progress { margin-top: var(--space-4); }
   .add { margin-top: var(--space-8); }
-  .filters { margin-top: var(--space-6); }
   .views { margin-top: var(--space-6); }
 }
 

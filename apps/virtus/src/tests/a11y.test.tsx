@@ -53,6 +53,7 @@ describe('accessibility', () => {
   it('has no serious violations when a search matches nothing', async () => {
     seed()
     renderApp()
+    click(buttonNamed(/^Search and filter/))
     type($<HTMLInputElement>('#search'), 'swim')
     expect(await seriousViolations()).toEqual([])
   })

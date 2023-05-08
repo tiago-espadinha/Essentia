@@ -269,6 +269,11 @@ export interface ListQuery {
   sort: SortMode
 }
 
+/** Search text and a category each narrow the list; the sort only reorders it. */
+export function activeFilters(query: ListQuery): number {
+  return (query.search.trim() === '' ? 0 : 1) + (query.category === null ? 0 : 1)
+}
+
 export function queryHabits(habits: Habit[], query: ListQuery, today: string): Habit[] {
   const search = query.search.trim().toLowerCase()
   const matches = habits.filter(

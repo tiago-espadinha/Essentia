@@ -125,8 +125,8 @@ no typography changes are required for this correction.
 Item create/delete means records inside each app (owner clarification): tasks, notes,
 habits, documents and transactions. Brief motion is approved; it must preserve
 existing storage, sync, deletion, Undo and focus behavior. Custom app creation or
-hub-entry management is excluded. Track/Schedule copy, category color assignment/scope and the
-exact Streaks destination remain TBD. Category markers need text equivalents and
+hub-entry management is excluded. Virtus labels its habit settings "Repeats" and "Log as";
+category color assignment/scope and the exact Streaks destination remain TBD. Category markers need text equivalents and
 must remain distinct from success/danger and the selected accent. New palettes
 require verified text (4.5:1), control and focus (3:1) contrast in both themes.
 

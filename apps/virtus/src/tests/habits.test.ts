@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  activeFilters,
   addAmount,
   addDays,
   applyDraft,
@@ -187,6 +188,14 @@ describe('querying', () => {
     expect(ids(queryHabits(list, { search: '', category: null, sort: 'newest' }, today))).toEqual(['b', 'c', 'a'])
     expect(ids(queryHabits(list, { search: '', category: null, sort: 'name' }, today))).toEqual(['c', 'b', 'a'])
     expect(ids(queryHabits(list, { search: '', category: null, sort: 'streak' }, today))[0]).toBe('b')
+  })
+
+  it('counts non-blank search text and a category as active filters, never the sort', () => {
+    expect(activeFilters({ search: '', category: null, sort: 'streak' })).toBe(0)
+    expect(activeFilters({ search: '  ', category: null, sort: 'name' })).toBe(0)
+    expect(activeFilters({ search: 'run', category: null, sort: 'newest' })).toBe(1)
+    expect(activeFilters({ search: '', category: 'Fitness', sort: 'newest' })).toBe(1)
+    expect(activeFilters({ search: 'run', category: 'Fitness', sort: 'name' })).toBe(2)
   })
 
   it('filters by category and searches names and categories', () => {

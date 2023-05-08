@@ -28,7 +28,7 @@ describe('Portuguese habits', () => {
     expect(habitNames()).toEqual(['Ler mais'])
   })
 
-  it('labels the habit settings', () => {
+  it('labels the habit settings and the search and filter toggle', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([
       { id: 'a', name: 'Run', category: 'Fitness', createdAt: '2022-08-02T08:00:00.000Z', days: [], unit: '', target: null, log: {} },
       { id: 'b', name: 'Read', category: 'Learning', createdAt: '2022-08-01T08:00:00.000Z', days: [], unit: '', target: null, log: {} },
@@ -39,6 +39,10 @@ describe('Portuguese habits', () => {
     expect($('label[for="add-schedule"]').textContent).toBe('Repete-se')
     expect([...$<HTMLSelectElement>('#add-schedule').options].map((option) => option.text)).toEqual(['Todos os dias', 'Nos dias escolhidos'])
     expect($('label[for="add-kind"]').textContent).toBe('Registar como')
+    expect($('#filters-toggle').textContent).toBe('Pesquisar e filtrar')
+    click($('#filters-toggle'))
+    click(buttonNamed('Fitness'))
+    expect($('#filters-toggle').textContent).toBe('Pesquisar e filtrar, 1 em uso')
   })
 
   it('switches existing validation, Undo and editor labels without losing edits or focus', () => {

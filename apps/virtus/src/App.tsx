@@ -6,7 +6,7 @@ import { AccountMenu } from './components/AccountMenu'
 import { AddHabit } from './components/AddHabit'
 import { AppHeader } from './components/AppHeader'
 import { EditDialog } from './components/EditDialog'
-import { Filters } from './components/Filters'
+import { Filters, FILTERS_TOGGLE_ID } from './components/Filters'
 import { HabitRow } from './components/HabitRow'
 import { HabitSection } from './components/HabitSection'
 import { HabitStatsDialog } from './components/HabitStatsDialog'
@@ -42,6 +42,7 @@ export default function App() {
   if (logHabitId !== null && !logFor) setLogHabitId(null)
   const [view, setView] = useState<View>('today')
   const [query, setQuery] = useState(NO_FILTER)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [deleted, setDeleted] = useState<{ habit: Habit; beforeId: string | null } | null>(null)
   // The control to focus once the list has re-rendered: rows remount when they
   // change section, and a delete or an undo moves focus to another row.
@@ -73,7 +74,7 @@ export default function App() {
   const shown = sections.flatMap((section) => section.habits)
 
   // Focus moves to the next row (or the previous one at the end), else to the
-  // add field, or the search field in a view without one.
+  // add field, or the search field (its toggle while closed) in a view without one.
   function deleteHabit(id: string) {
     const position = shown.findIndex((habit) => habit.id === id)
     const neighbour = shown[position + 1] ?? shown[position - 1]
@@ -84,7 +85,7 @@ export default function App() {
     else fallbackFocus()
   }
 
-  const fallbackFocus = () => setFocusId(view === 'today' ? 'add-habit' : 'search')
+  const fallbackFocus = () => setFocusId(view === 'today' ? 'add-habit' : filtersOpen ? 'search' : FILTERS_TOGGLE_ID)
 
   function undoDelete() {
     if (!deleted) return
@@ -135,7 +136,7 @@ export default function App() {
     }
     return (
       <>
-        <Filters query={query} categories={categories} sortable={view === 'today'} onChange={setQuery} />
+        <Filters query={query} categories={categories} sortable={view === 'today'} open={filtersOpen} onOpenChange={setFiltersOpen} onChange={setQuery} />
         {shown.length === 0 ? (
           <section className="empty empty--filtered" aria-labelledby="empty-title">
             <h2 id="empty-title" className="empty__title">{t("No habits match.")}</h2>

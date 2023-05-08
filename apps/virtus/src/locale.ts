@@ -27,6 +27,8 @@ export const messages: Record<string, string> = {
   "Save": "Guardar",
   "Find habits": "Encontrar hábitos",
   "Search habits": "Pesquisar hábitos",
+  "Search and filter": "Pesquisar e filtrar",
+  "{count} active": "{count} em uso",
   "Search habits…": "Pesquisar hábitos…",
   "Sort habits": "Ordenar hábitos",
   "Newest first": "Mais recentes primeiro",

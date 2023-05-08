@@ -26,6 +26,8 @@ const checkbox = (name: string) =>
     (box) => document.getElementById(box.getAttribute('aria-labelledby')!)?.textContent === name,
   )!
 
+const openFilters = () => click(buttonNamed(/^Search and filter/))
+
 function store(habits: Partial<Habit>[]) {
   const base = { category: 'General', createdAt: '2022-08-01T08:00:00.000Z', days: [], unit: '', target: null, log: {} }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(habits.map((habit, index) => ({ ...base, id: `h${index}`, name: `Habit ${index}`, ...habit }))))
@@ -348,6 +350,7 @@ describe('finding and views', () => {
   it('searches names and categories, and clears a search with no match', () => {
     seed()
     renderApp()
+    openFilters()
     type($<HTMLInputElement>('#search'), 'mind')
     expect(habitNames()).toEqual(['Meditate', 'Journal'])
 
@@ -360,6 +363,7 @@ describe('finding and views', () => {
   it('filters by category chip and sorts', () => {
     seed()
     renderApp()
+    openFilters()
     click(buttonNamed('Fitness'))
     expect(habitNames()).toEqual(['Run'])
     click(buttonNamed('Any'))
@@ -373,6 +377,7 @@ describe('finding and views', () => {
   it('drops a category filter once its last habit is gone', () => {
     seed()
     renderApp()
+    openFilters()
     click(buttonNamed('Fitness'))
     click(buttonNamed('Delete “Run”'))
     expect(habitNames()).toEqual(['Meditate', 'Journal'])
@@ -404,11 +409,107 @@ describe('finding and views', () => {
   it('keeps the search across views and focuses search when the last row in Streaks goes', () => {
     seed()
     renderApp()
+    openFilters()
     type($<HTMLInputElement>('#search'), 'run')
     click(buttonNamed('Streaks'))
     expect(habitNames()).toEqual(['Run'])
     click(buttonNamed('Delete “Run”'))
     expect(document.activeElement).toBe($('#search'))
+  })
+})
+
+describe('search and filter toggle', () => {
+  function seed() {
+    store([
+      { name: 'Run', category: 'Fitness', createdAt: '2022-08-03T08:00:00.000Z' },
+      { name: 'Meditate', category: 'Mindfulness', createdAt: '2022-08-02T08:00:00.000Z' },
+      { name: 'Journal', category: 'Mindfulness', createdAt: '2022-08-01T08:00:00.000Z' },
+    ])
+  }
+  const toggle = () => $('#filters-toggle')
+  const panel = () => $('#filters-panel')
+  const escape = (target: Element) => {
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    act(() => { target.dispatchEvent(event) })
+    return event
+  }
+
+  it('starts closed and names the panel it controls', () => {
+    seed()
+    renderApp()
+    expect(toggle().textContent).toBe('Search and filter')
+    expect(toggle().getAttribute('aria-expanded')).toBe('false')
+    expect(toggle().getAttribute('aria-controls')).toBe('filters-panel')
+    expect(panel().hidden).toBe(true)
+    expect(panel().getAttribute('role')).toBe('search')
+    openFilters()
+    expect(toggle().getAttribute('aria-expanded')).toBe('true')
+    expect(panel().hidden).toBe(false)
+  })
+
+  it('keeps values and the filtered list while closed, and counts search and category but not sort', () => {
+    seed()
+    renderApp()
+    openFilters()
+    choose($<HTMLSelectElement>('#sort'), 'name')
+    expect(toggle().textContent).toBe('Search and filter')
+    click(buttonNamed('Mindfulness'))
+    expect(toggle().textContent).toBe('Search and filter, 1 active')
+    type($<HTMLInputElement>('#search'), 'med')
+    expect(toggle().textContent).toBe('Search and filter, 2 active')
+
+    click(toggle())
+    expect(panel().hidden).toBe(true)
+    expect(habitNames()).toEqual(['Meditate'])
+    expect(toggle().textContent).toBe('Search and filter, 2 active')
+
+    click(toggle())
+    expect($<HTMLInputElement>('#search').value).toBe('med')
+    expect(buttonNamed('Mindfulness').getAttribute('aria-pressed')).toBe('true')
+    expect($<HTMLSelectElement>('#sort').value).toBe('name')
+
+    type($<HTMLInputElement>('#search'), '   ')
+    expect(toggle().textContent).toBe('Search and filter, 1 active')
+  })
+
+  it('closes on Escape from inside the panel, returns focus to the toggle and keeps the search', () => {
+    seed()
+    renderApp()
+    openFilters()
+    const search = $<HTMLInputElement>('#search')
+    type(search, 'run')
+    search.focus()
+    const event = escape(search)
+    expect(event.defaultPrevented).toBe(true)
+    expect(panel().hidden).toBe(true)
+    expect(document.activeElement).toBe(toggle())
+    expect(search.value).toBe('run')
+    expect(habitNames()).toEqual(['Run'])
+  })
+
+  it('stays as it was across views', () => {
+    seed()
+    renderApp()
+    openFilters()
+    click(buttonNamed('Streaks'))
+    expect(panel().hidden).toBe(false)
+    click(buttonNamed('Week'))
+    click(buttonNamed('Today'))
+    expect(panel().hidden).toBe(false)
+    click(toggle())
+    click(buttonNamed('Streaks'))
+    expect(panel().hidden).toBe(true)
+  })
+
+  it('focuses the toggle when the last row in Streaks goes while it is closed', () => {
+    seed()
+    renderApp()
+    openFilters()
+    type($<HTMLInputElement>('#search'), 'run')
+    click(toggle())
+    click(buttonNamed('Streaks'))
+    click(buttonNamed('Delete “Run”'))
+    expect(document.activeElement).toBe(toggle())
   })
 })
 

@@ -289,6 +289,35 @@
   color: var(--color-ink);
 }
 
+/* Category colour follows the name; the text beside it carries the meaning. */
+[data-category-tone='0'] { --category-color: var(--color-category-neutral); }
+[data-category-tone='1'] { --category-color: var(--color-category-1); }
+[data-category-tone='2'] { --category-color: var(--color-category-2); }
+[data-category-tone='3'] { --category-color: var(--color-category-3); }
+[data-category-tone='4'] { --category-color: var(--color-category-4); }
+[data-category-tone='5'] { --category-color: var(--color-category-5); }
+[data-category-tone='6'] { --category-color: var(--color-category-6); }
+
+.category-marker {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--space-1);
+  border-radius: var(--radius-full);
+  background: var(--category-color);
+}
+
+/* The default category gets a ring, so it never reads as a hue. */
+.category-marker[data-category-tone='0'] {
+  border: 1.5px solid var(--category-color);
+  background: transparent;
+}
+
+/* Forced colours drop the fill; an outline keeps the dot in place. */
+@media (forced-colors: active) {
+  .category-marker { border: 1px solid CanvasText; }
+}
+
 /* List */
 .section-row {
   display: flex;
@@ -855,7 +884,14 @@ select.input { cursor: pointer; }
   position: absolute;
   inset: 0 auto 0 0;
   border-radius: inherit;
-  background: var(--color-terracotta);
+  background: var(--category-color);
+}
+
+@media (forced-colors: active) {
+  .categories__fill {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
 }
 
 .categories__value { text-align: right; }

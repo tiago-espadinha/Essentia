@@ -2,6 +2,7 @@ import { formatNumber } from '@essentia/ui'
 import { useRef } from 'react'
 import { t } from '../locale'
 import { activeFilters, SORT_LABELS, type ListQuery, type SortMode } from '../domain/habits'
+import { CategoryMarker } from './CategoryMarker'
 
 interface FiltersProps {
   query: ListQuery
@@ -99,6 +100,7 @@ export function Filters({ query, categories, sortable, open, onOpenChange, onCha
                 aria-pressed={query.category === category}
                 onClick={() => set({ category: query.category === category ? null : category })}
               >
+                <CategoryMarker category={category} />
                 {category}
               </button>
             ))}

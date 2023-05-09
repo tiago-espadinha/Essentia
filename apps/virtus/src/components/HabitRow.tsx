@@ -1,6 +1,7 @@
 import { formatHabitAmount } from '../domain/habits'
 import { currentLocale, formatNumber } from '@essentia/ui'
 import { t } from '../locale'
+import { CategoryMarker } from './CategoryMarker'
 import { controlId, describeDays, editId, statsId, isDone, isNumeric, MILESTONES, progressOf, streaks, type Habit, type Progress } from '../domain/habits'
 
 interface HabitRowProps {
@@ -49,7 +50,10 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onOpenLo
         </p>
         <p className="habit__meta">
           {numeric && <span className="label habit__amount">{amountToday(habit, today)}</span>}
-          <span className="label">{habit.category}</span>
+          <span className="label">
+            <CategoryMarker category={habit.category} />
+            {habit.category}
+          </span>
           {habit.days.length > 0 && <span className="label">{describeDays(habit.days)}</span>}
           {current > 0 && (
             <span className="label habit__streak">

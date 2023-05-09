@@ -3,6 +3,7 @@ import { t } from '../locale'
 import { useState, type ReactNode } from 'react'
 import { BadgeShelf } from './BadgeShelf'
 import { addDays, type Habit } from '../domain/habits'
+import { useCategoryTone } from '../hooks/useCategoryTone'
 import { Heatmap } from './Heatmap'
 import { bestStreaks, categoryTallies, checkInsSince, percent, sumTallies, tally, type Tally } from '../domain/stats'
 import { WeeklyChart } from './WeeklyChart'
@@ -22,6 +23,7 @@ function rateText(value: Tally) {
 
 export function StatsView({ habits, today }: StatsViewProps) {
   const [range, setRange] = useState<Range>(30)
+  const tone = useCategoryTone()
 
   if (habits.length === 0) {
     return (
@@ -65,7 +67,7 @@ export function StatsView({ habits, today }: StatsViewProps) {
       <StatsSection id="stats-categories" title={t('By category, last {count} days', { count: range })}>
         <ul className="categories">
           {categoryTallies(habits, from, today).map(({ category, tally: value }) => (
-            <li key={category} className="categories__row">
+            <li key={category} className="categories__row" data-category-tone={tone(category)}>
               <span className="categories__name">{category}</span>
               <span className="categories__track" aria-hidden="true">
                 <span className="categories__fill" style={{ width: `${percent(value) ?? 0}%` }} />

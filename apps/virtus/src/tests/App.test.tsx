@@ -513,6 +513,60 @@ describe('search and filter toggle', () => {
   })
 })
 
+describe('category colours', () => {
+  const tone = (element: Element | null | undefined) => element?.getAttribute('data-category-tone')
+  const rowMarker = (name: string) =>
+    [...document.querySelectorAll('.habit')].find((row) => row.querySelector('.habit__name')?.textContent === name)?.querySelector('.category-marker')
+  const chipMarker = (category: string) => buttonNamed(category).querySelector('.category-marker')
+  const statsFill = (category: string) =>
+    [...document.querySelectorAll('.categories__row')].find((row) => row.querySelector('.categories__name')?.textContent === category)
+
+  it('marks a category with the same tone in its rows, its chip and its stats bar, beside the name', () => {
+    // Fitness and Health both prefer hue 3; Health, the later name, moves to the next free one.
+    store([
+      { name: 'Run', category: 'Fitness' },
+      { name: 'Stretch', category: 'Health' },
+      { name: 'Meditate', category: 'Mindfulness' },
+      { name: 'Read' },
+    ])
+    renderApp()
+    openFilters()
+
+    expect([tone(rowMarker('Run')), tone(rowMarker('Stretch')), tone(rowMarker('Meditate')), tone(rowMarker('Read'))]).toEqual(['3', '4', '5', '0'])
+    expect(tone(chipMarker('Fitness'))).toBe('3')
+    expect(tone(chipMarker('Health'))).toBe('4')
+    expect(tone(chipMarker('Mindfulness'))).toBe('5')
+    expect(tone(chipMarker('General'))).toBe('0')
+    for (const marker of document.querySelectorAll('.category-marker')) {
+      expect(marker.getAttribute('aria-hidden')).toBe('true')
+      expect(marker.textContent).toBe('')
+    }
+    expect(rowMarker('Run')?.parentElement?.textContent).toBe('Fitness')
+
+    click(buttonNamed('Stats'))
+    expect([tone(statsFill('Fitness')), tone(statsFill('Health')), tone(statsFill('Mindfulness')), tone(statsFill('General'))]).toEqual(['3', '4', '5', '0'])
+  })
+
+  it('moves a habit to its new category’s tone everywhere when its category changes', () => {
+    store([
+      { name: 'Run', category: 'Fitness' },
+      { name: 'Meditate', category: 'Mindfulness' },
+    ])
+    renderApp()
+    click(buttonNamed('Edit “Run”'))
+    type($<HTMLInputElement>('#edit-category'), '  mindfulness ')
+    submit($<HTMLFormElement>('.dialog__body'))
+
+    expect(tone(rowMarker('Run'))).toBe('5')
+    expect(rowMarker('Run')?.parentElement?.textContent).toBe('mindfulness')
+    openFilters()
+    expect(tone(chipMarker('mindfulness'))).toBe('5')
+    expect(() => buttonNamed('Fitness')).toThrow()
+    click(buttonNamed('Stats'))
+    expect(tone(statsFill('mindfulness'))).toBe('5')
+  })
+})
+
 describe('week and habit stats', () => {
   it('shows this week per habit and checks in today from the week', () => {
     store([

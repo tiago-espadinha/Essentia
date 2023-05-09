@@ -1,10 +1,12 @@
 import { t } from './locale'
 import { Search, useLocale, useRecordMotion } from '@essentia/ui'
 import { ClaimDialog, getSupabase, useAuth } from '@essentia/supabase'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
 import { AddHabit } from './components/AddHabit'
 import { AppHeader } from './components/AppHeader'
+import { CategoryToneContext } from './hooks/useCategoryTone'
+import { categoryTones } from './domain/category'
 import { EditDialog } from './components/EditDialog'
 import { Filters, FILTERS_TOGGLE_ID } from './components/Filters'
 import { HabitRow } from './components/HabitRow'
@@ -66,6 +68,7 @@ export default function App() {
 
   const today = todayKey()
   const categories = categoriesOf(habits)
+  const tones = useMemo(() => categoryTones(habits), [habits])
   // A category filter lapses once its chip is gone: its last habit was removed or
   // recategorized, or only one category is left and the chips are hidden.
   const category = categories.length > 1 && query.category !== null && categories.includes(query.category) ? query.category : null
@@ -156,7 +159,7 @@ export default function App() {
   const searchSession = auth.status === 'signed-in' ? auth.userId : auth.status
 
   return (
-    <>
+    <CategoryToneContext value={tones}>
       <AppHeader search={<Search key={searchSession} sessionKey={searchSession}
         sourceLabel={t('Your Habits')}
         sourceState={auth.status === 'loading' ? 'loading' : syncState === 'failed' && habits.length === 0 ? 'unavailable' : 'ready'}
@@ -218,6 +221,6 @@ export default function App() {
           onClose={() => setEditing(null)}
         />
       )}
-    </>
+    </CategoryToneContext>
   )
 }

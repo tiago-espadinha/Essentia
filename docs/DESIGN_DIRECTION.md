@@ -43,6 +43,7 @@ The suite is for daily personal use, so it has to be calm enough to open many ti
   - Accent text and links `--color-accent-text` #A24B23 / #D4764A.
   - Alternate accent roles (light fill / light text and focus / dark fill, text and focus): Blue #34689B / #285A89 / #7AADE0; Violet #76549E / #68458F / #B99ADB. The legacy `--color-terracotta` token follows the selected palette.
   - Status: success #3F6B4C / #6AAF7D; danger #B23F3F / #E06060.
+  - Category markers (decorative, beside the category name; light / dark): ochre #8A6412 / #D9A94A, teal #1F6F6B / #5BBDB5, rose #A63D6B / #E58AB0, olive #5E6B1E / #AEBB5E, slate #4F5D6E / #A3B1C2, umber #5E4330 / #9C7A66; neutral = muted. Each is 3:1 or better on sand and paper; the accent preference does not change them.
   - All text pairs are 4.5:1 or better; control borders 3:1 or better (ratios in the tokens file).
 - Spacing scale: 4 px base: 2, 4, 8, 12, 16, 24, 32, 48, 64, 96 (`--space-*`).
 - Borders, radius, elevation: 1 px hairlines in `--color-faint`; radius 6 / 10 / 14 / full; flat by default, `--shadow-overlay` only for popovers, menus and dialogs.
@@ -126,8 +127,10 @@ Item create/delete means records inside each app (owner clarification): tasks, n
 habits, documents and transactions. Brief motion is approved; it must preserve
 existing storage, sync, deletion, Undo and focus behavior. Custom app creation or
 hub-entry management is excluded. Virtus labels its habit settings "Repeats" and "Log as";
-category color assignment/scope and the exact Streaks destination remain TBD. Category markers need text equivalents and
-must remain distinct from success/danger and the selected accent. New palettes
+the exact Streaks destination remains TBD. Category markers are an 8 px dot before the category name in habit rows and
+filter chips, and the Stats bar fill; the text carries the meaning, the dot is hidden from assistive technology and keeps
+an outline in forced colors. Six marker tokens (`--color-category-1` to `-6`: ochre, teal, rose, olive, slate, umber) are
+assigned automatically, and the default category is a neutral ring. They remain distinct from success/danger and every accent. New palettes
 require verified text (4.5:1), control and focus (3:1) contrast in both themes.
 
 ## Accent preference

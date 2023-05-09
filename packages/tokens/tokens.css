@@ -44,6 +44,17 @@
   --color-success: #3F6B4C;     /* 5.3 / 5.0 */
   --color-danger: #B23F3F;      /* 4.9 / 4.7 */
 
+  /* Category markers: decorative beside the category name, never the only
+   * cue. Hues avoid every accent and the status colours, and the accent
+   * preference leaves them alone. */
+  --color-category-1: #8A6412;  /* ochre, 4.6 / 4.4 */
+  --color-category-2: #1F6F6B;  /* teal, 5.1 / 4.9 */
+  --color-category-3: #A63D6B;  /* rose, 5.2 / 4.9 */
+  --color-category-4: #5E6B1E;  /* olive, 5.0 / 4.8 */
+  --color-category-5: #4F5D6E;  /* slate, 5.8 / 5.5 */
+  --color-category-6: #5E4330;  /* umber, 7.8 / 7.4 */
+  --color-category-neutral: var(--color-mid);
+
   --color-accent: var(--color-terracotta);
   --color-focus: var(--color-accent-text);
 
@@ -96,6 +107,12 @@
     --color-accent-text: #D4764A; /* 5.5 / 5.0 */
     --color-success: #6AAF7D;    /* 6.8 / 6.2 */
     --color-danger: #E06060;     /* 5.1 / 4.7 */
+    --color-category-1: #D9A94A; /* 8.2 / 7.5 */
+    --color-category-2: #5BBDB5; /* 7.9 / 7.3 */
+    --color-category-3: #E58AB0; /* 7.2 / 6.7 */
+    --color-category-4: #AEBB5E; /* 8.5 / 7.8 */
+    --color-category-5: #A3B1C2; /* 8.1 / 7.5 */
+    --color-category-6: #9C7A66; /* 4.5 / 4.2 */
     --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
     --grain-opacity: 0;
     color-scheme: dark;
@@ -114,6 +131,12 @@
   --color-accent-text: #D4764A;
   --color-success: #6AAF7D;
   --color-danger: #E06060;
+  --color-category-1: #D9A94A;
+  --color-category-2: #5BBDB5;
+  --color-category-3: #E58AB0;
+  --color-category-4: #AEBB5E;
+  --color-category-5: #A3B1C2;
+  --color-category-6: #9C7A66;
   --shadow-overlay: 0 8px 24px rgba(0, 0, 0, 0.5);
   --grain-opacity: 0;
   color-scheme: dark;

@@ -117,6 +117,12 @@ describe('Portuguese habits', () => {
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)[0].log[key]).toBe(1e-30)
   })
 
+  it('names the three view tabs in Portuguese', () => {
+    renderApp()
+    locale('pt-PT')
+    expect([...document.querySelectorAll('.views__button')].map((tab) => tab.textContent)).toEqual(['Hoje', 'Semana', 'Estatísticas'])
+  })
+
   it('keeps finite extreme values compact and nonzero', () => {
     for (const language of ['en-GB', 'pt-PT'] as const) {
       locale(language)

@@ -384,37 +384,46 @@ describe('finding and views', () => {
     expect(document.activeElement).toBe($('#add-habit'))
   })
 
-  it('lists every habit by current streak with its best in Streaks, without the add field', () => {
+  it('offers Today, Week and Stats only, opens on Today and shows no best-streak label on rows', () => {
     seed()
     renderApp()
-    click(buttonNamed('Streaks'))
 
-    expect($('.views__button[aria-current="page"]').textContent).toBe('Streaks')
-    expect(document.querySelector('#add-habit')).toBeNull()
-    expect(document.querySelector('#sort')).toBeNull()
-    expect(section('section-streaks')).toEqual(['Meditate', 'Run', 'Journal'])
-    expect($('.habit__meta').textContent).toContain('Best 2')
+    expect([...document.querySelectorAll('.views__button')].map((tab) => tab.textContent)).toEqual(['Today', 'Week', 'Stats'])
+    expect($('.views__button[aria-current="page"]').textContent).toBe('Today')
+    const meta = [...document.querySelectorAll('.habit__meta')].map((line) => line.textContent)
+    expect(meta.some((line) => line?.includes('2 day streak'))).toBe(true)
+    expect(meta.some((line) => line?.includes('Best'))).toBe(false)
   })
 
-  it('keeps focus on the Streaks tab when the very last habit goes, and on the row after undo', () => {
+  it('focuses the add field when the very last habit goes, and the row after an undo from Week', () => {
     store([{ name: 'Only' }])
     renderApp()
-    click(buttonNamed('Streaks'))
     click(buttonNamed('Delete “Only”'))
-    expect(document.activeElement).toBe(buttonNamed('Streaks'))
+    expect(document.activeElement).toBe($('#add-habit'))
+    click(buttonNamed('Week'))
     click(buttonNamed('Undo'))
     expect(document.activeElement).toBe($('#habit-h0-control'))
   })
 
-  it('keeps the search across views and focuses search when the last row in Streaks goes', () => {
+  it('keeps focus on the current tab after an undo from Stats', () => {
+    store([{ name: 'Only' }])
+    renderApp()
+    click(buttonNamed('Delete “Only”'))
+    click(buttonNamed('Stats'))
+    click(buttonNamed('Undo'))
+    expect(document.activeElement).toBe(buttonNamed('Stats'))
+  })
+
+  it('keeps the search across views and focuses the add field when the last match goes', () => {
     seed()
     renderApp()
     openFilters()
     type($<HTMLInputElement>('#search'), 'run')
-    click(buttonNamed('Streaks'))
+    click(buttonNamed('Week'))
+    click(buttonNamed('Today'))
     expect(habitNames()).toEqual(['Run'])
     click(buttonNamed('Delete “Run”'))
-    expect(document.activeElement).toBe($('#search'))
+    expect(document.activeElement).toBe($('#add-habit'))
   })
 })
 
@@ -491,25 +500,24 @@ describe('search and filter toggle', () => {
     seed()
     renderApp()
     openFilters()
-    click(buttonNamed('Streaks'))
-    expect(panel().hidden).toBe(false)
     click(buttonNamed('Week'))
     click(buttonNamed('Today'))
     expect(panel().hidden).toBe(false)
     click(toggle())
-    click(buttonNamed('Streaks'))
+    click(buttonNamed('Stats'))
+    click(buttonNamed('Today'))
     expect(panel().hidden).toBe(true)
   })
 
-  it('focuses the toggle when the last row in Streaks goes while it is closed', () => {
+  it('focuses the add field when the last match goes while it is closed', () => {
     seed()
     renderApp()
     openFilters()
     type($<HTMLInputElement>('#search'), 'run')
     click(toggle())
-    click(buttonNamed('Streaks'))
     click(buttonNamed('Delete “Run”'))
-    expect(document.activeElement).toBe(toggle())
+    expect(document.activeElement).toBe($('#add-habit'))
+    expect(toggle().textContent).toBe('Search and filter, 1 active')
   })
 })
 

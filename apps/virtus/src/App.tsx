@@ -8,7 +8,7 @@ import { AppHeader } from './components/AppHeader'
 import { CategoryToneContext } from './hooks/useCategoryTone'
 import { categoryTones } from './domain/category'
 import { EditDialog } from './components/EditDialog'
-import { Filters, FILTERS_TOGGLE_ID } from './components/Filters'
+import { Filters } from './components/Filters'
 import { HabitRow } from './components/HabitRow'
 import { HabitSection } from './components/HabitSection'
 import { HabitStatsDialog } from './components/HabitStatsDialog'
@@ -73,29 +73,25 @@ export default function App() {
   // recategorized, or only one category is left and the chips are hidden.
   const category = categories.length > 1 && query.category !== null && categories.includes(query.category) ? query.category : null
   if (category !== query.category) setQuery({ ...query, category })
-  const sections = view === 'week' || view === 'stats' ? [] : sectionsFor(view, habits, query, today)
+  const sections = view === 'today' ? sectionsFor(habits, query, today) : []
   const shown = sections.flatMap((section) => section.habits)
 
-  // Focus moves to the next row (or the previous one at the end), else to the
-  // add field, or the search field (its toggle while closed) in a view without one.
+  // Focus moves to the next row (or the previous one at the end), else to the add field.
   function deleteHabit(id: string) {
     const position = shown.findIndex((habit) => habit.id === id)
     const neighbour = shown[position + 1] ?? shown[position - 1]
     const habit = shown[position]
     motion(() => remove(id))
     setDeleted({ habit, beforeId: habits[habits.indexOf(habit) + 1]?.id ?? null })
-    if (neighbour) setFocusId(controlId(neighbour))
-    else fallbackFocus()
+    setFocusId(neighbour ? controlId(neighbour) : 'add-habit')
   }
 
-  const fallbackFocus = () => setFocusId(view === 'today' ? 'add-habit' : filtersOpen ? 'search' : FILTERS_TOGGLE_ID)
-
+  // Outside Today the add field is absent, so the effect above falls back to the current tab.
   function undoDelete() {
     if (!deleted) return
     motion(() => restore(deleted.habit, deleted.beforeId))
     setDeleted(null)
-    if (queryHabits([deleted.habit], query, today).length > 0) setFocusId(controlId(deleted.habit))
-    else fallbackFocus()
+    setFocusId(queryHabits([deleted.habit], query, today).length > 0 ? controlId(deleted.habit) : 'add-habit')
   }
 
   const row = (habit: Habit) => (
@@ -108,7 +104,6 @@ export default function App() {
         setFocusId(controlId(habit))
       }}
       onOpenLog={(habit) => setLogHabitId(habit.id)}
-      showLongest={view === 'streaks'}
       onShowStats={(habit) => setStatsHabitId(habit.id)}
       onEdit={setEditing}
       onDelete={deleteHabit}
@@ -139,7 +134,7 @@ export default function App() {
     }
     return (
       <>
-        <Filters query={query} categories={categories} sortable={view === 'today'} open={filtersOpen} onOpenChange={setFiltersOpen} onChange={setQuery} />
+        <Filters query={query} categories={categories} open={filtersOpen} onOpenChange={setFiltersOpen} onChange={setQuery} />
         {shown.length === 0 ? (
           <section className="empty empty--filtered" aria-labelledby="empty-title">
             <h2 id="empty-title" className="empty__title">{t("No habits match.")}</h2>

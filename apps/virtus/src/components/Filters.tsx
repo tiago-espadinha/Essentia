@@ -7,18 +7,16 @@ import { CategoryMarker } from './CategoryMarker'
 interface FiltersProps {
   query: ListQuery
   categories: string[]
-  /** The Streaks view has its own order. */
-  sortable: boolean
   /** Held by the app, so the panel stays as it was across views. */
   open: boolean
   onOpenChange: (open: boolean) => void
   onChange: (query: ListQuery) => void
 }
 
-export const FILTERS_TOGGLE_ID = 'filters-toggle'
+const FILTERS_TOGGLE_ID = 'filters-toggle'
 const PANEL_ID = 'filters-panel'
 
-export function Filters({ query, categories, sortable, open, onOpenChange, onChange }: FiltersProps) {
+export function Filters({ query, categories, open, onOpenChange, onChange }: FiltersProps) {
   const set = (patch: Partial<ListQuery>) => onChange({ ...query, ...patch })
   const active = activeFilters(query)
   const toggle = useRef<HTMLButtonElement>(null)
@@ -71,23 +69,19 @@ export function Filters({ query, categories, sortable, open, onOpenChange, onCha
             autoComplete="off"
             onChange={(event) => set({ search: event.target.value })}
           />
-          {sortable && (
-            <>
-              <label className="visually-hidden" htmlFor="sort">{t("Sort habits")}</label>
-              <select
-                id="sort"
-                className="input filters__sort"
-                value={query.sort}
-                onChange={(event) => set({ sort: event.target.value as SortMode })}
-              >
-                {(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => (
-                  <option key={mode} value={mode}>
-                    {t(SORT_LABELS[mode])}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
+          <label className="visually-hidden" htmlFor="sort">{t("Sort habits")}</label>
+          <select
+            id="sort"
+            className="input filters__sort"
+            value={query.sort}
+            onChange={(event) => set({ sort: event.target.value as SortMode })}
+          >
+            {(Object.keys(SORT_LABELS) as SortMode[]).map((mode) => (
+              <option key={mode} value={mode}>
+                {t(SORT_LABELS[mode])}
+              </option>
+            ))}
+          </select>
         </div>
         {categories.length > 1 && (
           <div className="filters__categories" role="group" aria-label={t("Category")}>

@@ -7,7 +7,6 @@ import { controlId, describeDays, editId, statsId, isDone, isNumeric, MILESTONES
 interface HabitRowProps {
   habit: Habit
   today: string
-  showLongest?: boolean
   onToggle: (id: string) => void
   onOpenLog: (habit: Habit) => void
   onShowStats: (habit: Habit) => void
@@ -15,10 +14,10 @@ interface HabitRowProps {
   onDelete: (id: string) => void
 }
 
-export function HabitRow({ habit, today, showLongest = false, onToggle, onOpenLog, onShowStats, onEdit, onDelete }: HabitRowProps) {
+export function HabitRow({ habit, today, onToggle, onOpenLog, onShowStats, onEdit, onDelete }: HabitRowProps) {
   const nameId = `habit-${habit.id}-name`
   const done = isDone(habit, today)
-  const { current, longest } = streaks(habit, today)
+  const { current } = streaks(habit, today)
   const numeric = isNumeric(habit)
   const progress = progressOf(habit, today)
 
@@ -60,7 +59,6 @@ export function HabitRow({ habit, today, showLongest = false, onToggle, onOpenLo
               {t(current === 1 || currentLocale() === 'en-GB' ? '{count} day streak' : '{count} days streak', { count: formatNumber(current) })}{MILESTONES.includes(current) && t(' · milestone')}
             </span>
           )}
-          {showLongest && <span className="label">{t('Best {count}', { count: formatNumber(longest) })}</span>}
         </p>
         <div className="habit__actions">
           <button id={statsId(habit)} type="button" className="habit__action" onClick={() => onShowStats(habit)}>{t("Stats")}<span className="visually-hidden">{t(' for “{name}”', { name: habit.name })}</span>

@@ -37,7 +37,7 @@ describe('accessibility', () => {
     expect(await seriousViolations()).toEqual([])
   })
 
-  it.each(['Today', 'Streaks', 'Week', 'Stats'])('has no serious violations in %s with habits', async (view) => {
+  it.each(['Today', 'Week', 'Stats'])('has no serious violations in %s with habits', async (view) => {
     seed()
     renderApp()
     click(buttonNamed(view))

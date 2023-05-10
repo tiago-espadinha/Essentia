@@ -101,6 +101,6 @@ mode, with its accessible toggle behavior retained. The remaining ambiguous requ
 stay explicit: item create/delete refers to records within each app (tasks, notes,
 habits, documents and transactions), with brief motion approved and current data/Undo
 behavior preserved; custom app management is excluded; Virtus habit settings read "Repeats" and "Log as", and its list filters sit behind a "Search and filter" toggle; category marker
-color is recommended but assignment/scope are TBD; removing only the dedicated
-Streaks destination is recommended but its identity and retained mechanics need
-confirmation. None of these deferrals authorizes destructive behavior.
+color is recommended but assignment/scope are TBD; Virtus drops its Streaks view
+(the owner confirmed it is that tab) and keeps every streak figure, badge and the
+habit history. None of these deferrals authorizes destructive behavior.

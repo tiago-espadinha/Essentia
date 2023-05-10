@@ -127,7 +127,8 @@ Item create/delete means records inside each app (owner clarification): tasks, n
 habits, documents and transactions. Brief motion is approved; it must preserve
 existing storage, sync, deletion, Undo and focus behavior. Custom app creation or
 hub-entry management is excluded. Virtus labels its habit settings "Repeats" and "Log as";
-the exact Streaks destination remains TBD. Category markers are an 8 px dot before the category name in habit rows and
+its view tabs are Today, Week and Stats, with no separate Streaks view (streak counts stay on rows, in each habit's
+Stats dialog and in Stats). Category markers are an 8 px dot before the category name in habit rows and
 filter chips, and the Stats bar fill; the text carries the meaning, the dot is hidden from assistive technology and keeps
 an outline in forced colors. Six marker tokens (`--color-category-1` to `-6`: ochre, teal, rose, olive, slate, umber) are
 assigned automatically, and the default category is a neutral ring. They remain distinct from success/danger and every accent. New palettes

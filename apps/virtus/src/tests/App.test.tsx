@@ -601,7 +601,7 @@ describe('week and habit stats', () => {
 
     expect($('#stats-title').textContent).toBe('Stretch')
     const metrics = [...document.querySelectorAll('.metrics__item')].map((item) => item.textContent)
-    expect(metrics).toEqual(['Current streak2', 'Best streak2', 'Check-ins2'])
+    expect(metrics).toEqual(['Strength19 / 100 out of 100', 'Current streak2', 'Best streak2', 'Check-ins2'])
     expect($('.strip__header').textContent).toContain('2 of 14 due days · 14%')
     const missed = Array.from({ length: 12 }, (_, i) => `${i + 1} Aug`).join(', ')
     expect($('.strip .visually-hidden').textContent).toBe(`Missed: ${missed}.`)
@@ -609,6 +609,25 @@ describe('week and habit stats', () => {
     click(buttonNamed('Close'))
     expect(document.querySelector('dialog')).toBeNull()
     expect(document.activeElement).toBe($('#habit-h0-stats'))
+  })
+})
+
+describe('habit strength', () => {
+  it('reads as a figure out of 100 once a habit has 7 due days', () => {
+    store([{ name: 'Walk', createdAt: '2022-08-08T08:00:00.000Z', log: { '2022-08-08': 1, '2022-08-09': 1, '2022-08-10': 1, '2022-08-11': 1, '2022-08-12': 1, '2022-08-13': 1, '2022-08-14': 1 } }])
+    renderApp()
+    click(buttonNamed('Stats for “Walk”'))
+    const lead = $('.metrics__item--lead')
+    expect(lead.querySelector('dt')?.textContent).toBe('Strength')
+    expect(lead.querySelector('.metrics__scale')?.getAttribute('aria-hidden')).toBe('true')
+    expect(lead.querySelector('dd')?.textContent).toBe('100 / 100 out of 100')
+  })
+
+  it('waits for 7 due days before showing a figure', () => {
+    store([{ name: 'Walk', createdAt: '2022-08-10T08:00:00.000Z', log: { '2022-08-10': 1, '2022-08-11': 1 } }])
+    renderApp()
+    click(buttonNamed('Stats for “Walk”'))
+    expect($('.metrics__item--lead dd').textContent).toBe('Not enough days yet')
   })
 })
 

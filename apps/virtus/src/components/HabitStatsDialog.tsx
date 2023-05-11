@@ -2,7 +2,7 @@ import { t } from '../locale'
 import { Dialog, formatNumber } from '@essentia/ui'
 import { addDays, daysBetween, describeDays, shortDate, statsId, WEEK, WEEKDAY_NAMES, type Habit } from '../domain/habits'
 import { HabitHistory } from './HabitHistory'
-import { DAY_STATE_LABELS, dayState, percent, summarize } from '../domain/stats'
+import { DAY_STATE_LABELS, dayState, percent, strength, summarize } from '../domain/stats'
 
 interface HabitStatsDialogProps {
   habit: Habit
@@ -15,6 +15,7 @@ const format = (value: number) => formatNumber(value, { maximumFractionDigits: 1
 export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProps) {
   const summary = summarize(habit, today)
   const rate = percent(summary.last30)
+  const score = strength(habit, today)
   const peak = Math.max(1, ...summary.byWeekday)
   const strip = daysBetween(addDays(today, -29), today).map((day) => ({ day, state: dayState(habit, day, today) }))
   const missed = strip.filter((item) => item.state === 'missed').map((item) => shortDate(item.day))
@@ -39,6 +40,18 @@ export function HabitStatsDialog({ habit, today, onClose }: HabitStatsDialogProp
       </p>
 
       <dl className="metrics">
+        <div className="metrics__item metrics__item--lead">
+          <dt className="label">{t('Strength')}</dt>
+          {score === null ? (
+            <dd className="metrics__note">{t('Not enough days yet')}</dd>
+          ) : (
+            <dd className="metrics__value">
+              {formatNumber(score)}
+              <span className="metrics__scale" aria-hidden="true"> / 100</span>
+              <span className="visually-hidden"> {t('out of 100')}</span>
+            </dd>
+          )}
+        </div>
         {metrics.map(([label, value]) => (
           <div key={t(label)} className="metrics__item">
             <dt className="label">{t(label)}</dt>

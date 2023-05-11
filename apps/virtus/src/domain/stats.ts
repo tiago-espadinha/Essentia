@@ -79,6 +79,37 @@ export function summarize(habit: Habit, today: string): HabitSummary {
   }
 }
 
+/** Due days a habit needs before its strength means anything. */
+export const STRENGTH_MIN_DUE = 7
+
+/** Each due day weighs this much less than the next one: a half-life of 14 due days. */
+const STRENGTH_DECAY = 0.5 ** (1 / 14)
+
+/**
+ * How a habit has been going lately, 0 to 100: the average credit of its due days,
+ * newer days weighing more. A done day earns 1; a numeric habit with a target earns
+ * its share of the target short of it. Bonus days count for nothing, and an open
+ * today is left out. Null below STRENGTH_MIN_DUE due days, where a ratio swings too much.
+ */
+export function strength(habit: Habit, today: string): number | null {
+  const start = startOf(habit)
+  let weight = 1
+  let earned = 0
+  let total = 0
+  let due = 0
+  for (const day of daysBetween(start, today).reverse()) {
+    if (!isScheduled(habit, day)) continue
+    const done = isDone(habit, day)
+    if (day === today && !done) continue
+    const partial = habit.target !== null && isNumeric(habit) ? Math.min(1, (habit.log[day] ?? 0) / habit.target) : 0
+    earned += weight * (done ? 1 : partial)
+    total += weight
+    weight *= STRENGTH_DECAY
+    due++
+  }
+  return due < STRENGTH_MIN_DUE ? null : Math.round((earned / total) * 100)
+}
+
 export type DayState = 'done' | 'missed' | 'open' | 'off' | 'later'
 
 /** How a day reads in the week view and the 30-day strip. */

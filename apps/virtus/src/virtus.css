@@ -769,6 +769,17 @@ select.input { cursor: pointer; }
   line-height: var(--leading-tight);
 }
 
+/* Strength leads on its own row, above the three-column figures. */
+.metrics__item--lead { grid-column: 1 / -1; }
+
+.metrics__scale {
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  color: var(--color-mid);
+}
+
+.metrics__note { color: var(--color-mid); }
+
 .strip,
 .by-day { margin-top: var(--space-6); }
 

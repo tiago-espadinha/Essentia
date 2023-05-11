@@ -28,6 +28,22 @@ describe('Portuguese habits', () => {
     expect(habitNames()).toEqual(['Ler mais'])
   })
 
+  it('labels the habit strength and its waiting state', () => {
+    const base = { category: 'General', days: [], unit: '', target: null }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([
+      { ...base, id: 'a', name: 'Run', createdAt: '2022-08-01T08:00:00.000Z', log: { '2022-08-14': 1 } },
+      { ...base, id: 'b', name: 'Read', createdAt: '2022-08-13T08:00:00.000Z', log: {} },
+    ]))
+    locale('pt-PT')
+    renderApp()
+    click($('#habit-a-stats'))
+    expect($('.metrics__item--lead dt').textContent).toBe('Força')
+    expect($('.metrics__item--lead dd').textContent).toMatch(/^\d+ \/ 100 de 100$/)
+    click(buttonNamed('Fechar'))
+    click($('#habit-b-stats'))
+    expect($('.metrics__item--lead dd').textContent).toBe('Ainda poucos dias')
+  })
+
   it('labels the habit settings and the search and filter toggle', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([
       { id: 'a', name: 'Run', category: 'Fitness', createdAt: '2022-08-02T08:00:00.000Z', days: [], unit: '', target: null, log: {} },

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Habit } from '../domain/habits'
-import { bestStreaks, categoryTallies, checkInsSince, dayState, dayTally, heatmap, heatWeeks, percent, summarize, tally, withStarts } from '../domain/stats'
+import { addDays, daysBetween, streaks } from '../domain/habits'
+import { bestStreaks, categoryTallies, checkInsSince, dayState, dayTally, heatmap, heatWeeks, percent, strength, summarize, tally, withStarts } from '../domain/stats'
 
 // 2022-08-15 is a Monday.
 const today = '2022-08-15'
@@ -123,5 +124,73 @@ describe('dashboard figures', () => {
   it('counts check-ins in a range', () => {
     expect(checkInsSince([daily, weekend], '2022-08-14', today)).toBe(1)
     expect(checkInsSince([daily, weekend], '2022-08-01', today)).toBe(3)
+  })
+})
+
+describe('strength', () => {
+  // The worked examples of the score proposal: 30 days to Sunday 2023-05-28, Sundays as bonus days.
+  const end = '2023-05-28'
+  const first = addDays(end, -29)
+  const month = daysBetween(first, end)
+  const started = (overrides: Partial<Habit>, from = first) =>
+    habit({ createdAt: new Date(`${from}T09:00`).toISOString(), ...overrides })
+  /** One log entry for each day `amount` returns a value for, by day index. */
+  const logBy = (amount: (index: number, day: string) => number | null, days = month): Habit['log'] => {
+    const log: Habit['log'] = {}
+    days.forEach((day, index) => {
+      const value = amount(index, day)
+      if (value !== null) log[day] = value
+    })
+    return log
+  }
+  const on = (...weekdays: number[]) => (_: number, day: string) => (weekdays.includes(new Date(`${day}T12:00`).getDay()) ? 1 : null)
+  const glasses = { unit: 'glasses', target: 8 }
+
+  const cases: [string, Habit, { current: number; longest: number }, number | null][] = [
+    ['daily, never missed', started({ log: logBy(() => 1) }), { current: 30, longest: 30 }, 100],
+    ['daily, one miss 3 days ago', started({ log: logBy((i) => (i === 26 ? null : 1)) }), { current: 3, longest: 26 }, 95],
+    ['daily, one miss 25 days ago', started({ log: logBy((i) => (i === 4 ? null : 1)) }), { current: 25, longest: 25 }, 98],
+    ['daily, 20 done then 10 missed', started({ log: logBy((i) => (i < 20 ? 1 : null)) }), { current: 0, longest: 20 }, 53],
+    ['daily, 10 missed then 20 done', started({ log: logBy((i) => (i >= 10 ? 1 : null)) }), { current: 20, longest: 20 }, 81],
+    ['Mon/Wed/Fri, every due day done', started({ days: [1, 3, 5], log: logBy(on(1, 3, 5)) }), { current: 12, longest: 12 }, 100],
+    ['Mon/Wed/Fri plus bonus Sundays', started({ days: [1, 3, 5], log: logBy(on(0, 1, 3, 5)) }), { current: 12, longest: 12 }, 100],
+    ['8 glasses, 6 most days and 8 every third', started({ ...glasses, log: logBy((i) => (i % 3 === 0 ? 8 : 6)) }), { current: 0, longest: 1 }, 83],
+    ['8 glasses every day', started({ ...glasses, log: logBy(() => 8) }), { current: 30, longest: 30 }, 100],
+    ['numeric without a target, any amount', started({ unit: 'pages', log: logBy((i) => 1 + (i % 5)) }), { current: 30, longest: 30 }, 100],
+    ['new habit, 3 days, all done', started({ log: logBy(() => 1, month.slice(-3)) }, addDays(end, -2)), { current: 3, longest: 3 }, null],
+    ['daily, every other day', started({ log: logBy((i) => (i % 2 === 0 ? 1 : null)) }), { current: 1, longest: 1 }, 52],
+  ]
+
+  it.each(cases)('scores %s as in the proposal', (_, subject, runs, expected) => {
+    // The streaks pin each fixture to the proposal's table before the score is read.
+    expect(streaks(subject, end)).toEqual(runs)
+    expect(strength(subject, end)).toBe(expected)
+  })
+
+  it('leaves an open today out and counts it once done', () => {
+    const week = daysBetween(addDays(end, -7), addDays(end, -1))
+    const open = started({ log: logBy(() => 1, week) }, week[0])
+    expect(strength(open, end)).toBe(100)
+    // Once done, today is the newest due day: a missed week before it still shows.
+    const late = started({ log: { [end]: 1 } }, week[0])
+    expect(strength(late, end)).toBe(15)
+  })
+
+  it('gives a bonus day nothing', () => {
+    const weekdays = started({ days: [1, 2, 3, 4, 5], log: logBy(on(0)) })
+    expect(strength(weekdays, end)).toBe(0)
+  })
+
+  it('needs 7 due days, counting only scheduled ones', () => {
+    expect(strength(started({ log: logBy(() => 1, month.slice(-6)) }, addDays(end, -5)), end)).toBeNull()
+    expect(strength(started({ log: logBy(() => 1, month.slice(-7)) }, addDays(end, -6)), end)).toBe(100)
+    // Mon/Wed/Fri over two weeks: six due days.
+    expect(strength(started({ days: [1, 3, 5] }, addDays(end, -13)), end)).toBeNull()
+  })
+
+  it('weighs a recent miss more than an old one', () => {
+    const recent = started({ log: logBy((i) => (i === 28 ? null : 1)) })
+    const old = started({ log: logBy((i) => (i === 1 ? null : 1)) })
+    expect(strength(recent, end)!).toBeLessThan(strength(old, end)!)
   })
 })

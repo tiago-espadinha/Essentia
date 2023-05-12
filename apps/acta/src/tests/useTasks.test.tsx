@@ -70,6 +70,16 @@ describe('Acta with an account', () => {
     expect(hook().syncState).toBe('off')
   })
 
+  it('stores a due day given when the task is added', async () => {
+    await open(fakeClient(new FakeAccount()).client)
+    await settle(() => hook().add('Pay rent', '2023-06-01'))
+    await settle(() => hook().add('Undated'))
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toMatchObject([
+      { text: 'Undated', due: '' },
+      { text: 'Pay rent', due: '2023-06-01' },
+    ])
+  })
+
   it('syncs changes to another device on the same account', async () => {
     const server = new FakeAccount()
     const laptop = fakeClient(server)

@@ -237,8 +237,8 @@ export function useTasks(client: SupabaseClient | null = null) {
     conflictOf: (id: string): ConflictKind | null => (source.kind === 'account' ? conflictOf(source.state, id) : null),
     keepMine: (id: string) => resolve((state) => keepMine(state, id, newId())),
     takeTheirs: (id: string) => resolve((state) => takeTheirs(state, id)),
-    add: (text: string) => {
-      const task = createTask(text)
+    add: (text: string, due = '') => {
+      const task = createTask(text, undefined, due)
       commit((state) => change(state, task.id, task, newId()), (list) => [task, ...list])
     },
     toggle: (id: string) => edit(id, (task) => ({ ...task, completed: !task.completed })),

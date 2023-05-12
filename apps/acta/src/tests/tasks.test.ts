@@ -29,6 +29,12 @@ describe('createTask', () => {
     })
   })
 
+  it('keeps an ISO due day and drops anything else', () => {
+    expect(createTask('Pay rent', 'a', '2023-06-01').due).toBe('2023-06-01')
+    expect(createTask('Pay rent', 'a', '2023-02-30').due).toBe('')
+    expect(createTask('Pay rent', 'a', '01/06/2023').due).toBe('')
+  })
+
   it('gives each task its own id', () => {
     expect(createTask('One').id).not.toBe(createTask('Two').id)
   })

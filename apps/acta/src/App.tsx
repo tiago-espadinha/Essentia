@@ -121,7 +121,7 @@ export default function App() {
       <main className="acta ui-workspace-layout" ref={mainRef}>
         <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
         <div className="workspace">
-          <AddTask inputRef={addInput} onAdd={(value) => motion(() => add(value))} />
+          <AddTask inputRef={addInput} onAdd={(value, due) => motion(() => add(value, due))} />
           <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
           {syncState === 'failed' && (
             <div className="sync-notice" role="status">

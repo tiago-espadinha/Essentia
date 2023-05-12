@@ -1,27 +1,43 @@
 import { t } from '../locale'
-import { useState, type FormEvent, type RefObject } from 'react'
-import { LIMITS } from '../domain/tasks'
+import { useRef, useState, type FormEvent, type RefObject } from 'react'
+import { formatDue, LIMITS } from '../domain/tasks'
+import { DueDateField } from './DueDateField'
 
 interface AddTaskProps {
   inputRef: RefObject<HTMLInputElement | null>
-  onAdd: (text: string) => void
+  onAdd: (text: string, due: string) => void
 }
 
 export function AddTask({ inputRef, onAdd }: AddTaskProps) {
   const [text, setText] = useState('')
+  const [due, setDue] = useState('')
+  const [dueOpen, setDueOpen] = useState(false)
+  const [dueInvalid, setDueInvalid] = useState(false)
+  const dueRef = useRef<HTMLInputElement>(null)
   // Counts refused submits; each one remounts the alert so it is announced again.
   const [refusals, setRefusals] = useState(0)
   const invalid = refusals > 0
 
   function submit(event: FormEvent) {
     event.preventDefault()
+    const dueInput = dueRef.current
     if (!text.trim()) {
       setRefusals(refusals + 1)
-    } else {
-      onAdd(text)
-      setText('')
-      setRefusals(0)
+      inputRef.current?.focus()
+      return
     }
+    // The field is unmounted while the toggle is closed, so only an open one can hold a partial date.
+    if (dueInput?.validity.badInput) {
+      setDueInvalid(true)
+      dueInput.focus()
+      return
+    }
+    onAdd(text, due)
+    setText('')
+    setDue('')
+    setDueOpen(false)
+    setDueInvalid(false)
+    setRefusals(0)
     inputRef.current?.focus()
   }
 
@@ -57,6 +73,44 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
         <p key={refusals} id="add-task-error" className="field-error" role="alert">
           {t("Write something first.")}
         </p>
+      )}
+      <button
+        type="button"
+        className="add__due-toggle"
+        aria-expanded={dueOpen}
+        aria-controls={dueOpen ? 'add-due' : undefined}
+        onClick={() => {
+          // Closing drops any partial entry with the field, so its error goes too.
+          setDueOpen(!dueOpen)
+          setDueInvalid(false)
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
+          <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+        </svg>
+        {due ? (
+          <span>
+            {t('Due ')}
+            <time dateTime={due}>{formatDue(due)}</time>
+          </span>
+        ) : (
+          t('Add due date')
+        )}
+      </button>
+      {dueOpen && (
+        <div id="add-due" className="add__due">
+          <DueDateField
+            id="add-due-date"
+            inputRef={dueRef}
+            value={due}
+            invalid={dueInvalid}
+            onChange={(value) => {
+              setDue(value)
+              setDueInvalid(false)
+            }}
+          />
+        </div>
       )}
     </form>
   )

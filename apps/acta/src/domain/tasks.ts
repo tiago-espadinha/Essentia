@@ -48,8 +48,9 @@ export function newId(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
-export function createTask(text: string, id: string = newId()): Task {
-  return { id, text: text.trim(), completed: false, category: DEFAULT_CATEGORY, due: '' }
+/** A new open task; a due that is not an ISO day leaves it undated. */
+export function createTask(text: string, id: string = newId(), due = ''): Task {
+  return { id, text: text.trim(), completed: false, category: DEFAULT_CATEGORY, due: isIsoDay(due) ? due : '' }
 }
 
 /** Applies an edit; returns null when the draft has no text to save. */

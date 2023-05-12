@@ -149,6 +149,39 @@
 
 .add__button { flex: none; width: 44px; padding: 0; }
 
+/* The due date sits behind a toggle so the add row stays one line. */
+.add__due-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  margin-top: var(--space-1);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.add__due-toggle:hover,
+.add__due-toggle[aria-expanded='true'] { color: var(--color-accent-text); }
+
+.add__due { max-width: 22rem; }
+
+.due-field__row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.due-field__input { flex: 1; min-width: 0; }
+
+.due-field__clear { flex: none; padding-inline: var(--space-3); border-color: var(--color-line-strong); }
+
 .notice {
   margin-top: var(--space-4);
   color: var(--color-danger);

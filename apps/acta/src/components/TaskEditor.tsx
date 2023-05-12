@@ -1,6 +1,7 @@
 import { t } from '../locale'
-import { useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { LIMITS, type Task, type TaskDraft } from '../domain/tasks'
+import { DueDateField } from './DueDateField'
 
 interface TaskEditorProps {
   task: Task
@@ -12,12 +13,20 @@ interface TaskEditorProps {
 export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorProps) {
   const [draft, setDraft] = useState<TaskDraft>({ text: task.text, category: task.category, due: task.due })
   const [invalid, setInvalid] = useState(false)
+  const [dueInvalid, setDueInvalid] = useState(false)
+  const dueRef = useRef<HTMLInputElement>(null)
   const id = (field: string) => `edit-${task.id}-${field}`
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    if (draft.text.trim()) onSave(draft)
-    else setInvalid(true)
+    if (!draft.text.trim()) {
+      setInvalid(true)
+    } else if (dueRef.current?.validity.badInput) {
+      setDueInvalid(true)
+      dueRef.current?.focus()
+    } else {
+      onSave(draft)
+    }
   }
 
   function cancelOnEscape(event: KeyboardEvent) {
@@ -72,18 +81,16 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
             ))}
           </datalist>
         </div>
-        <div className="field">
-          <label className="label" htmlFor={id('due')}>
-            {t("Due date")}
-          </label>
-          <input
-            id={id('due')}
-            className="input"
-            type="date"
-            value={draft.due}
-            onChange={(event) => setDraft({ ...draft, due: event.target.value })}
-          />
-        </div>
+        <DueDateField
+          id={id('due')}
+          inputRef={dueRef}
+          value={draft.due}
+          invalid={dueInvalid}
+          onChange={(due) => {
+            setDraft({ ...draft, due })
+            setDueInvalid(false)
+          }}
+        />
       </div>
       <div className="editor__actions">
         <button type="button" className="button-ghost" onClick={onCancel}>

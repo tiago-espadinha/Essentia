@@ -5,9 +5,10 @@
 -- with no priority leaves the key out, so content written before this file,
 -- and by devices that have not updated yet, stays valid. Only the validation
 -- in acta_write_task changes; the tables, receipts and rights are as before.
--- To revert, run the acta_write_task part of migration.sql again with
--- "create or replace"; tasks that hold a priority stay readable, but writes
--- that set one are refused until this file runs again.
+-- Run it before deploying a version of Acta that sets priorities: until then
+-- such a write is refused and holds back the account's later changes. To
+-- revert, first deploy a version that does not set priorities, then run the
+-- acta_write_task part of migration.sql again with "create or replace".
 
 begin;
 

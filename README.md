@@ -95,6 +95,8 @@ Account unavailable, and Merces says it is not set up.
 
 1. Create a project at [supabase.com](https://supabase.com) (the free tier is enough).
 2. In the project's SQL editor, run each of these files once, Folio's after Dictum's, in this order:
+   - `apps/acta/supabase/migration.sql`: tasks and their versioned writes
+   - `apps/acta/supabase/priority.sql`: tasks can carry a priority; run after Acta's migration, and before deploying a version of Acta that sets priorities (until it runs, a task given a priority is refused and holds back that account's later changes)
    - `apps/virtus/supabase/migration.sql`: habits and check-ins
    - `apps/dictum/supabase/migration.sql`: documents and share links
    - `apps/folio/supabase/migration.sql`: note format, pinning and kept folders, added to Dictum's documents

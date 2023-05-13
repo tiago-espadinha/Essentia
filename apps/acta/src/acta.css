@@ -171,6 +171,45 @@
 .add__due-toggle:hover,
 .add__due-toggle[aria-expanded='true'] { color: var(--color-accent-text); }
 
+.add__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-6);
+}
+
+/* Set like the due toggle beside it: a quiet label, a compact native select. */
+.add__priority {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  margin-top: var(--space-1);
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.add__priority-select {
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+}
+
+/* A chosen level shows at rest, as a chosen date does on the toggle. */
+.add__priority--set { color: var(--color-accent-text); }
+.add__priority--set .add__priority-select { border-color: var(--color-accent-text); }
+
 .add__due { max-width: 22rem; }
 
 .due-field__row {
@@ -403,6 +442,9 @@
 .task__tag { color: var(--color-accent-text); }
 
 .task__due--over { color: var(--color-danger); }
+
+/* The words carry the level; High is set in ink, apart from the accent category and the danger overdue. */
+.task__priority--high { color: var(--color-ink); }
 
 /* A change from another device waits on the row it belongs to, always shown. */
 .task__conflict {

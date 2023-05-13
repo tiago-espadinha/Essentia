@@ -1,17 +1,19 @@
 import { t } from '../locale'
 import { useRef, useState, type FormEvent, type RefObject } from 'react'
-import { formatDue, LIMITS } from '../domain/tasks'
+import { formatDue, LIMITS, type Priority } from '../domain/tasks'
 import { DueDateField } from './DueDateField'
+import { PrioritySelect } from './PrioritySelect'
 
 interface AddTaskProps {
   inputRef: RefObject<HTMLInputElement | null>
-  onAdd: (text: string, due: string) => void
+  onAdd: (text: string, due: string, priority: Priority) => void
 }
 
 export function AddTask({ inputRef, onAdd }: AddTaskProps) {
   const [text, setText] = useState('')
   const [due, setDue] = useState('')
   const [dueOpen, setDueOpen] = useState(false)
+  const [priority, setPriority] = useState<Priority>('none')
   const [dueInvalid, setDueInvalid] = useState(false)
   const dueRef = useRef<HTMLInputElement>(null)
   // Counts refused submits; each one remounts the alert so it is announced again.
@@ -32,9 +34,10 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
       dueInput.focus()
       return
     }
-    onAdd(text, due)
+    onAdd(text, due, priority)
     setText('')
     setDue('')
+    setPriority('none')
     setDueOpen(false)
     setDueInvalid(false)
     setRefusals(0)
@@ -74,30 +77,36 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
           {t("Write something first.")}
         </p>
       )}
-      <button
-        type="button"
-        className="add__due-toggle"
-        aria-expanded={dueOpen}
-        aria-controls={dueOpen ? 'add-due' : undefined}
-        onClick={() => {
-          // Closing drops any partial entry with the field, so its error goes too.
-          setDueOpen(!dueOpen)
-          setDueInvalid(false)
-        }}
-      >
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
-          <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
-        </svg>
-        {due ? (
-          <span>
-            {t('Due ')}
-            <time dateTime={due}>{formatDue(due)}</time>
-          </span>
-        ) : (
-          t('Add due date')
-        )}
-      </button>
+      <div className="add__options">
+        <button
+          type="button"
+          className="add__due-toggle"
+          aria-expanded={dueOpen}
+          aria-controls={dueOpen ? 'add-due' : undefined}
+          onClick={() => {
+            // Closing drops any partial entry with the field, so its error goes too.
+            setDueOpen(!dueOpen)
+            setDueInvalid(false)
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.25" />
+            <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+          </svg>
+          {due ? (
+            <span>
+              {t('Due ')}
+              <time dateTime={due}>{formatDue(due)}</time>
+            </span>
+          ) : (
+            t('Add due date')
+          )}
+        </button>
+        <div className={`add__priority${priority === 'none' ? '' : ' add__priority--set'}`}>
+          <label htmlFor="add-priority">{t('Priority')}</label>
+          <PrioritySelect id="add-priority" className="add__priority-select" value={priority} onChange={setPriority} />
+        </div>
+      </div>
       {dueOpen && (
         <div id="add-due" className="add__due">
           <DueDateField

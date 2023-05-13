@@ -2,6 +2,7 @@ import { t } from '../locale'
 import { useRef, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { LIMITS, type Task, type TaskDraft } from '../domain/tasks'
 import { DueDateField } from './DueDateField'
+import { PrioritySelect } from './PrioritySelect'
 
 interface TaskEditorProps {
   task: Task
@@ -96,6 +97,17 @@ export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorPro
             setDueInvalid(false)
           }}
         />
+        <div className="field">
+          <label className="label" htmlFor={id('priority')}>
+            {t('Priority')}
+          </label>
+          <PrioritySelect
+            id={id('priority')}
+            className="input"
+            value={draft.priority}
+            onChange={(priority) => setDraft({ ...draft, priority })}
+          />
+        </div>
       </div>
       <div className="editor__actions">
         <button type="button" className="button-ghost" onClick={onCancel}>

@@ -26,6 +26,14 @@ describe('account sync storage', () => {
     expect(readAccountState('account-b')).toEqual({ status: 'ok', state: emptyAccount('account-b') })
   })
 
+  it('keeps a priority in the account copy, and refuses one the server would', () => {
+    const ranked = { ...state.operations[0], content: { ...state.operations[0].content!, priority: 'high' as const } }
+    expect(writeAccountState({ ...state, operations: [ranked] })).toBe(true)
+    expect(readAccountState('account-a')).toEqual({ status: 'ok', state: { ...state, operations: [ranked] } })
+    const explicitNone = { ...ranked, content: { ...ranked.content, priority: 'none' } }
+    expect(writeAccountState({ ...state, operations: [explicitNone as never] })).toBe(false)
+  })
+
   it('reports unreadable or malformed data without replacing pending work', () => {
     localStorage.setItem('essentia-acta-account:account-a', '{broken')
     expect(readAccountState('account-a')).toEqual({ status: 'error' })

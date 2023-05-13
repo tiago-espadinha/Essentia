@@ -9,7 +9,18 @@ export interface Task {
   category: string
   /** ISO day ('YYYY-MM-DD'), or '' when the task has no due date. */
   due: string
+  priority: Priority
 }
+
+/** How much a task matters, lowest first; 'none' is the default and shows no label. */
+export const PRIORITIES = ['none', 'low', 'medium', 'high'] as const
+export type Priority = (typeof PRIORITIES)[number]
+
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  none: 'None', low: 'Low', medium: 'Medium', high: 'High',
+}
+
+export const isPriority = (value: unknown): value is Priority => PRIORITIES.includes(value as Priority)
 
 export type StatusFilter = 'all' | 'active' | 'done'
 
@@ -19,6 +30,7 @@ export interface TaskDraft {
   text: string
   category: string
   due: string
+  priority: Priority
 }
 
 export const DEFAULT_CATEGORY = 'General'
@@ -48,9 +60,16 @@ export function newId(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
-/** A new open task; a due that is not an ISO day leaves it undated. */
-export function createTask(text: string, id: string = newId(), due = ''): Task {
-  return { id, text: text.trim(), completed: false, category: DEFAULT_CATEGORY, due: isIsoDay(due) ? due : '' }
+/** A new open task; a due that is not an ISO day leaves it undated, an unknown priority leaves it at none. */
+export function createTask(text: string, id: string = newId(), due = '', priority = 'none'): Task {
+  return {
+    id,
+    text: text.trim(),
+    completed: false,
+    category: DEFAULT_CATEGORY,
+    due: isIsoDay(due) ? due : '',
+    priority: isPriority(priority) ? priority : 'none',
+  }
 }
 
 /** Applies an edit; returns null when the draft has no text to save. */
@@ -62,6 +81,7 @@ export function applyDraft(task: Task, draft: TaskDraft): Task | null {
     text,
     category: draft.category.trim() || DEFAULT_CATEGORY,
     due: isIsoDay(draft.due) ? draft.due : '',
+    priority: isPriority(draft.priority) ? draft.priority : 'none',
   }
 }
 

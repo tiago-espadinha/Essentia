@@ -11,7 +11,12 @@ interface TaskEditorProps {
 }
 
 export function TaskEditor({ task, categories, onSave, onCancel }: TaskEditorProps) {
-  const [draft, setDraft] = useState<TaskDraft>({ text: task.text, category: task.category, due: task.due })
+  const [draft, setDraft] = useState<TaskDraft>({
+    text: task.text,
+    category: task.category,
+    due: task.due,
+    priority: task.priority,
+  })
   const [invalid, setInvalid] = useState(false)
   const [dueInvalid, setDueInvalid] = useState(false)
   const dueRef = useRef<HTMLInputElement>(null)

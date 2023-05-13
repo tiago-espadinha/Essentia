@@ -17,9 +17,11 @@ export type RemoteRow = ServerTask & { id: string }
 export type ConflictKind = 'changed' | 'deleted-there' | 'deleted-here'
 
 const sameContent = (a: Content | null | undefined, b: Content | null | undefined) =>
-  a === b || (!!a && !!b && a.text === b.text && a.completed === b.completed && a.category === b.category && a.due === b.due)
+  a === b || (!!a && !!b && a.text === b.text && a.completed === b.completed && a.category === b.category &&
+    a.due === b.due && a.priority === b.priority)
 
-const contentOf = ({ text, completed, category, due }: Task): Content => ({ text, completed, category, due })
+const contentOf = ({ text, completed, category, due, priority }: Task): Content =>
+  priority === 'none' ? { text, completed, category, due } : { text, completed, category, due, priority }
 
 /** Whether the account can hold a task made while signed out; one it can't stays on the device. */
 export const claimable = (task: Task) => isContent(contentOf(task))
@@ -34,7 +36,7 @@ function localContent(state: AccountState, id: string): Content | null | undefin
 export function visibleTasks(state: AccountState): Task[] {
   return state.order.flatMap((id) => {
     const content = localContent(state, id) ?? state.conflicts[id]?.content
-    return content ? [{ id, ...content }] : []
+    return content ? [{ id, ...content, priority: content.priority ?? 'none' }] : []
   })
 }
 

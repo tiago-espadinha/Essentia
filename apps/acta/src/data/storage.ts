@@ -1,8 +1,8 @@
-import { DEFAULT_CATEGORY, isIsoDay, type Task } from '../domain/tasks'
+import { DEFAULT_CATEGORY, isIsoDay, isPriority, type Task } from '../domain/tasks'
 
 export const STORAGE_KEY = 'essentia-acta-tasks'
 
-function isTask(value: unknown): value is Task {
+function isTask(value: unknown): value is Omit<Task, 'priority'> & { priority?: unknown } {
   if (typeof value !== 'object' || value === null) return false
   const task = value as Record<string, unknown>
   return (
@@ -27,10 +27,12 @@ export function loadTasks(): Task[] {
   if (!Array.isArray(saved)) return []
 
   const seen = new Set<string>()
-  return saved.filter(isTask).flatMap(({ id, text, completed, category, due }) => {
+  // Tasks saved before priorities existed, or with a level this version doesn't know, load as none.
+  return saved.filter(isTask).flatMap(({ id, text, completed, category, due, priority }) => {
     if (seen.has(id)) return []
     seen.add(id)
-    return [{ id, text, completed, category: category.trim() || DEFAULT_CATEGORY, due }]
+    const level = isPriority(priority) ? priority : 'none'
+    return [{ id, text, completed, category: category.trim() || DEFAULT_CATEGORY, due, priority: level }]
   })
 }
 

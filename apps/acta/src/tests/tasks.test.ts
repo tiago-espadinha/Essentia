@@ -15,18 +15,24 @@ import {
 } from '../domain/tasks'
 
 function task(overrides: Partial<Task>): Task {
-  return { id: 'x', text: 'Task', completed: false, category: DEFAULT_CATEGORY, due: '', ...overrides }
+  return { id: 'x', text: 'Task', completed: false, category: DEFAULT_CATEGORY, due: '', priority: 'none', ...overrides }
 }
 
 describe('createTask', () => {
-  it('trims the text and starts open, in the default category, with no due date', () => {
+  it('trims the text and starts open, in the default category, with no due date or priority', () => {
     expect(createTask('  Write tests  ', 'a')).toEqual({
       id: 'a',
       text: 'Write tests',
       completed: false,
       category: DEFAULT_CATEGORY,
       due: '',
+      priority: 'none',
     })
+  })
+
+  it('keeps a known priority and drops anything else', () => {
+    expect(createTask('Pay rent', 'a', '', 'high').priority).toBe('high')
+    expect(createTask('Pay rent', 'a', '', 'urgent').priority).toBe('none')
   })
 
   it('keeps an ISO due day and drops anything else', () => {
@@ -55,23 +61,30 @@ describe('applyDraft', () => {
   const original = task({ id: 'a', completed: true })
 
   it('saves trimmed text, category and due date, keeping id and completion', () => {
-    expect(applyDraft(original, { text: ' New ', category: ' Design ', due: '2022-05-28' })).toEqual({
+    expect(applyDraft(original, { text: ' New ', category: ' Design ', due: '2022-05-28', priority: 'medium' })).toEqual({
       id: 'a',
       text: 'New',
       completed: true,
       category: 'Design',
       due: '2022-05-28',
+      priority: 'medium',
     })
   })
 
   it('refuses a draft with no text', () => {
-    expect(applyDraft(original, { text: '   ', category: 'Design', due: '' })).toBeNull()
+    expect(applyDraft(original, { text: '   ', category: 'Design', due: '', priority: 'none' })).toBeNull()
   })
 
-  it('falls back to the default category and drops an invalid date', () => {
-    expect(applyDraft(original, { text: 'New', category: ' ', due: '28 May' })).toMatchObject({
+  it('clears a priority back to none', () => {
+    const ranked = task({ priority: 'high' })
+    expect(applyDraft(ranked, { text: 'Task', category: 'General', due: '', priority: 'none' })?.priority).toBe('none')
+  })
+
+  it('falls back to the default category, and drops an invalid date and an unknown priority', () => {
+    expect(applyDraft(original, { text: 'New', category: ' ', due: '28 May', priority: 'urgent' as Task['priority'] })).toMatchObject({
       category: DEFAULT_CATEGORY,
       due: '',
+      priority: 'none',
     })
   })
 })

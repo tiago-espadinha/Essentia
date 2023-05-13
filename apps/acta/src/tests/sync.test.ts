@@ -15,7 +15,7 @@ let counter = 0
 const newId = () => `00000000-0000-4000-8000-${String(++counter).padStart(12, '0')}`
 
 const task = (id: string, text: string, extra: Partial<Task> = {}): Task =>
-  ({ id, text, completed: false, category: 'General', due: '', ...extra })
+  ({ id, text, completed: false, category: 'General', due: '', priority: 'none', ...extra })
 
 /** One browser holding one account's copy. */
 class Device {
@@ -220,6 +220,46 @@ async function conflicted() {
   return { server, laptop, phone, id: phone.tasks[0].id }
 }
 
+describe('priority across devices', () => {
+  it('carries a set priority to the other device and clears it back to none', async () => {
+    const server = new FakeAccount()
+    const laptop = new Device(server)
+    const phone = new Device(server)
+    laptop.add('File taxes')
+    laptop.edit('File taxes', { priority: 'high' })
+    expect(await laptop.sync()).toBe(true)
+    expect(server.read(A)).toMatchObject([{ content: { text: 'File taxes', priority: 'high' } }])
+    expect(await phone.sync()).toBe(true)
+    expect(phone.find('File taxes').priority).toBe('high')
+
+    phone.edit('File taxes', { priority: 'none' })
+    expect(await phone.sync()).toBe(true)
+    // None is stored as no key, the shape written before priorities existed.
+    expect(server.read(A)).toEqual([expect.objectContaining({ content: { text: 'File taxes', completed: false, category: 'General', due: '' } })])
+    await laptop.sync()
+    expect(laptop.find('File taxes').priority).toBe('none')
+  })
+
+  it('treats a priority change as a change, and a conflict over it like any other', async () => {
+    const server = new FakeAccount()
+    const laptop = new Device(server)
+    const phone = new Device(server)
+    laptop.add('Plan')
+    await laptop.sync()
+    await phone.sync()
+    laptop.edit('Plan', { priority: 'low' })
+    phone.edit('Plan', { priority: 'high' })
+    await laptop.sync()
+    expect(await phone.sync()).toBe(false)
+    const id = phone.find('Plan').id
+    expect(conflictOf(phone.state, id)).toBe('changed')
+    phone.state = keepMine(phone.state, id, newId())
+    expect(await phone.sync()).toBe(true)
+    await laptop.sync()
+    expect(laptop.find('Plan').priority).toBe('high')
+  })
+})
+
 describe('accounts stay apart', () => {
   it('refuses a write queued for one account once another is signed in, and keeps it', async () => {
     const server = new FakeAccount()
@@ -296,6 +336,14 @@ describe('checking what the server sends', () => {
     expect(visibleTasks(state).map((t) => t.text)).toEqual(['Mine'])
   })
 
+  it('reads rows written before priorities as none, and skips an unknown level', () => {
+    const rows = readRows([
+      { id: A, version: 1, content: { text: 'Old', completed: false, category: 'General', due: '' }, created_at: '2023-04-01T00:00:00Z' },
+      { id: B, version: 1, content: { text: 'Odd', completed: false, category: 'General', due: '', priority: 'urgent' }, created_at: '2023-04-01T00:00:00Z' },
+    ])
+    expect(visibleTasks(mergeRemote(emptyAccount(A), rows))).toEqual([task(A, 'Old')])
+  })
+
   it('never takes an older version over a newer one', () => {
     const row = (version: number, text: string) =>
       ({ id: B, version, content: { text, completed: false, category: 'General', due: '' }, createdAt: '2023-04-01T00:00:00Z' })
@@ -333,5 +381,14 @@ describe('the fake follows the write function', () => {
     expect(() => server.write(A, A, { ...operation, content: { ...operation.content, text: 'B' } })).toThrow('Operation ID already used')
     expect(() => server.write(A, A, { ...operation, operationId: newId(), content: { ...operation.content, text: ' ' } })).toThrow('Invalid task')
     expect(() => server.write(null, A, operation)).toThrow('Not signed in')
+  })
+
+  it('accepts an optional low, medium or high priority and refuses any other value', () => {
+    const server = new FakeAccount()
+    const content = { text: 'A', completed: false, category: 'G', due: '' }
+    const write = (priority: unknown) =>
+      server.write(A, A, { operationId: newId(), taskId: newId(), expectedVersion: 0, content: { ...content, priority } as never })
+    for (const level of ['low', 'medium', 'high']) expect(write(level)).toMatchObject({ status: 'applied' })
+    for (const level of ['none', 'urgent', '', 3, null]) expect(() => write(level)).toThrow('Invalid task')
   })
 })

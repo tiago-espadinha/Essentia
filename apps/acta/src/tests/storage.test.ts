@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadTasks, saveTasks, STORAGE_KEY } from '../data/storage'
 import type { Task } from '../domain/tasks'
 
-const valid: Task = { id: 'a', text: 'Write', completed: false, category: 'Work', due: '2022-05-28' }
+const valid: Task = { id: 'a', text: 'Write', completed: false, category: 'Work', due: '2022-05-28', priority: 'high' }
 
 beforeEach(() => localStorage.clear())
 afterEach(() => vi.restoreAllMocks())
@@ -16,6 +16,15 @@ describe('task storage', () => {
     expect(saveTasks([valid])).toBe(true)
     expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual([valid])
     expect(loadTasks()).toEqual([valid])
+  })
+
+  it('loads tasks saved before priorities, or with an unknown level, at none', () => {
+    const legacy = { id: 'a', text: 'Write', completed: false, category: 'Work', due: '2022-05-28' }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([legacy, { ...valid, id: 'b', priority: 'urgent' }]))
+    expect(loadTasks()).toEqual([
+      { ...valid, priority: 'none' },
+      { ...valid, id: 'b', priority: 'none' },
+    ])
   })
 
   it('ignores corrupt or non-list data', () => {

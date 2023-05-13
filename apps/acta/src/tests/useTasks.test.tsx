@@ -197,7 +197,7 @@ describe('Acta with an account', () => {
       p_owner: ANA, p_operation_id: 'cccccccc-0000-4000-8000-000000000002', p_task_id: id, p_expected_version: 1,
       p_content: { text: 'Theirs', completed: false, category: 'General', due: '' },
     })
-    await settle(() => hook().update(id, { text: 'Mine', category: 'General', due: '' }))
+    await settle(() => hook().update(id, { text: 'Mine', category: 'General', due: '', priority: 'none' }))
     expect(hook().conflictOf(id)).toBe('changed')
     let settled = true
     await act(async () => { settled = await hook().sync() })

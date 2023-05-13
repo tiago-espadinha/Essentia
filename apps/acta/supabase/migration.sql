@@ -13,7 +13,8 @@ create table public.acta_tasks (
   user_id uuid not null references auth.users (id) on delete cascade,
   id uuid not null,
   version bigint not null check (version > 0),
-  -- null once deleted; otherwise { text, completed, category, due }.
+  -- null once deleted; otherwise { text, completed, category, due }, plus an
+  -- optional priority once priority.sql has run.
   content jsonb,
   -- Orders tasks a device has not seen yet, newest first.
   created_at timestamptz not null default now(),

@@ -1,13 +1,19 @@
 import { t } from '../locale'
 import { useEffect, useRef } from 'react'
 import { TaskEditor } from './TaskEditor'
-import { formatDue, isOverdue, type Task, type TaskDraft } from '../domain/tasks'
+import { formatDue, isOverdue, type Priority, type Task, type TaskDraft } from '../domain/tasks'
 import type { ConflictKind } from '../data/sync'
 
 const CONFLICT_TEXT: Record<ConflictKind, string> = {
   changed: 'Changed on another device.',
   'deleted-there': 'Deleted on another device.',
   'deleted-here': 'You deleted this, but it changed on another device.',
+}
+
+const PRIORITY_TEXT: Record<Exclude<Priority, 'none'>, string> = {
+  low: 'Low priority',
+  medium: 'Medium priority',
+  high: 'High priority',
 }
 
 /** Asks a row to focus one of its controls; a new object asks again. */
@@ -91,6 +97,11 @@ export function TaskItem({
         </p>
         <p className="task__meta">
           <span className="label task__tag">{task.category}</span>
+          {task.priority !== 'none' && (
+            <span className={`label task__priority task__priority--${task.priority}`}>
+              {t(PRIORITY_TEXT[task.priority])}
+            </span>
+          )}
           {task.due && (
             <span className={`label${overdue ? ' task__due--over' : ''}`}>
               {overdue ? t('Overdue · ') : t('Due ')}

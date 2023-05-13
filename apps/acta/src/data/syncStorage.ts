@@ -1,9 +1,12 @@
 // Each account's copy of the tasks on this device, under its own key: what the
 // server last said, the order shown here, and the writes still to send.
-import { isIsoDay, LIMITS, type Task } from '../domain/tasks'
+import { isIsoDay, isPriority, LIMITS, type Priority, type Task } from '../domain/tasks'
 
-/** A task as the server stores it: everything but the id. */
-export type Content = Omit<Task, 'id'>
+/**
+ * A task as the server stores it: everything but the id. Priority is left out
+ * at none, so content written before priorities existed keeps its shape.
+ */
+export type Content = Omit<Task, 'id' | 'priority'> & { priority?: Exclude<Priority, 'none'> }
 
 /** One write, kept with its ID until the server has answered it. */
 export interface Operation {
@@ -55,10 +58,13 @@ export const emptyAccount = (owner: string): AccountState => ({
   owner, tasks: {}, order: [], operations: [], conflicts: {}, legacyIds: {}, declined: false,
 })
 
-/** The rules acta_write_task checks (supabase/migration.sql); a task outside them can't be sent. */
+/** The rules acta_write_task checks (supabase/priority.sql); a task outside them can't be sent. */
 export function isContent(value: unknown): value is Content | null {
   if (value === null) return true
-  return isObject(value) && Object.keys(value).length === 4 && typeof value.text === 'string' &&
+  if (!isObject(value)) return false
+  const ranked = 'priority' in value
+  if (ranked && (value.priority === 'none' || !isPriority(value.priority))) return false
+  return Object.keys(value).length === (ranked ? 5 : 4) && typeof value.text === 'string' &&
     // The whole text is counted: the server trims only spaces, so a JS-trimmed count could pass here and fail there.
     value.text.trim().length > 0 && value.text.length <= LIMITS.text &&
     typeof value.completed === 'boolean' && typeof value.category === 'string' && value.category.length <= LIMITS.category &&

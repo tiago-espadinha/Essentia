@@ -234,6 +234,108 @@ describe('Acta with an account', () => {
   })
 })
 
+describe('categories', () => {
+  it('files a new task under a category in use, spelled as that category is', async () => {
+    await open(fakeClient(new FakeAccount()).client)
+    await settle(() => hook().add('First', '', 'none', 'Work'))
+    await settle(() => hook().add('Second', '', 'none', ' work '))
+    await settle(() => hook().add('Third'))
+    expect(hook().tasks.map((task) => task.category)).toEqual(['General', 'Work', 'Work'])
+  })
+
+  it('lets the only task in a category change its case, but not one of several', async () => {
+    await open(fakeClient(new FakeAccount()).client)
+    await settle(() => hook().add('A', '', 'none', 'work'))
+    const [only] = hook().tasks
+    await settle(() => hook().update(only.id, { text: 'A', category: 'Work', due: '', priority: 'none' }))
+    expect(hook().tasks[0].category).toBe('Work')
+
+    await settle(() => hook().add('B', '', 'none', 'Work'))
+    await settle(() => hook().update(hook().tasks[0].id, { text: 'B', category: 'WORK', due: '', priority: 'none' }))
+    expect(hook().tasks.map((task) => task.category)).toEqual(['Work', 'Work'])
+  })
+
+  it('moves a category on this device in one save while signed out', async () => {
+    await open(fakeClient(new FakeAccount()).client)
+    await settle(() => hook().add('A', '', 'none', 'Work'))
+    await settle(() => hook().add('B', '', 'none', 'Home'))
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+    await settle(() => hook().moveCategory('Work', 'Home'))
+    expect(setItem).toHaveBeenCalledTimes(1)
+    setItem.mockRestore()
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!).map((task: { category: string }) => task.category)).toEqual(['Home', 'Home'])
+  })
+
+  it('sends a rename as one ordinary edit per moved task, and another device converges', async () => {
+    const server = new FakeAccount()
+    const network: { down?: boolean } = {}
+    const laptop = fakeClient(server, network)
+    await open(laptop.client)
+    await signInAs(laptop, ANA)
+    await settle(() => hook().add('Write', '', 'none', 'Work'))
+    await settle(() => hook().add('Ship', '', 'high', 'work'))
+    await settle(() => hook().add('Cook', '', 'none', 'Home'))
+    await settle(() => hook().toggle(hook().tasks.find((task) => task.text === 'Ship')!.id))
+    expect(hook().syncState).toBe('synced')
+
+    network.down = true
+    await settle(() => hook().moveCategory('Work', 'Office'))
+    const stored = readAccountState(ANA)
+    if (stored.status !== 'ok') throw new Error('unreadable')
+    expect(stored.state.operations.map((operation) => operation.content)).toEqual([
+      { text: 'Ship', completed: true, category: 'Office', due: '', priority: 'high' },
+      { text: 'Write', completed: false, category: 'Office', due: '' },
+    ])
+    expect(stored.state.operations.map((operation) => operation.expectedVersion)).toEqual([2, 1])
+
+    network.down = false
+    await settle(() => window.dispatchEvent(new Event('online')))
+    expect(hook().syncState).toBe('synced')
+    close()
+
+    localStorage.clear()
+    const phone = fakeClient(server)
+    phone.restore(ANA)
+    await open(phone.client)
+    expect(hook().tasks.map((task) => [task.text, task.category])).toEqual([
+      ['Cook', 'Home'], ['Ship', 'Office'], ['Write', 'Office'],
+    ])
+  })
+
+  it('keeps a task deleted here deleted when its category moves while a conflict waits', async () => {
+    const server = new FakeAccount()
+    const other = fakeClient(server)
+    const account = fakeClient(server)
+    await open(account.client)
+    await signInAs(account, ANA)
+    await settle(() => hook().add('Plan', '', 'none', 'Work'))
+    await settle(() => hook().add('Pack', '', 'none', 'Work'))
+    const plan = hook().tasks.find((task) => task.text === 'Plan')!.id
+    other.restore(ANA)
+    await other.client.rpc('acta_write_task', {
+      p_owner: ANA, p_operation_id: 'cccccccc-0000-4000-8000-000000000003', p_task_id: plan, p_expected_version: 1,
+      p_content: { text: 'Plan theirs', completed: false, category: 'Work', due: '' },
+    })
+    await settle(() => hook().remove(plan))
+    expect(hook().conflictOf(plan)).toBe('deleted-here')
+
+    await settle(() => hook().moveCategory('Work', 'Home'))
+    expect(hook().conflictOf(plan)).toBe('deleted-here')
+    expect(hook().tasks.find((task) => task.text === 'Pack')?.category).toBe('Home')
+  })
+
+  it('leaves stored spellings as they are until a category is changed', async () => {
+    const legacy = [
+      { id: 'a', text: 'One', completed: false, category: 'work', due: '' },
+      { id: 'b', text: 'Two', completed: false, category: 'WORK', due: '' },
+    ]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(legacy))
+    await open(fakeClient(new FakeAccount()).client)
+    expect(hook().tasks.map((task) => task.category)).toEqual(['work', 'WORK'])
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEY)!)).toEqual(legacy)
+  })
+})
+
 describe('when this device can’t store the account’s copy', () => {
   it('keeps every refused change on screen and sends none until one is stored', async () => {
     const server = new FakeAccount()

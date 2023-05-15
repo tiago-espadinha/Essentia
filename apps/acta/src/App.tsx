@@ -15,6 +15,7 @@ import {
   categoriesOf,
   filterTasks,
   progressOf,
+  sameCategory,
   STATUS_LABELS,
   todayIso,
   type StatusFilter,
@@ -57,9 +58,10 @@ export default function App() {
   const categories = categoriesOf(tasks)
   // A category filter lapses once its chip is gone: its last task was removed or
   // recategorized, or only one category is left and the chips are hidden.
+  // It matches ignoring case, and reads as the chip spells it.
   const category =
-    categories.length > 1 && selectedCategory !== null && categories.includes(selectedCategory)
-      ? selectedCategory
+    categories.length > 1 && selectedCategory !== null
+      ? (categories.find((candidate) => sameCategory(candidate, selectedCategory)) ?? null)
       : null
   if (category === null && selectedCategory !== null) setSelectedCategory(null)
   const visible = filterTasks(tasks, status, category)

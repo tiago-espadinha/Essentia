@@ -210,6 +210,39 @@
 .add__priority--set { color: var(--color-accent-text); }
 .add__priority--set .add__priority-select { border-color: var(--color-accent-text); }
 
+.add__category {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  margin-top: var(--space-1);
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Sized like the priority select; a name longer than the box scrolls inside it. */
+.add__category-input {
+  width: 9rem;
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-sand);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.add__category-input::placeholder { color: var(--color-mid); }
+
+.add__category--set { color: var(--color-accent-text); }
+.add__category--set .add__category-input { border-color: var(--color-accent-text); }
+
 .add__due { max-width: 22rem; }
 
 .due-field__row {

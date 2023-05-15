@@ -378,6 +378,89 @@
   color: var(--color-ink);
 }
 
+/* Category manager: a quiet toggle under the filters, opening a short list. */
+.categories {
+  display: grid;
+  justify-items: center;
+  margin-top: var(--space-2);
+}
+
+.categories__toggle {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-mid);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease);
+}
+
+.categories__toggle:hover,
+.categories__toggle[aria-expanded='true'] { color: var(--color-accent-text); }
+
+.categories__panel {
+  justify-self: stretch;
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-md);
+  background: var(--color-paper);
+}
+
+.categories__intro {
+  max-width: 65ch;
+  margin-bottom: var(--space-3);
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
+.categories__list { list-style: none; }
+
+/* Name and count on the left, actions on the right, however long the name runs. */
+.categories__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  min-height: 44px;
+  padding-block: var(--space-1);
+  border-top: 1px solid var(--color-faint);
+}
+
+.categories__label { display: grid; min-width: 0; }
+
+.categories__name { overflow-wrap: anywhere; }
+
+.categories__count { color: var(--color-mid); }
+
+.categories__actions {
+  display: flex;
+  margin-right: calc(-1 * var(--space-2));
+}
+
+.dialog__body {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.categories__outcome {
+  min-height: calc(var(--text-sm) * 1.5);
+  color: var(--color-mid);
+  font-size: var(--text-sm);
+}
+
 /* List */
 .section-row {
   display: flex;

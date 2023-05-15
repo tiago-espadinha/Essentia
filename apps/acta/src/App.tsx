@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
 import { AddTask } from './components/AddTask'
 import { AppHeader } from './components/AppHeader'
+import { CategoryManager } from './components/CategoryManager'
 import { Filters } from './components/Filters'
 import { Hero } from './components/Hero'
 import { TaskItem, type FocusRequest } from './components/TaskItem'
@@ -13,6 +14,8 @@ import { UndoNotice } from './components/UndoNotice'
 import {
   applyDraft,
   categoriesOf,
+  categoryCounts,
+  DEFAULT_CATEGORY,
   filterTasks,
   progressOf,
   sameCategory,
@@ -32,7 +35,7 @@ export default function App() {
   const auth = useAuth(client)
   const {
     tasks, owner, saveFailed, syncState, sync, unclaimed, answer, conflictOf, keepMine, takeTheirs,
-    add, toggle, remove, restore, update,
+    add, toggle, remove, restore, update, moveCategory,
   } = useTasks(client)
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -105,6 +108,12 @@ export default function App() {
     else addInput.current?.focus()
   }
 
+  // A filter on the moved category follows it to its new name; one on a removed category lapses.
+  function moveTasks(from: string, to: string) {
+    motion(() => moveCategory(from, to))
+    if (category !== null && sameCategory(category, from)) setSelectedCategory(to === DEFAULT_CATEGORY ? null : to)
+  }
+
   function showAll() {
     setStatus('all')
     setSelectedCategory(null)
@@ -158,6 +167,7 @@ export default function App() {
                 onStatusChange={setStatus}
                 onCategoryChange={setSelectedCategory}
               />
+              <CategoryManager uses={categoryCounts(tasks)} onMove={moveTasks} />
               <section aria-labelledby="list-title">
                 <div className="section-row">
                   <h2 id="list-title" className="label">

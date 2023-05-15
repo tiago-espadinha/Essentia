@@ -3,6 +3,7 @@ import { STORAGE_KEY } from '../data/storage'
 import { $, addTask, buttonNamed, click, renderApp, setupApp, submit, taskTexts, type } from './testing'
 
 setupApp()
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true }
 
 const categoryOf = (text: string) =>
   [...document.querySelectorAll('.task')].find((row) => row.querySelector('.task__text')?.textContent === text)
@@ -64,5 +65,107 @@ describe('filtering by category', () => {
     submit($<HTMLFormElement>('form.editor'))
     expect(taskTexts()).toEqual(['One', 'Two'])
     expect(categoryOf('One')).toBe('Work')
+  })
+})
+
+describe('managing categories', () => {
+  const seedThree = () =>
+    seed([
+      { text: 'Write', category: 'Work' },
+      { text: 'Ship', category: 'work', completed: true },
+      { text: 'Cook', category: 'Home' },
+      { text: 'Misc', category: 'General' },
+    ])
+  const openManager = () => click(buttonNamed('Categories'))
+  const rows = () => [...document.querySelectorAll('.categories__row')].map((row) => row.textContent)
+  const nameInput = () => $<HTMLInputElement>('#category-name')
+
+  it('lists every category with its task count; General has no actions', () => {
+    seedThree()
+    expect(buttonNamed('Categories').getAttribute('aria-expanded')).toBe('false')
+    openManager()
+    expect(buttonNamed('Categories').getAttribute('aria-expanded')).toBe('true')
+    expect(rows()).toEqual([
+      'General1 task',
+      'Home1 taskRename “Home”Remove “Home”',
+      'Work2 tasksRename “Work”Remove “Work”',
+    ])
+  })
+
+  it('renames a category on all its tasks and the filter follows', () => {
+    seedThree()
+    click(buttonNamed('Work'))
+    openManager()
+    click(buttonNamed('Rename “Work”'))
+    expect($('#category-title').textContent).toBe('Rename “Work”')
+    type(nameInput(), '  Office   hours ')
+    expect($('#category-outcome').textContent).toBe('2 tasks move to “Office hours”.')
+    click(buttonNamed('Rename'))
+
+    expect(document.querySelector('dialog')).toBeNull()
+    expect(categoryOf('Write')).toBe('Office hours')
+    expect(categoryOf('Ship')).toBe('Office hours')
+    expect($('#list-title').textContent).toBe('All · Office hours')
+    expect(taskTexts()).toEqual(['Write', 'Ship'])
+    expect(document.activeElement).toBe(buttonNamed('Rename “Office hours”'))
+    expect($('.categories__status').textContent).toBe('Tasks filed under “Work” are now under “Office hours”.')
+  })
+
+  it('says a rename into an existing category merges, and changes nothing on cancel', () => {
+    seedThree()
+    openManager()
+    click(buttonNamed('Rename “Work”'))
+    type(nameInput(), 'HOME')
+    expect($('#category-outcome').textContent).toBe('“Home” already exists, so the two become one: 2 tasks move to it.')
+    click(buttonNamed('Cancel'))
+    expect(categoryOf('Write')).toBe('Work')
+
+    click(buttonNamed('Rename “Work”'))
+    type(nameInput(), 'HOME')
+    click(buttonNamed('Merge'))
+    expect(rows()).toEqual(['General1 task', 'Home3 tasksRename “Home”Remove “Home”'])
+    expect(categoryOf('Write')).toBe('Home')
+  })
+
+  it.each([
+    ['   ', 'Name the category.'],
+    [' Work ', 'That is already its name.'],
+  ])('refuses the name %j inline and saves nothing', (value, message) => {
+    seedThree()
+    openManager()
+    click(buttonNamed('Rename “Work”'))
+    type(nameInput(), value)
+    submit($<HTMLFormElement>('dialog form'))
+    expect($('#category-error').textContent).toBe(message)
+    expect(nameInput().getAttribute('aria-invalid')).toBe('true')
+    expect(document.activeElement).toBe(nameInput())
+    expect(categoryOf('Write')).toBe('Work')
+  })
+
+  it('removes a category by moving its tasks to General, after saying so', () => {
+    seedThree()
+    click(buttonNamed('Home'))
+    openManager()
+    click(buttonNamed('Remove “Home”'))
+    expect($('#category-outcome').textContent).toBe('1 task moves to General.')
+    expect(document.activeElement).toBe(buttonNamed('Cancel'))
+    click(buttonNamed('Move and remove'))
+
+    expect(categoryOf('Cook')).toBe('General')
+    expect(rows()).toEqual(['General2 tasks', 'Work2 tasksRename “Work”Remove “Work”'])
+    expect($('#list-title').textContent).toBe('All')
+    expect(document.activeElement).toBe(buttonNamed('Categories'))
+  })
+
+  it('keeps the moves after a reload', () => {
+    seedThree()
+    openManager()
+    click(buttonNamed('Rename “Work”'))
+    type(nameInput(), 'Office')
+    click(buttonNamed('Rename'))
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!) as { text: string; category: string }[]
+    expect(stored.map((task) => [task.text, task.category])).toEqual([
+      ['Write', 'Office'], ['Ship', 'Office'], ['Cook', 'Home'], ['Misc', 'General'],
+    ])
   })
 })

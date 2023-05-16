@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AccountMenu } from './components/AccountMenu'
 import { AddTask } from './components/AddTask'
 import { AppHeader } from './components/AppHeader'
+import { CategoryManager } from './components/CategoryManager'
 import { Filters } from './components/Filters'
 import { Hero } from './components/Hero'
 import { TaskItem, type FocusRequest } from './components/TaskItem'
@@ -13,8 +14,11 @@ import { UndoNotice } from './components/UndoNotice'
 import {
   applyDraft,
   categoriesOf,
+  categoryCounts,
+  DEFAULT_CATEGORY,
   filterTasks,
   progressOf,
+  sameCategory,
   STATUS_LABELS,
   todayIso,
   type StatusFilter,
@@ -31,7 +35,7 @@ export default function App() {
   const auth = useAuth(client)
   const {
     tasks, owner, saveFailed, syncState, sync, unclaimed, answer, conflictOf, keepMine, takeTheirs,
-    add, toggle, remove, restore, update,
+    add, toggle, remove, restore, update, moveCategory,
   } = useTasks(client)
   const [status, setStatus] = useState<StatusFilter>('all')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -57,9 +61,10 @@ export default function App() {
   const categories = categoriesOf(tasks)
   // A category filter lapses once its chip is gone: its last task was removed or
   // recategorized, or only one category is left and the chips are hidden.
+  // It matches ignoring case, and reads as the chip spells it.
   const category =
-    categories.length > 1 && selectedCategory !== null && categories.includes(selectedCategory)
-      ? selectedCategory
+    categories.length > 1 && selectedCategory !== null
+      ? (categories.find((candidate) => sameCategory(candidate, selectedCategory)) ?? null)
       : null
   if (category === null && selectedCategory !== null) setSelectedCategory(null)
   const visible = filterTasks(tasks, status, category)
@@ -103,6 +108,12 @@ export default function App() {
     else addInput.current?.focus()
   }
 
+  // A filter on the moved category follows it to its new name; one on a removed category lapses.
+  function moveTasks(from: string, to: string) {
+    motion(() => moveCategory(from, to))
+    if (category !== null && sameCategory(category, from)) setSelectedCategory(to === DEFAULT_CATEGORY ? null : to)
+  }
+
   function showAll() {
     setStatus('all')
     setSelectedCategory(null)
@@ -121,7 +132,11 @@ export default function App() {
       <main className="acta ui-workspace-layout" ref={mainRef}>
         <Hero total={tasks.length} done={done} progress={progressOf(tasks)} />
         <div className="workspace">
-          <AddTask inputRef={addInput} onAdd={(value, due, priority) => motion(() => add(value, due, priority))} />
+          <AddTask
+            inputRef={addInput}
+            categories={categories}
+            onAdd={(value, due, priority, category) => motion(() => add(value, due, priority, category))}
+          />
           <UndoNotice deleted={deleted?.task ?? null} onUndo={undoDelete} />
           {syncState === 'failed' && (
             <div className="sync-notice" role="status">
@@ -152,6 +167,7 @@ export default function App() {
                 onStatusChange={setStatus}
                 onCategoryChange={setSelectedCategory}
               />
+              <CategoryManager uses={categoryCounts(tasks)} onMove={moveTasks} />
               <section aria-labelledby="list-title">
                 <div className="section-row">
                   <h2 id="list-title" className="label">

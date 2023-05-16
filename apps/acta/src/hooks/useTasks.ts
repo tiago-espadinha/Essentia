@@ -7,7 +7,9 @@ import {
   change, claim, claimable, conflictOf, keepMine, syncAccount, takeTheirs, visibleTasks, type ConflictKind,
 } from '../data/sync'
 import { ACCOUNT_PREFIX, emptyAccount, readAccountState, writeAccountState, type AccountState } from '../data/syncStorage'
-import { applyDraft, createTask, newId, type Task, type TaskDraft } from '../domain/tasks'
+import {
+  applyDraft, categoriesOf, createTask, moveCategory, newId, resolveCategory, type Task, type TaskDraft,
+} from '../domain/tasks'
 
 export type { SyncState }
 
@@ -237,8 +239,9 @@ export function useTasks(client: SupabaseClient | null = null) {
     conflictOf: (id: string): ConflictKind | null => (source.kind === 'account' ? conflictOf(source.state, id) : null),
     keepMine: (id: string) => resolve((state) => keepMine(state, id, newId())),
     takeTheirs: (id: string) => resolve((state) => takeTheirs(state, id)),
-    add: (text: string, due = '', priority = 'none') => {
-      const task = createTask(text, undefined, due, priority)
+    /** A category matching one in use ignoring case is saved with that category's spelling. */
+    add: (text: string, due = '', priority = 'none', category = '') => {
+      const task = createTask(text, undefined, due, priority, resolveCategory(category, categoriesOf(tasks)))
       commit((state) => change(state, task.id, task, newId()), (list) => [task, ...list])
     },
     toggle: (id: string) => edit(id, (task) => ({ ...task, completed: !task.completed })),
@@ -252,6 +255,25 @@ export function useTasks(client: SupabaseClient | null = null) {
           return list.toSpliced(index === -1 ? list.length : index, 0, task)
         },
       ),
-    update: (id: string, draft: TaskDraft) => edit(id, (task) => applyDraft(task, draft) ?? task),
+    // Matched against the other tasks only, so the one task in a category can change its case.
+    update: (id: string, draft: TaskDraft) => edit(id, (task) => {
+      const others = categoriesOf(tasks.filter((candidate) => candidate.id !== id))
+      return applyDraft(task, { ...draft, category: resolveCategory(draft.category, others) }) ?? task
+    }),
+    /** Files every task under `from` under `to` in one change: one ordinary edit per task for the account. */
+    // Worked out on the copy being changed, which another tab may have moved on; a task
+    // deleted here that waits on a conflict stays deleted rather than being written again.
+    moveCategory: (from: string, to: string) => {
+      if (moveCategory(tasks, from, to).length === 0) return
+      commit(
+        (state) => moveCategory(visibleTasks(state), from, to)
+          .filter((task) => conflictOf(state, task.id) !== 'deleted-here')
+          .reduce((next, task) => change(next, task.id, task, newId()), state),
+        (list) => {
+          const moved = new Map(moveCategory(list, from, to).map((task) => [task.id, task]))
+          return list.map((task) => moved.get(task.id) ?? task)
+        },
+      )
+    },
   }
 }

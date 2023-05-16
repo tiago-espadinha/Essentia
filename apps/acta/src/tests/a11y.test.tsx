@@ -4,6 +4,7 @@ import { STORAGE_KEY } from '../data/storage'
 import { $, addTask, buttonNamed, click, renderApp, setupApp, submit } from './testing'
 
 setupApp()
+HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) { this.open = true }
 
 // jsdom has no layout or computed colours, so contrast is checked in the browser
 // by the design critique instead.
@@ -48,6 +49,26 @@ describe('accessibility', () => {
     const container = renderApp()
     addTask('Gone')
     click(buttonNamed('Delete “Gone”'))
+    expect(await seriousViolations(container)).toEqual([])
+  })
+
+  it('has no serious violations with the category manager open, and labels the add form category field', async () => {
+    const container = renderApp()
+    addTask('Plan')
+    click(buttonNamed('Categories'))
+    expect(await seriousViolations(container)).toEqual([])
+    addTask('Pack')
+    const input = $<HTMLInputElement>('#add-category')
+    expect(input.labels?.[0]?.textContent).toBe('Category')
+  })
+
+  it('has no serious violations in the rename dialog with an error', async () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([{ id: '1', text: 'Ship', completed: false, category: 'Work', due: '' }]))
+    const container = renderApp()
+    click(buttonNamed('Categories'))
+    click(buttonNamed('Rename “Work”'))
+    submit($<HTMLFormElement>('dialog form'))
+    expect($('#category-error').textContent).toBe('That is already its name.')
     expect(await seriousViolations(container)).toEqual([])
   })
 

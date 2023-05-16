@@ -59,6 +59,27 @@ export const messages = {
   "Deleted on another device.": "Eliminada noutro dispositivo.",
   "You deleted this, but it changed on another device.": "Eliminou esta tarefa, mas foi alterada noutro dispositivo.",
   "Keep mine": "Manter a minha",
-  "Use theirs": "Usar a outra"
+  "Use theirs": "Usar a outra",
+  "Categories": "Categorias",
+  "Renaming a category changes it on every task in it; removing one moves its tasks to General.": "Mudar o nome de uma categoria altera-o em todas as suas tarefas; remover uma move as suas tarefas para General.",
+  "{count} task": "{count} tarefa",
+  "{count} tasks": "{count} tarefas",
+  "Rename": "Mudar o nome",
+  "Remove": "Remover",
+  "Rename “{name}”": "Mudar o nome de “{name}”",
+  "Remove “{name}”": "Remover “{name}”",
+  "New name": "Novo nome",
+  "Merge": "Juntar",
+  "Move and remove": "Mover e remover",
+  "1 task moves to General.": "1 tarefa passa para General.",
+  "{count} tasks move to General.": "{count} tarefas passam para General.",
+  "1 task moves to “{to}”.": "1 tarefa passa para “{to}”.",
+  "{count} tasks move to “{to}”.": "{count} tarefas passam para “{to}”.",
+  "“{to}” already exists, so the two become one: 1 task moves to it.": "“{to}” já existe, por isso as duas passam a ser uma: 1 tarefa passa para ela.",
+  "“{to}” already exists, so the two become one: {count} tasks move to it.": "“{to}” já existe, por isso as duas passam a ser uma: {count} tarefas passam para ela.",
+  "Tasks filed under “{from}” are now under “{to}”.": "As tarefas de “{from}” estão agora em “{to}”.",
+  "Name the category.": "Indique um nome para a categoria.",
+  "That is already its name.": "Esse já é o nome dela.",
+  "General cannot be renamed.": "Não é possível mudar o nome de General."
 }
 export const t = createTranslator(messages)

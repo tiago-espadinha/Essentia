@@ -1,19 +1,22 @@
 import { t } from '../locale'
 import { useRef, useState, type FormEvent, type RefObject } from 'react'
-import { formatDue, LIMITS, type Priority } from '../domain/tasks'
+import { DEFAULT_CATEGORY, formatDue, LIMITS, type Priority } from '../domain/tasks'
 import { DueDateField } from './DueDateField'
 import { PrioritySelect } from './PrioritySelect'
 
 interface AddTaskProps {
   inputRef: RefObject<HTMLInputElement | null>
-  onAdd: (text: string, due: string, priority: Priority) => void
+  /** Categories in use, offered as suggestions. */
+  categories: string[]
+  onAdd: (text: string, due: string, priority: Priority, category: string) => void
 }
 
-export function AddTask({ inputRef, onAdd }: AddTaskProps) {
+export function AddTask({ inputRef, categories, onAdd }: AddTaskProps) {
   const [text, setText] = useState('')
   const [due, setDue] = useState('')
   const [dueOpen, setDueOpen] = useState(false)
   const [priority, setPriority] = useState<Priority>('none')
+  const [category, setCategory] = useState('')
   const [dueInvalid, setDueInvalid] = useState(false)
   const dueRef = useRef<HTMLInputElement>(null)
   // Counts refused submits; each one remounts the alert so it is announced again.
@@ -34,10 +37,11 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
       dueInput.focus()
       return
     }
-    onAdd(text, due, priority)
+    onAdd(text, due, priority, category)
     setText('')
     setDue('')
     setPriority('none')
+    setCategory('')
     setDueOpen(false)
     setDueInvalid(false)
     setRefusals(0)
@@ -105,6 +109,24 @@ export function AddTask({ inputRef, onAdd }: AddTaskProps) {
         <div className={`add__priority${priority === 'none' ? '' : ' add__priority--set'}`}>
           <label htmlFor="add-priority">{t('Priority')}</label>
           <PrioritySelect id="add-priority" className="add__priority-select" value={priority} onChange={setPriority} />
+        </div>
+        <div className={`add__category${category.trim() ? ' add__category--set' : ''}`}>
+          <label htmlFor="add-category">{t('Category')}</label>
+          <input
+            id="add-category"
+            className="add__category-input"
+            value={category}
+            maxLength={LIMITS.category}
+            placeholder={DEFAULT_CATEGORY}
+            list="add-categories"
+            autoComplete="off"
+            onChange={(event) => setCategory(event.target.value)}
+          />
+          <datalist id="add-categories">
+            {categories.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </div>
       </div>
       {dueOpen && (

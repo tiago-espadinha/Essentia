@@ -2,13 +2,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   applyDraft,
   categoriesOf,
+  categoryCounts,
+  checkRename,
   createTask,
   DEFAULT_CATEGORY,
   filterTasks,
   formatDue,
   isIsoDay,
   isOverdue,
+  moveCategory,
   newId,
+  normalizeCategory,
+  resolveCategory,
   progressOf,
   todayIso,
   type Task,
@@ -147,5 +152,79 @@ describe('dates', () => {
   it('formats a due date as a calendar day', () => {
     expect(formatDue('2022-05-28')).toBe('28 May')
     expect(formatDue('2023-01-01')).toBe('1 Jan')
+  })
+})
+
+describe('category names', () => {
+  it('trims, collapses inner spaces and files a blank or any spelling of General under General', () => {
+    expect(normalizeCategory('  Deep \t  work ')).toBe('Deep work')
+    expect(normalizeCategory('   ')).toBe(DEFAULT_CATEGORY)
+    expect(normalizeCategory(' gEnErAl ')).toBe(DEFAULT_CATEGORY)
+  })
+
+  it('reuses a category in use when the typed name matches it ignoring case and spacing', () => {
+    expect(resolveCategory(' work ', ['Home', 'Work'])).toBe('Work')
+    expect(resolveCategory('saúde', ['Saúde'])).toBe('Saúde')
+    expect(resolveCategory('ÉTÉ', ['été'])).toBe('été')
+    expect(resolveCategory('Garden', ['Home'])).toBe('Garden')
+  })
+
+  it('files a new task under the category given, normalised', () => {
+    expect(createTask('Plan', 'a', '', 'none', '  Deep   work ').category).toBe('Deep work')
+    expect(createTask('Plan', 'a', '', 'none', ' ').category).toBe(DEFAULT_CATEGORY)
+  })
+
+  it('lists stored spellings that differ only in case or spacing as one, spelled by the first task', () => {
+    const tasks = [task({ category: 'work' }), task({ category: 'Work' }), task({ category: 'WORK  ' }), task({ category: 'general' })]
+    expect(categoriesOf(tasks)).toEqual([DEFAULT_CATEGORY, 'work'])
+    expect(categoryCounts(tasks)).toEqual([{ name: DEFAULT_CATEGORY, count: 1 }, { name: 'work', count: 3 }])
+  })
+
+  it('filters on a category ignoring case', () => {
+    const tasks = [task({ id: '1', category: 'Work' }), task({ id: '2', category: 'WORK' }), task({ id: '3', category: 'Home' })]
+    expect(filterTasks(tasks, 'all', 'work').map((t) => t.id)).toEqual(['1', '2'])
+  })
+})
+
+describe('moveCategory', () => {
+  const tasks = [
+    task({ id: '1', category: 'work' }),
+    task({ id: '2', category: 'Work', completed: true, priority: 'high' }),
+    task({ id: '3', category: 'Home' }),
+  ]
+
+  it('returns only the moved tasks, each otherwise unchanged', () => {
+    expect(moveCategory(tasks, 'Work', 'Office')).toEqual([
+      { ...tasks[0], category: 'Office' },
+      { ...tasks[1], category: 'Office' },
+    ])
+  })
+
+  it('unifies the spelling on a case-only rename, skipping tasks already spelled so', () => {
+    expect(moveCategory(tasks, 'work', 'Work').map((t) => t.id)).toEqual(['1'])
+  })
+
+  it('moves to General when a category is removed', () => {
+    expect(moveCategory(tasks, 'Home', DEFAULT_CATEGORY)).toEqual([{ ...tasks[2], category: DEFAULT_CATEGORY }])
+  })
+})
+
+describe('checkRename', () => {
+  const categories = ['General', 'Home', 'Work']
+
+  it('refuses a blank or unchanged name, and General itself', () => {
+    expect(checkRename('Work', '  ', categories)).toEqual({ error: 'Name the category.' })
+    expect(checkRename('Work', ' Work ', categories)).toEqual({ error: 'That is already its name.' })
+    expect(checkRename('General', 'Misc', categories)).toEqual({ error: 'General cannot be renamed.' })
+  })
+
+  it('renames, allowing a change of case alone', () => {
+    expect(checkRename('Work', 'Office  hours', categories)).toEqual({ name: 'Office hours', merge: null })
+    expect(checkRename('Work', 'WORK', categories)).toEqual({ name: 'WORK', merge: null })
+  })
+
+  it('merges into another category matching ignoring case, keeping its spelling', () => {
+    expect(checkRename('Work', 'home', categories)).toEqual({ name: 'Home', merge: 'Home' })
+    expect(checkRename('Work', 'general', categories)).toEqual({ name: 'General', merge: 'General' })
   })
 })

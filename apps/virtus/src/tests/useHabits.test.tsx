@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { STORAGE_KEY } from '../data/storage'
 import { TODAY_DATE } from './testing'
+import { parseHashtag } from '@essentia/ui'
 import { useHabits } from '../hooks/useHabits'
 
 type Row = Record<string, unknown>
@@ -157,6 +158,21 @@ describe('syncing habits with the account', () => {
     await open(phone.client)
     expect(names()).toEqual(['Read'])
     expect(hook().habits[0].log).toEqual({ '2022-08-15': 1 })
+  })
+
+  it('syncs a habit filed by a #tag as an ordinary habit in that category', async () => {
+    const server = fakeServer()
+    const laptop = server.client({ user: { id: 'ana' } })
+    await open(laptop.client)
+    const { text, tag } = parseHashtag('Stretch #morning_routine', 50)
+    await settle(() => hook().add({ ...draft(text), category: tag! }))
+    expect(hook().syncState).toBe('synced')
+    close()
+
+    localStorage.clear()
+    const phone = server.client({ user: { id: 'ana' } })
+    await open(phone.client)
+    expect(hook().habits).toMatchObject([{ name: 'Stretch', category: 'morning routine' }])
   })
 
   it('removes habits made before signing in when told to, and shows the account’s own', async () => {

@@ -10,3 +10,5 @@ export { LOCALE_KEY, currentLocale, setLocale, subscribeLocale, useLocale, creat
 export { LocaleSelect } from './components/LocaleSelect'
 export { registerOfflineWorker } from './domain/pwa'
 export { isSearchFocus } from './domain/search'
+export { HashtagInput, HashtagChip } from './components/HashtagInput'
+export { parseHashtag, type ParsedHashtag } from './domain/hashtag'

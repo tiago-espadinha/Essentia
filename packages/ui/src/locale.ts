@@ -23,6 +23,8 @@ export const messages = {
   "Accent changed for this page. Your browser could not save it.": "Cor alterada nesta página. O navegador não conseguiu guardá-la.",
   "Dark theme": "Tema escuro",
   "Back to ": "Voltar a ",
-  "Close": "Fechar"
+  "Close": "Fechar",
+  "Categories": "Categorias",
+  "Category: {category}": "Categoria: {category}"
 }
 export const t = createTranslator(messages)

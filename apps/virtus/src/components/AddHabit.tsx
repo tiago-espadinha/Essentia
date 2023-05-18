@@ -1,5 +1,6 @@
 import { t } from '../locale'
 import { useState, type FormEvent, type RefObject } from 'react'
+import { HashtagChip, HashtagInput, parseHashtag } from '@essentia/ui'
 import { HabitFields } from './HabitFields'
 import { EMPTY_FORM, readForm, type FormErrors } from '../domain/habitForm'
 import type { HabitDraft } from '../domain/habits'
@@ -17,10 +18,14 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
   const [errors, setErrors] = useState<FormErrors>({})
   // Counts refused submits; each one remounts the alert so it is announced again.
   const [refusals, setRefusals] = useState(0)
+  // A '#name' word files the habit under that category, over the Category field.
+  const parsed = parseHashtag(form.name, LIMITS.category)
+  const tagged = parsed.tag === null ? null
+    : categories.find((name) => name.toLowerCase() === parsed.tag!.toLowerCase()) ?? parsed.tag
 
   function submit(event: FormEvent) {
     event.preventDefault()
-    const result = readForm(form)
+    const result = readForm({ ...form, name: parsed.text, category: tagged ?? form.category })
     if (result.errors) {
       setErrors(result.errors)
       setRefusals(refusals + 1)
@@ -39,14 +44,16 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
     <form className="add" onSubmit={submit} noValidate>
       <label className="visually-hidden" htmlFor="add-habit">{t("New habit")}</label>
       <div className="add__row">
-        <input
-          ref={inputRef}
+        <HashtagInput
+          inputRef={inputRef}
           id="add-habit"
           className="input add__input"
           value={form.name}
           maxLength={LIMITS.name}
-          onChange={(event) => {
-            setForm({ ...form, name: event.target.value })
+          categories={categories}
+          maxTag={LIMITS.category}
+          onValueChange={(name) => {
+            setForm({ ...form, name })
             setErrors({ ...errors, name: undefined })
           }}
           placeholder={t("Add a new habit…")}
@@ -61,6 +68,7 @@ export function AddHabit({ inputRef, categories, onAdd }: AddHabitProps) {
           <span className="visually-hidden">{t("Add habit")}</span>
         </button>
       </div>
+      <HashtagChip category={tagged} />
       {errors.name && (
         <p key={refusals} id="add-habit-error" className="field-error" role="alert">
           {t(errors.name)}

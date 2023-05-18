@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { STORAGE_KEY } from '../data/storage'
 import { ACCOUNT_PREFIX, readAccountState } from '../data/syncStorage'
+import { parseHashtag } from '@essentia/ui'
 import { useTasks } from '../hooks/useTasks'
 import { FakeAccount, fakeClient } from './fakeAccount'
 
@@ -241,6 +242,24 @@ describe('categories', () => {
     await settle(() => hook().add('Second', '', 'none', ' work '))
     await settle(() => hook().add('Third'))
     expect(hook().tasks.map((task) => task.category)).toEqual(['General', 'Work', 'Work'])
+  })
+
+  it('syncs a task filed by a #tag as an ordinary task in that category', async () => {
+    const server = new FakeAccount()
+    const laptop = fakeClient(server)
+    await open(laptop.client)
+    await signInAs(laptop, ANA)
+    await settle(() => hook().add('Plan', '', 'none', 'Deep work'))
+    const { text, tag } = parseHashtag('Read the brief #deep_WORK', 100)
+    await settle(() => hook().add(text, '', 'none', tag!))
+    expect(hook().syncState).toBe('synced')
+    close()
+
+    localStorage.clear()
+    const phone = fakeClient(server)
+    phone.restore(ANA)
+    await open(phone.client)
+    expect(hook().tasks).toMatchObject([{ text: 'Read the brief', category: 'Deep work' }, { text: 'Plan', category: 'Deep work' }])
   })
 
   it('lets the only task in a category change its case, but not one of several', async () => {

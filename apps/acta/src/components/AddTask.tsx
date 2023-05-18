@@ -1,6 +1,7 @@
 import { t } from '../locale'
 import { useRef, useState, type FormEvent, type RefObject } from 'react'
-import { DEFAULT_CATEGORY, formatDue, LIMITS, type Priority } from '../domain/tasks'
+import { HashtagChip, HashtagInput, parseHashtag } from '@essentia/ui'
+import { DEFAULT_CATEGORY, formatDue, LIMITS, resolveCategory, type Priority } from '../domain/tasks'
 import { DueDateField } from './DueDateField'
 import { PrioritySelect } from './PrioritySelect'
 
@@ -22,11 +23,13 @@ export function AddTask({ inputRef, categories, onAdd }: AddTaskProps) {
   // Counts refused submits; each one remounts the alert so it is announced again.
   const [refusals, setRefusals] = useState(0)
   const invalid = refusals > 0
+  // A '#name' word files the task under that category, over the Category field.
+  const parsed = parseHashtag(text, LIMITS.category)
 
   function submit(event: FormEvent) {
     event.preventDefault()
     const dueInput = dueRef.current
-    if (!text.trim()) {
+    if (!parsed.text.trim()) {
       setRefusals(refusals + 1)
       inputRef.current?.focus()
       return
@@ -37,7 +40,7 @@ export function AddTask({ inputRef, categories, onAdd }: AddTaskProps) {
       dueInput.focus()
       return
     }
-    onAdd(text, due, priority, category)
+    onAdd(parsed.text, due, priority, parsed.tag ?? category)
     setText('')
     setDue('')
     setPriority('none')
@@ -54,14 +57,16 @@ export function AddTask({ inputRef, categories, onAdd }: AddTaskProps) {
         {t("New task")}
       </label>
       <div className="add__row">
-        <input
-          ref={inputRef}
+        <HashtagInput
+          inputRef={inputRef}
           id="add-task"
           className="add__input"
           value={text}
           maxLength={LIMITS.text}
-          onChange={(event) => {
-            setText(event.target.value)
+          categories={categories}
+          maxTag={LIMITS.category}
+          onValueChange={(value) => {
+            setText(value)
             setRefusals(0)
           }}
           placeholder={t("Add something to do…")}
@@ -76,6 +81,7 @@ export function AddTask({ inputRef, categories, onAdd }: AddTaskProps) {
           <span className="visually-hidden">{t("Add task")}</span>
         </button>
       </div>
+      <HashtagChip category={parsed.tag === null ? null : resolveCategory(parsed.tag, categories)} />
       {invalid && (
         <p key={refusals} id="add-task-error" className="field-error" role="alert">
           {t("Write something first.")}

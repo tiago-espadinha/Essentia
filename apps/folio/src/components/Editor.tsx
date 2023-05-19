@@ -125,7 +125,7 @@ export function Editor({ note, folders, readOnly, autoFocus, onFocused, onChange
               </svg>
               <span className="pin-button__label">{t("Pin")}</span>
             </button>
-            {/* From 1024 px the actions sit in the bar; below, they fold into More. */}
+            {/* The actions sit in a wide bar and fold into More otherwise; CSS shows one set. */}
             <button type="button" id={CONVERT_BUTTON_ID} className="button-ghost note-action" onClick={() => onConvert(CONVERT_BUTTON_ID)}>
               {convertLabel}
             </button>

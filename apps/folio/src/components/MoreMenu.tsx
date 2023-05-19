@@ -11,7 +11,7 @@ export interface MoreMenuItem {
 }
 
 /**
- * The note actions that do not fit the editor bar below 1024 px, as a menu
+ * The note actions that do not fit a narrow editor bar, as a menu
  * button: it opens on the first item (the last with ArrowUp), arrows and
  * Home/End move, Escape closes back to the trigger, and Tab, a click outside or
  * focus leaving it closes it where focus goes.

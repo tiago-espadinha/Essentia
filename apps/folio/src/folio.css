@@ -257,6 +257,8 @@
 
 /* Editor */
 .editor__bar {
+  /* Its contents answer to its own width, which the sidebar and viewport both change. */
+  container: editor-bar / inline-size;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -666,11 +668,14 @@
   }
 }
 
-/* More: below 1024 px Convert, Versions and Delete fold into a menu so the bar
-   keeps to two rows; from 1024 px they sit in the bar and More is gone. */
-.more-menu {
-  position: relative;
-  display: none;
+/* More: Convert, Versions, Share and Delete fold into a menu unless the bar has
+   room for them all, which only happens from 1024 px. */
+.more-menu { position: relative; }
+.note-action { display: none; }
+
+@container editor-bar (width >= 960px) {
+  .note-action { display: inline-flex; }
+  .more-menu { display: none; }
 }
 
 .more-menu__trigger[aria-expanded='true'] {
@@ -714,28 +719,26 @@
 
 .more-menu__item--danger { color: var(--color-danger); }
 
-@media (max-width: 1023px) {
-  .note-action { display: none; }
-  .more-menu { display: block; }
-}
+/* Phones, and narrow bars while Write/Preview still takes room (1024 to 1279 px):
+   Pin and More show only their icons; their accessible names stay. */
+@media (width < 768px), (1024px <= width < 1280px) {
+  @container editor-bar (width < 760px) {
+    .pin-button,
+    .more-menu__trigger {
+      justify-content: center;
+      min-width: 44px;
+      padding: 0;
+    }
 
-/* Phones: Pin and More show only their icons; their accessible names stay. */
-@media (width < 768px) {
-  .pin-button,
-  .more-menu__trigger {
-    justify-content: center;
-    min-width: 44px;
-    padding: 0;
-  }
-
-  .pin-button__label,
-  .more-menu__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+    .pin-button__label,
+    .more-menu__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 }
 
@@ -787,8 +790,8 @@
   font-weight: 500;
 }
 
-/* A markdown note's toolbar is too long to share a row with the note actions:
-   it takes its own row under them at every width, scrolling sideways if it must. */
+/* A markdown note's toolbar is long: below 1024 px, and in a desktop bar too
+   narrow for it, it takes its own row, scrolling sideways if it must. */
 .editor__bar[data-mode] { flex-wrap: wrap; }
 
 .editor__bar[data-mode] .toolbar {
@@ -805,6 +808,16 @@
 /* The formatting buttons act on the source, so they leave with it. */
 .editor__bar[data-mode='preview'] .toolbar { display: none; }
 
+@media (width >= 1024px) {
+  @container editor-bar (width >= 688px) {
+    .editor__bar[data-mode] .toolbar {
+      order: 0;
+      flex-basis: auto;
+      margin-right: 0;
+    }
+  }
+}
+
 .md-panes[data-mode='write'] .md-preview,
 .md-panes[data-mode='preview'] .md-write { display: none; }
 
@@ -816,6 +829,8 @@
 @media (width >= 1280px) {
   .editor--markdown { max-width: 1200px; }
   .mode-switch { display: none; }
+  /* With the switch gone, the toolbar holds the actions to the right. */
+  .editor__bar[data-mode] .toolbar { margin-right: auto; }
   .editor__bar[data-mode='preview'] .toolbar { display: flex; }
 
   .md-panes {

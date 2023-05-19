@@ -100,7 +100,10 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
   into the Filter bar. A note's folder is picked in the editor's details row.
   Below 1024 px the editor bar keeps to two rows: Convert, Versions and Delete fold
   into a More menu beside Pin, the formatting toolbar sits below, and on phones Pin
-  and More show only their icons.
+  and More show only their icons. From 1024 px the bar takes one row: the actions stay
+  in it while the editor is wide, otherwise they fold together into More, and Pin and
+  More drop to icons when tighter still. Only a markdown note being written in a narrow
+  editor keeps the formatting toolbar on a second row.
   Keep separate Dictum discoverable until safe.
 - Navigation: retain the header’s back-to-hub link at every width. Validate exact
   breakpoints, density, reading order and pane controls in the implementation’s

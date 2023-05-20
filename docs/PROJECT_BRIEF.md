@@ -50,8 +50,9 @@ Visiting the deployed hub lets you use the four apps on one design system (Dictu
 | Virtus | Your Habits | Habit tracking |
 | Merces | Your Money | Renamed Aurum finance app |
 
-The target hub uses four entries in a two-by-two desktop grid and one mobile
-column. Each entry has its icon, name, catchphrase and one clear open action.
+The hub shows four app cards: two by two on phones, two columns from 768 px and
+four from 1280 px. Each card has a small sample of its app, its name and
+catchphrase, and the whole card opens the app.
 Shared account, appearance and search controls belong in the header. Existing
 Dictum left the hub once unified Folio synced and shared notes; `/dictum/` points to Folio.
 

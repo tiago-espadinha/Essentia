@@ -57,7 +57,7 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
 
 ## Rules
 - **Do:** use serif titles, readable sentence-case controls and restrained technical metadata to create hierarchy; separate with hairlines and whitespace; keep one primary action per view using the selected suite accent; use `--color-accent-text` for accent-coloured text; share the theme toggle and back-to-hub link.
-- **Avoid:** per-app colour schemes or new hex values in app CSS; drop shadows on cards; text below 11 px; muted text in `--color-faint`; `--color-faint` as an input border; Playfair Display; component-library default looks.
+- **Avoid:** per-app colour schemes or new hex values in app CSS; cards and drop shadows on cards outside the hub; text below 11 px; muted text in `--color-faint`; `--color-faint` as an input border; Playfair Display; component-library default looks.
 
 ## Components and patterns
 | Component | Purpose | Rules and states |
@@ -90,9 +90,12 @@ A faint paper grain over every app (`body::before`, SVG noise at `--grain-opacit
   regions. Within sufficiently wide workspaces, arrange habit statistics and
   finance planning/insights in two columns. Signed-out finance retains a readable
   form width. Finance naming and routes remain part of separate compatibility work.
-- Hub: two-by-two destination grid on wide screens, one column on mobile. Show
-  icon, name, catchphrase and one open action per entry; keep shared account,
-  appearance and search controls in the header.
+- Hub: app cards on the desk, two by two on phones, two columns from 768 px and
+  four from 1280 px. Each card shows a small sample of its app, its name and
+  catchphrase, and the whole card opens the app through one link named after it.
+  Cards sit flat and slightly tilted; on hover or focus they straighten and lift
+  with `--shadow-overlay`. Keep shared account, appearance and search controls in
+  the header.
 - Folio: Dictum-inspired writing/preview workspace and collapsible library aside;
   rich-text/markdown mode control. The aside holds search, All notes, Unfiled and
   single-level folders with counts, then the tag filter; from 1024 px a list-header

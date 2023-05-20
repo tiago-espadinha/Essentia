@@ -58,54 +58,136 @@
 .hub__apps,
 .hub__empty {
   margin-top: var(--space-12);
-  border-top: 1px solid var(--color-faint);
 }
 
-.hub__apps { display: grid; list-style: none; }
-
-.hub__entry {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-4);
-  padding: var(--space-6) 0;
-  border-bottom: 1px solid var(--color-faint);
-}
-
-.hub__icon { margin-top: var(--space-2); color: var(--color-accent-text); }
-
-.hub__app-name { font-family: var(--font-serif); font-size: var(--text-2xl); font-weight: 400; }
-
-.hub__catchphrase { margin-top: var(--space-1); color: var(--color-accent-text); }
-
-.hub__app-desc { grid-column: 2; color: var(--color-mid); max-width: 48ch; }
-
-.hub__open {
-  grid-column: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-self: start;
-  gap: var(--space-3);
-  min-height: 44px;
-  padding: var(--space-2) var(--space-1);
-  text-underline-offset: var(--space-1);
-  text-decoration-thickness: 1px;
-}
-
-.hub__open:hover { background: var(--color-paper); }
-
+.hub__empty { padding-top: var(--space-8); border-top: 1px solid var(--color-faint); }
 .hub__section-title { font-family: var(--font-serif); font-weight: 400; font-size: var(--text-xl); }
-.hub__empty { padding-top: var(--space-8); }
 .hub__empty-text { margin-top: var(--space-2); color: var(--color-mid); }
+
+/* App cards: stationery on a desk, tilted a little, straightened when picked up. */
+.hub__apps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.hub-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 13rem;
+  padding: var(--space-3);
+  background: var(--color-paper);
+  border: 1px solid var(--color-faint);
+  border-radius: var(--radius-sm);
+  rotate: -0.6deg;
+  transition: translate var(--duration-fast) var(--ease), rotate var(--duration-fast) var(--ease),
+    box-shadow var(--duration-fast) var(--ease);
+}
+
+.hub-card:nth-child(even) { rotate: 0.6deg; }
+
+.hub-card:focus-within {
+  rotate: 0deg;
+  translate: 0 calc(-1 * var(--space-2));
+  box-shadow: var(--shadow-overlay);
+}
+
+/* Touch screens keep :hover after a tap, so only pointers lift the card. */
+@media (hover: hover) {
+  .hub-card:hover {
+    rotate: 0deg;
+    translate: 0 calc(-1 * var(--space-2));
+    box-shadow: var(--shadow-overlay);
+  }
+
+  /* Fills the gap the lift leaves under the card, so the pointer stays on it. */
+  .hub-card:hover .hub-card__link::before {
+    content: '';
+    position: absolute;
+    inset: 100% 0 calc(-1 * var(--space-2));
+  }
+}
+
+.hub-card__sample {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+  color: var(--color-mid);
+  font-size: var(--text-2xs);
+  line-height: 1.8;
+}
+
+.hub-card__name { font-family: var(--font-serif); font-size: var(--text-xl); font-weight: 400; line-height: var(--leading-tight); }
+
+.hub-card__link { color: var(--color-ink); text-decoration: none; }
+
+/* The link covers the card; its focus ring is drawn around the whole card. */
+.hub-card__link::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-sm); }
+.hub-card__link:focus-visible { outline: none; }
+.hub-card__link:focus-visible::after { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+.hub-card__catchphrase { color: var(--color-accent-text); }
+
+.hub-sample p,
+.hub-sample li,
+.hub-sample dt { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.hub-sample--note p { border-bottom: 1px solid var(--color-faint); }
+.hub-sample__title { color: var(--color-ink); font-family: var(--font-serif); font-size: var(--text-sm); }
+
+.hub-sample--tasks { list-style: none; }
+.hub-sample--tasks li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-bottom: 1px dashed var(--color-line-strong);
+}
+.hub-sample--tasks .is-done { text-decoration: line-through; }
+.hub-sample__box { flex: none; width: 0.8em; height: 0.8em; border: 1px solid currentColor; border-radius: 2px; } /* a checkbox, not a dot: radius tokens are too round at 9-11 px */
+.is-done .hub-sample__box { background: currentColor; }
+
+.hub-sample--habits {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+  max-width: 10rem;
+}
+.hub-sample--habits span { aspect-ratio: 1; border: 1px solid var(--color-line-strong); border-radius: var(--radius-full); }
+.hub-sample--habits .is-done { background: var(--color-accent); border-color: var(--color-accent); }
+
+.hub-sample--receipt { font-family: var(--font-mono); }
+.hub-sample--receipt div { display: flex; justify-content: space-between; gap: var(--space-2); }
+.hub-sample__total { margin-top: var(--space-1); border-top: 1px solid var(--color-ink); color: var(--color-ink); }
+
+@media (forced-colors: active) {
+  .hub-card:hover { outline: 2px solid CanvasText; outline-offset: 2px; }
+  .hub-sample--habits .is-done,
+  .is-done .hub-sample__box { background: CanvasText; }
+}
 
 @media (min-width: 768px) {
   .hub__bar { padding-inline: var(--space-6); }
   .hub { padding: var(--space-12) var(--space-6) var(--space-16); }
   .hub__title { font-size: var(--text-4xl); }
-  .hub__apps { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-8); }
+  .hub__apps { gap: var(--space-8); }
+  .hub-card { min-height: 17rem; padding: var(--space-6); }
+  .hub-card__sample { font-size: var(--text-sm); }
+  .hub-sample__title { font-size: var(--text-xl); }
+  .hub-sample--habits { gap: var(--space-2); max-width: 14rem; }
+  .hub-card__foot { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+  .hub-card__name { font-size: var(--text-2xl); }
 }
 
 @media (min-width: 1024px) {
   .hub__bar { padding-inline: var(--space-8); }
   .hub { padding-inline: var(--space-8); }
-  .hub__apps { column-gap: var(--space-12); }
+}
+
+@media (min-width: 1280px) {
+  .hub__apps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hub-card { min-height: 22rem; }
 }

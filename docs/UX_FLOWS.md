@@ -33,7 +33,7 @@ four-app destination is specified separately below; it is not yet delivered.
 ## Current screen inventory
 | Screen / route | User goal | Primary action | Key states | Responsive notes |
 |---|---|---|---|---|
-| Hub `/` | Pick an app | Open an app | Populated; empty registry | Four primary entries in two columns from 768 px, one below |
+| Hub `/` | Pick an app | Open an app | Populated; empty registry | Four app cards: two by two below 768 px, two columns from 768 px, four from 1280 px; the whole card opens the app |
 | Acta `/acta/` | Manage tasks | Add task | Empty, list, filtered (none match), completed; signed in: sync error with retry, keep-or-add question, a task changed on another device (Keep mine / Use theirs) | 520 px column |
 | Folio `/folio/` | Write and find notes | New note | Empty library, list, editor (rich text, or markdown edited as source), search no results, empty folder, folder name refused, delete-folder confirmation, save failed, read-only with Export all when notes can't be stored | Library (folders and tags), list and editor from 1024 px, the library hideable; list + editor from 768 px (library folds into a filter bar); one pane below 768 px |
 | Virtus `/virtus/` | Track habits | Check in today; an amount habit's check opens a log dialog that adds to today's total (point or comma, up to 2 decimals) or clears it | Empty, habits, streak milestone, offline; amount mark empty, half filled below target or ticked at it, stated in its name | 520 px column |
@@ -70,8 +70,8 @@ four-app destination is specified separately below; it is not yet delivered.
 ## Revised destination journeys
 
 1. Open the hub and choose Folio · Your Notes, Acta · Your Tasks, Virtus · Your
-   Habits or Merces · Your Money. Use a two-by-two grid on wide screens and a
-   single column on mobile; keep each entry’s open action clear.
+   Habits or Merces · Your Money. Each is a card with a small sample of the app;
+   clicking or tapping anywhere on it opens the app.
 2. Open the primary working view: unified Folio writing with an explicit mode
    control, tasks, habit check-ins or finance. Current account/local-use boundaries
    continue until separately reviewed sync work is delivered.
@@ -87,7 +87,7 @@ four-app destination is specified separately below; it is not yet delivered.
 
 | Surface | Agreed direction | Remaining decision |
 | --- | --- | --- |
-| Hub | Four destination entries; icons, catchphrases and open actions; account/appearance/search in header | Account, accent select, theme toggle and search implemented. Dictum left the hub and `/dictum/` points to Folio; custom app creation excluded |
+| Hub | Four app cards with a sample, name and catchphrase, each opening its app; account/appearance/search in header | Account, accent select, theme toggle and search implemented. Dictum left the hub and `/dictum/` points to Folio; custom app creation excluded |
 | Folio | Dictum writing/preview patterns; collapsible library aside with single-level folders above the tag filter; explicit rich-text/markdown control | Syncing folders and notes to the account |
 | Acta, Virtus, Merces | Use wide desktop space with comfortable reading regions, 24–32 px outer gutters and meaningful list/detail or summary areas; collapse on mobile | Exact density, pane arrangement and breakpoints require rendered review |
 | Virtus habit settings and list filters | The add options and edit dialog label recurrence "Repeats" (Every day / On chosen days) and check-ins "Log as" (Done or not / An amount); search, sort and category chips sit behind a "Search and filter" button above Today | Starts closed and stays as left across views; closing keeps values and the list filtered; while closed the button states how many filters are active (search text and category, not sort); Escape closes it back to the button |

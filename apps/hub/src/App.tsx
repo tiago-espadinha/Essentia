@@ -2,21 +2,19 @@ import { useLocale } from '@essentia/ui'
 import { t } from './locale'
 import { AccentSelect, LocaleSelect, Search, ThemeToggle } from '@essentia/ui'
 import { suiteApps, type SuiteApp } from './domain/apps'
-import { AppIcon } from './AppIcon'
+import { AppSample } from './AppSample'
 import { Account } from './Account'
 
-function AppEntry({ app }: { app: SuiteApp }) {
+// The link's ::after stretches over the card, so the whole card opens the app
+// while staying a real link (new-tab clicks work) with a short name.
+function AppCard({ app }: { app: SuiteApp }) {
   return (
-    <li className="hub__entry">
-      <AppIcon name={app.name} />
-      <div>
-        <h2 className="hub__app-name">{app.name}</h2>
-        <p className="hub__catchphrase">{t(app.catchphrase ?? app.latin)}</p>
+    <li className="hub-card">
+      <AppSample name={app.name} />
+      <div className="hub-card__foot">
+        <h2 className="hub-card__name"><a className="hub-card__link" href={app.path}>{app.name}</a></h2>
+        <p className="hub-card__catchphrase">{t(app.catchphrase ?? app.latin)}</p>
       </div>
-      <p className="hub__app-desc">{t(app.description)}</p>
-      <a className="hub__open" href={app.path}>
-        {t('Open {name}', { name: app.name })} <span aria-hidden="true">↗</span>
-      </a>
     </li>
   )
 }
@@ -50,7 +48,7 @@ export default function App({ apps = suiteApps }: { apps?: SuiteApp[] }) {
         ) : (
           <nav aria-label={t("Everyday tools")}>
             <ul className="hub__apps">
-              {listed.map((app) => <AppEntry key={app.path} app={app} />)}
+              {listed.map((app) => <AppCard key={app.path} app={app} />)}
             </ul>
           </nav>
         )}
